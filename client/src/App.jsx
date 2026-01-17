@@ -1,8 +1,8 @@
 import { useState } from "react";
-import Navbar from "./components/Navbar";
-import Card from "./components/Card";
-import Footer from "./components/Footer";
-import Listing from "./components/Listing";
+import Navbar from "./components/layout/Navbar";
+import Card from "./components/common/Card";
+import Footer from "./components/layout/Footer";
+import Listing from "./components/common/Listing";
 
 // Mock Data
 const JOBS = Array.from({ length: 10 }).map((_, i) => ({

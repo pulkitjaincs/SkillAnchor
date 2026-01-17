@@ -35,7 +35,8 @@ A premium job portal for the blue-collar workforce, connecting skilled workers w
 git clone https://github.com/pulkitjaincs/KaamSetu.git
 cd KaamSetu
 
-# Install dependencies
+# Install client dependencies
+cd client
 npm install
 
 # Start development server
@@ -49,24 +50,37 @@ npm run build
 
 ```
 KaamSetu/
-├── src/
-│   ├── components/
-│   │   ├── Card.jsx        # Job listing card
-│   │   ├── Listing.jsx     # Job details panel
-│   │   ├── Navbar.jsx      # Navigation with search & theme toggle
-│   │   └── Footer.jsx      # Footer component
-│   ├── App.jsx             # Main application layout
-│   ├── main.jsx            # React entry point
-│   └── index.css           # Global styles & animations
-├── index.html
-├── package.json
-└── vite.config.js
+├── client/                     # Frontend (React/Vite)
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── common/         # Card, Listing
+│   │   │   └── layout/         # Navbar, Footer
+│   │   ├── pages/
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   ├── context/
+│   │   ├── styles/             # Global CSS
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── index.html
+│   ├── vite.config.js
+│   └── package.json
+│
+├── server/                     # Backend (Node.js) - Coming Soon
+│   └── src/
+│       ├── routes/
+│       ├── controllers/
+│       ├── models/
+│       └── middleware/
+│
+├── package.json                # Root monorepo scripts
+└── README.md
 ```
 
 ## 🎯 Tech Stack
 
 - **React 19** - UI library with hooks
-- **Vite 6** - Next-gen frontend tooling
+- **Vite 7** - Next-gen frontend tooling
 - **Bootstrap 5.3** - CSS framework
 - **Bootstrap Icons** - Icon library
 - **CSS Variables** - Theming system
@@ -81,14 +95,12 @@ KaamSetu uses CSS custom properties for theming:
   --bg-card: #ffffff;
   --text-main: #09090b;
   --text-muted: #71717a;
-  /* ... */
 }
 
 [data-theme="dark"] {
   --bg-body: #09090b;
   --bg-card: #18181b;
   --text-main: #fafafa;
-  /* ... */
 }
 ```
 
@@ -103,10 +115,10 @@ KaamSetu uses CSS custom properties for theming:
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run preview` | Preview production build |
-| `npm run lint` | Run ESLint |
+| `npm run dev` | Start client dev server |
+| `npm run dev:client` | Start client (explicit) |
+| `npm run dev:server` | Start server (when ready) |
+| `npm run build` | Build client for production |
 
 ## 📄 License
 
