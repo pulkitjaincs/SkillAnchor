@@ -66,12 +66,17 @@ KaamSetu/
 │   ├── vite.config.js
 │   └── package.json
 │
-├── server/                     # Backend (Node.js) - Coming Soon
+├── server/                     # Backend (Node.js & Express)
 │   └── src/
-│       ├── routes/
-│       ├── controllers/
-│       ├── models/
-│       └── middleware/
+│       ├── config/             # DB & App config
+│       ├── controllers/        # Route logic
+│       ├── models/             # Mongoose models
+│       ├── routes/             # API routes
+│       ├── middleware/         # Auth & error handling
+│       ├── services/           # Business logic
+│       ├── utils/              # Helper functions
+│       ├── app.js              # Express app setup
+│       └── server.js           # Entry point
 │
 ├── package.json                # Root monorepo scripts
 └── README.md
@@ -79,11 +84,18 @@ KaamSetu/
 
 ## 🎯 Tech Stack
 
+### Frontend
 - **React 19** - UI library with hooks
 - **Vite 7** - Next-gen frontend tooling
 - **Bootstrap 5.3** - CSS framework
 - **Bootstrap Icons** - Icon library
 - **CSS Variables** - Theming system
+
+### Backend
+- **Node.js** - Runtime environment
+- **Express.js** - Web framework
+- **MongoDB & Mongoose** - Database & ODM
+- **JWT** - Authentication (Planned)
 
 ## 🌙 Theme System
 

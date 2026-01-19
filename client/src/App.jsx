@@ -4,6 +4,9 @@ import Card from "./components/common/Card";
 import Footer from "./components/layout/Footer";
 import Listing from "./components/common/Listing";
 
+const res = await fetch("/api/health");
+const data = await res.json();
+console.log(data);
 // Mock Data
 const JOBS = Array.from({ length: 10 }).map((_, i) => ({
   id: i,
