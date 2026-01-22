@@ -1,0 +1,43 @@
+import mongoose from "mongoose";
+
+const UserSchema = new mongoose.Schema({
+    phone: {
+        type: String,
+        unique: true,
+        sparse: true,
+    },
+    email: {
+        type: String,
+        unique: true,
+        sparse: true,
+        lowercase: true,
+    },
+    password: {
+        type: String,
+    },
+    authType: {
+        type: String,
+        enum: ["phone", "email"],
+        required: true,
+    },
+    role: {
+        type: String,
+        enum: ["worker", "employer", "admin"],
+        required: true,
+        default: "worker",
+    },
+    isVerified: {
+        type: Boolean,
+        default: false,
+    },
+    profile: {
+        type: mongoose.Schema.Types.ObjectId,
+        refPath: "role",
+    },
+}, { timestamps: true });
+
+UserSchema.index({ phone: 1 }, { unique: true, sparse: true });
+UserSchema.index({ email: 1 }, { unique: true, sparse: true });
+
+const User = mongoose.model("User", UserSchema);
+export default User;

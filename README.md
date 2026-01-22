@@ -95,7 +95,20 @@ KaamSetu/
 - **Node.js** - Runtime environment
 - **Express.js** - Web framework
 - **MongoDB & Mongoose** - Database & ODM
-- **JWT** - Authentication (Planned)
+- **JWT & bcrypt** - Authentication
+
+### Database Models
+| Model | Purpose |
+|-------|---------|
+| User | Auth (phone/email), role, verification |
+| OTP | Phone verification with auto-expiry |
+| WorkerProfile | Job seeker details, skills, documents |
+| EmployerProfile | Hiring manager info |
+| Company | Business entities |
+| Job | Job listings with search indexes |
+| Application | Job applications with status tracking |
+| SavedJob | Bookmarks/wishlist |
+| WorkExperience | Employer-verified work history |
 
 ## 🌙 Theme System
 
