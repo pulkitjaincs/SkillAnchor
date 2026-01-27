@@ -59,8 +59,8 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
 
         <div className="position-absolute bottom-0 start-0 p-4 translate-y-50 d-flex align-items-end gap-3" style={{ transform: "translateY(40%)" }}>
           <img
-            src={job.image}
-            alt={job.company}
+            src={job.company?.logo}
+            alt={job.company?.name}
             className="rounded-4 shadow-lg border border-4 border-white"
             style={{ width: "100px", height: "100px", objectFit: "cover" }}
           />
@@ -72,10 +72,10 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
         <div className="mt-2 mb-4 d-flex justify-content-between align-items-start flex-wrap gap-3">
           <div>
             <h2 className="fw-bold mb-1 display-6" style={{ letterSpacing: "-0.03em", color: "var(--text-main)" }}>{job.title}</h2>
-            <h5 className="fw-medium mb-2" style={{ color: "var(--text-muted)" }}>{job.company}</h5>
+            <h5 className="fw-medium mb-2" style={{ color: "var(--text-muted)" }}>{job.company?.name}</h5>
             <div className="d-flex align-items-center gap-3 small" style={{ color: "var(--text-muted)" }}>
-              <span className="d-flex align-items-center gap-1"><i className="bi bi-geo-alt-fill text-primary"></i> {job.location}</span>
-              <span className="d-flex align-items-center gap-1"><i className="bi bi-clock-fill text-primary"></i> Posted 2 days ago</span>
+              <span className="d-flex align-items-center gap-1"><i className="bi bi-geo-alt-fill text-primary"></i> {job.city}, {job.state}</span>
+              <span className="d-flex align-items-center gap-1"><i className="bi bi-clock-fill text-primary"></i> Posted {new Date(job.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
           <button className="btn btn-premium px-5 py-3 rounded-4 fw-bold shadow-lg text-uppercase tracking-wider">
@@ -85,9 +85,9 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
 
         <div className="row g-3 mb-5">
           {[
-            { label: "Salary", value: `₹${job.salary}`, icon: "bi-cash-stack" },
-            { label: "Job Type", value: job.tags[0], icon: "bi-briefcase-fill" },
-            { label: "Experience", value: "1 - 3 Years", icon: "bi-star-fill" },
+            { label: "Salary", value: `₹${job.salaryMin?.toLocaleString()}-${job.salaryMax?.toLocaleString()}`, icon: "bi-cash-stack" },
+            { label: "Job Type", value: job.jobType, icon: "bi-briefcase-fill" },
+            { label: "Experience", value:`${job.experienceMin}+ Years`, icon: "bi-star-fill" },
           ].map((stat, idx) => (
             <div key={idx} className="col-md-4">
               <div className="p-3 rounded-4 border" style={{ background: "var(--bg-surface)", borderColor: "var(--border-color)" }}>
@@ -110,18 +110,18 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
           <p style={{ lineHeight: "1.8", fontSize: "1.05rem", color: "var(--text-muted)" }}>
             {job.description}
           </p>
-          <div className="mt-3 p-4 rounded-4" style={{ whiteSpace: "pre-line", lineHeight: "1.8", background: "var(--bg-surface)", color: "var(--text-muted)" }}>
-            {job.longDescription}
-          </div>
+          {/* <div className="mt-3 p-4 rounded-4" style={{ whiteSpace: "pre-line", lineHeight: "1.8", background: "var(--bg-surface)", color: "var(--text-muted)" }}>
+            {job.description}
+          </div> */}
         </div>
 
         <div className="mb-4">
           <h5 className="fw-bold mb-3 border-start border-4 border-primary ps-3" style={{ color: "var(--text-main)" }}>Required Skills</h5>
           <div className="d-flex gap-2 flex-wrap">
-            {job.tags.map((tag, index) => (
+            {job.skills?.map((skill, index) => (
               <span key={index} className="badge rounded-pill border px-3 py-2 fw-medium shadow-sm"
                 style={{ background: "var(--bg-card)", borderColor: "var(--border-color)", color: "var(--text-muted)" }}>
-                {tag}
+                {skill}
               </span>
             ))}
           </div>

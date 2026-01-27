@@ -1,13 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "./components/layout/Navbar";
 import Card from "./components/common/Card";
 import Footer from "./components/layout/Footer";
 import Listing from "./components/common/Listing";
 
-const res = await fetch("/api/health");
-const data = await res.json();
-console.log(data);
-// Mock Data
+
 const JOBS = Array.from({ length: 10 }).map((_, i) => ({
   id: i,
   title: i % 2 === 0 ? "Chef at Radisson Blu" : "Hotel Manager",
@@ -32,15 +29,25 @@ const JOBS = Array.from({ length: 10 }).map((_, i) => ({
   tags: ["Full Time", "Urgent", "Food & Beverage"]
 }));
 
-// ... imports
-
 function App() {
+  const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
   const [isSwitch, setIsSwitch] = useState(false);
 
-  // Handle Card Click
+  useEffect( ()=>{
+    const res =  fetch("/api/jobs")
+                      .then(res => res.json())
+                      .then(data => {
+                        if(Array.isArray(data)){
+                          setJobs(data);
+                        }else{
+                          console.error("Invalid data format");
+                          setJobs([]);
+                        }
+                      }).catch(err => console.error("Fetch error: ",err));
+  },[]);
   const handleJobClick = (job, e) => {
-    // Check if we're switching from an existing selection
+    
     if (selectedJob !== null && selectedJob.id !== job.id) {
       setIsSwitch(true);
     } else {
@@ -49,14 +56,10 @@ function App() {
     setSelectedJob(job);
   };
 
-  // Dynamic Column Classes
-  // On Mobile: If job selected, List is hidden (d-none), Detail is full width (col-12)
-  // On Desktop (lg): List is (col-4), Detail is (col-8)
   const listColumnClass = selectedJob
     ? "d-none d-lg-flex col-lg-4"
     : "col-12 col-md-8 offset-md-2 col-lg-6 offset-lg-3";
 
-  // If job selected: Mobile (col-12), Desktop (col-lg-8)
   const detailColumnClass = selectedJob
     ? "col-12 col-lg-8"
     : "d-none";
@@ -67,30 +70,29 @@ function App() {
 
       <div className="container-fluid flex-grow-1 px-4 px-lg-5" style={{ maxWidth: "1600px" }}>
         <div className="row g-4">
-          {/* Job List Column - FLOWS WITH PAGE */}
+
           <div className={`${listColumnClass} d-flex flex-column layout-transition`}
             style={{ paddingTop: "20px", paddingBottom: "20px" }}>
             <div className="d-flex align-items-center justify-content-between mb-4 px-2">
               <h4 className="fw-bolder mb-0 tracking-tight" style={{ color: "var(--text-main)" }}>Recent Jobs</h4>
               <span className="badge border shadow-sm rounded-pill px-3 py-2 fw-medium"
                 style={{ background: "var(--bg-card)", color: "var(--text-muted)", borderColor: "var(--border-color)" }}>
-                {JOBS.length} found
+                {jobs.length} found
               </span>
             </div>
 
             <div className="pe-3 pb-5">
-              {JOBS.map((job) => (
+              {jobs.map((job) => (
                 <Card
-                  key={job.id}
+                  key={job._id}
                   job={job}
-                  isSelected={selectedJob?.id === job.id}
+                  isSelected={selectedJob?._id === job._id}
                   onClick={(e) => handleJobClick(job, e)}
                 />
               ))}
             </div>
           </div>
 
-          {/* Job Details Column - STICKY & INDEPENDENT SCROLL */}
           <div className={`${detailColumnClass} layout-transition sticky-top`}
             style={{ height: "calc(100vh - 40px)", overflowY: "hidden", top: "20px", borderRadius: "24px", zIndex: 100 }}>
             {selectedJob && (

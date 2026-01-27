@@ -35,16 +35,33 @@ A premium job portal for the blue-collar workforce, connecting skilled workers w
 git clone https://github.com/pulkitjaincs/KaamSetu.git
 cd KaamSetu
 
-# Install client dependencies
+# Setup Backend
+cd server
+npm install
+cp .env.example .env  # Add your MONGO_URI
+npm run dev           # Starts on port 5000
+
+# Setup Frontend (new terminal)
 cd client
 npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
+npm run dev           # Starts on port 5173
 ```
+
+### Environment Variables
+
+Create `server/.env`:
+```env
+MONGO_URI=mongodb://localhost:27017/kaamsetu
+PORT=5000
+```
+
+## 🔌 API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health` | Health check |
+| GET | `/api/jobs` | List all active jobs |
+| GET | `/api/jobs/:id` | Get single job details |
 
 ## 📁 Project Structure
 

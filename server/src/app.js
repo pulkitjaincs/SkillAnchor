@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import jobRoutes from "./routes/job.routes.js";
 const app = express();
 
 app.use(cors());
@@ -10,5 +11,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/api/health", (req, res) => {
     res.json({ message: "OK" });
 });
+
+app.use("/api/jobs", jobRoutes);
 
 export default app;
