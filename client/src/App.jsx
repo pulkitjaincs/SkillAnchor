@@ -33,21 +33,40 @@ function App() {
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
   const [isSwitch, setIsSwitch] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [cursor, setCursor] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  useEffect( ()=>{
-    const res =  fetch("/api/jobs")
-                      .then(res => res.json())
-                      .then(data => {
-                        if(Array.isArray(data)){
-                          setJobs(data);
-                        }else{
-                          console.error("Invalid data format");
-                          setJobs([]);
-                        }
-                      }).catch(err => console.error("Fetch error: ",err));
-  },[]);
+  useEffect(() => {
+    loadJobs();
+  }, []);
+
+  const loadJobs = async () => {
+    if (loading) return;
+    setLoading(true);
+
+    try {
+      const url = cursor
+        ? `/api/jobs?limit=10&cursor=${cursor}`
+        : `/api/jobs?limit=10`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.jobs && Array.isArray(data.jobs)) {
+        setJobs(prev => [...prev, ...data.jobs]); 
+        setCursor(data.jobs[data.jobs.length - 1]?._id); 
+        setHasMore(data.hasMore);
+      } else {
+        console.error("Invalid data format", data);
+      }
+    } catch (err) {
+      console.error("Fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleJobClick = (job, e) => {
-    
+
     if (selectedJob !== null && selectedJob.id !== job.id) {
       setIsSwitch(true);
     } else {
