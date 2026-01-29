@@ -36,8 +36,5 @@ const UserSchema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
-UserSchema.index({ phone: 1 }, { unique: true, sparse: true });
-UserSchema.index({ email: 1 }, { unique: true, sparse: true });
-
 const User = mongoose.model("User", UserSchema);
 export default User;
