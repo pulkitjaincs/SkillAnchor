@@ -16,9 +16,8 @@ export const verifyOTP = async (req, res) => {
     const record = await OTP.findOne({ phone, otp, isUsed: false });
     if (!record || record.expiresAt < Date.now()) {
         return res.status(400).json({ error: "Invalid or expired OTP" });
-    }
-    record.isUsed = true;
-    await record.save();
+    }    
+    await OTP.deleteOne({_id: record._id});
     let user = await User.findOne({ phone });
     if (!user) {
         user = await User.create({ phone, authType: "phone", role: req.body.role });
