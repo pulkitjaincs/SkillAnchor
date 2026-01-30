@@ -3,9 +3,6 @@ import cors from "cors";
 import jobRoutes from "./routes/job.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 
-
-
-
 const app = express();
 
 app.use(cors());

@@ -18,7 +18,7 @@ export const sendOTP = async (req, res) => {
 
 export const verifyOTP = async (req, res) => {
     try {
-        const { phone, otp } = req.body;
+        const { phone, name, otp, role } = req.body;
         const record = await OTP.findOne({ phone, otp });
         if (!record || record.expiresAt < Date.now()) {
             return res.status(400).json({ error: "Invalid or expired OTP" });
@@ -26,7 +26,7 @@ export const verifyOTP = async (req, res) => {
         await OTP.deleteOne({ _id: record._id });
         let user = await User.findOne({ phone });
         if (!user) {
-            user = await User.create({ phone, authType: "phone", role: req.body.role });
+            user = await User.create({ phone, name, authType: "phone", role });
         }
         user.isVerified = true;
         await user.save();
@@ -42,7 +42,7 @@ export const verifyOTP = async (req, res) => {
 
 export const register = async (req, res) => {
     try {
-        const { email, password, role = "employer" } = req.body;
+        const { email, password, role, name } = req.body;
         const exists = await User.findOne({ email });
         if (exists) {
             return res.status(400).json({ error: "Email already exists!" });
@@ -53,6 +53,7 @@ export const register = async (req, res) => {
             password: hashedPassword,
             authType: "email",
             role,
+            name,
             isVerified: true
         });
         const safeUser = user.toObject();

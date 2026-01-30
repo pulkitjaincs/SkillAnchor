@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const Navbar = ({ name }) => {
   const [scrolled, setScrolled] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
-  const [theme, setTheme] = useState("system"); // system, light, dark
+  const [theme, setTheme] = useState("system");
   const inputRef = useRef(null);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
-  // Theme Logic
   useEffect(() => {
     const root = document.documentElement;
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -24,7 +27,6 @@ const Navbar = ({ name }) => {
     return () => mediaQuery.removeEventListener("change", applyTheme);
   }, [theme]);
 
-  // Scroll Logic
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
@@ -42,7 +44,10 @@ const Navbar = ({ name }) => {
     if (theme === "dark") return "bi-moon-fill";
     return "bi-circle-half";
   };
-
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  }
   return (
     <div className="px-3 px-lg-4 py-3">
       <nav
@@ -51,16 +56,14 @@ const Navbar = ({ name }) => {
         style={{ transition: "all 0.5s cubic-bezier(0.16, 1, 0.3, 1)" }}
       >
         <div className="container-fluid d-flex align-items-center">
-          {/* Logo - Minimal & Geometric */}
-          <a className="navbar-brand fw-bolder fs-4 d-flex align-items-center gap-2 me-4" href="#">
+          <Link className="navbar-brand fw-bolder fs-4 d-flex align-items-center gap-2 me-4" to="/">
             <div className="d-flex align-items-center justify-content-center rounded-circle"
               style={{ width: "32px", height: "32px", background: "var(--text-main)", color: "var(--bg-body)" }}>
               <span className="fw-bold" style={{ fontSize: "16px", letterSpacing: "-0.05em" }}>K</span>
             </div>
             <span style={{ letterSpacing: "-0.05em", color: "var(--text-main)" }}>KaamSetu</span>
-          </a>
+          </Link>
 
-          {/* Desktop Search Bar (Hidden on Mobile) */}
           <div
             className="d-none d-lg-flex align-items-center position-relative transition-all me-auto"
             style={{
@@ -113,8 +116,6 @@ const Navbar = ({ name }) => {
               />
             </div>
           </div>
-
-          {/* Mobile Search Toggle */}
           <button
             className="btn d-lg-none ms-auto me-2 rounded-circle p-0 flex-shrink-0 d-flex align-items-center justify-content-center"
             onClick={() => setSearchActive(!searchActive)}
@@ -164,13 +165,12 @@ const Navbar = ({ name }) => {
           <div className="collapse navbar-collapse flex-grow-0" id="navContent">
             <ul className="navbar-nav ms-auto mb-2 mb-lg-0 gap-2 gap-lg-4 align-items-center">
               <li className="nav-item">
-                <a className="nav-link fw-medium px-2 hover-dark" href="#" style={{ color: "var(--text-muted)" }}>Find Jobs</a>
+                <Link className="nav-link fw-medium px-2 hover-dark" to="/" style={{ color: "var(--text-muted)" }}>Find Jobs</Link>
               </li>
               <li className="nav-item">
-                <a className="nav-link fw-medium px-2 hover-dark" href="#" style={{ color: "var(--text-muted)" }}>Companies</a>
+                <Link className="nav-link fw-medium px-2 hover-dark" to="#" style={{ color: "var(--text-muted)" }}>Companies</Link>
               </li>
 
-              {/* Theme Toggle */}
               <li className="nav-item">
                 <button
                   onClick={toggleTheme}
@@ -212,22 +212,41 @@ const Navbar = ({ name }) => {
                 </button>
               </li>
 
-              <li className="nav-item">
-                <button className="btn rounded-pill px-4 py-2 fw-semibold shadow-sm"
-                  style={{
-                    background: "var(--text-main)",
-                    color: "var(--bg-body)",
-                    fontSize: "0.95rem",
-                    border: "none"
-                  }}>
-                  Sign In
-                </button>
-              </li>
+              {user ? (
+                <li className="nav-item">
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="d-flex align-items-center gap-2">
+                      <div className="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                        style={{ width: '36px', height: '36px', background: 'linear-gradient(135deg, var(--primary-500), var(--primary-700))', color: 'white', fontSize: '0.9rem' }}>
+                        {user.name?.charAt(0)?.toUpperCase()}
+                      </div>
+                      <span className="fw-medium d-none d-xl-inline" style={{ color: 'var(--text-main)' }}>
+                        {user.name}
+                      </span>
+                    </div>
+                    <button onClick={handleLogout} className="btn rounded-pill px-3 py-2 fw-medium"
+                      style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', fontSize: '0.85rem' }}>
+                      Logout
+                    </button>
+                  </div>
+                </li>
+              ) : (
+                <li className="nav-item">
+                  <Link to="/login" className="btn rounded-pill px-4 py-2 fw-semibold shadow-sm"
+                    style={{
+                      background: "var(--text-main)",
+                      color: "var(--bg-body)",
+                      fontSize: "0.95rem",
+                      border: "none"
+                    }}>
+                    Sign In
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
         </div>
 
-        {/* Mobile Search Overlay - Animated */}
         <div className={`d-lg-none w-100 px-3 mobile-search-overlay ${searchActive ? "active" : ""}`}>
           <div className="d-flex align-items-center rounded-pill px-3 py-2 mt-3"
             style={{

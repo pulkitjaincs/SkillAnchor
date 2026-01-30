@@ -10,18 +10,35 @@ const Card = ({ job, isSelected, onClick }) => {
 
         border: isSelected ? "1px solid var(--border-active)" : "1px solid transparent",
         boxShadow: isSelected ? "var(--shadow-md)" : "var(--shadow-sm)",
-        
+
         transform: isSelected ? "scale(1.02)" : undefined
       }}
     >
       <div className="card-body p-4">
         <div className="d-flex align-items-center gap-3">
-          <img
-            src={job.company?.logo}
-            className="rounded-4 object-cover"
-            alt={job.title}
-            style={{ width: "64px", height: "64px", flexShrink: 0, background: "var(--zinc-100)" }}
-          />
+          {job.company?.logo ? (
+            <img
+              src={job.company.logo}
+              className="rounded-4 object-cover"
+              alt={job.title}
+              style={{ width: "64px", height: "64px", flexShrink: 0, background: "var(--zinc-100)" }}
+              onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+            />
+          ) : null}
+          <div
+            className="rounded-4 d-flex align-items-center justify-content-center fw-bold"
+            style={{
+              width: "64px",
+              height: "64px",
+              flexShrink: 0,
+              background: "linear-gradient(135deg, var(--primary-500), var(--primary-700))",
+              color: "white",
+              fontSize: "1.5rem",
+              display: job.company?.logo ? "none" : "flex"
+            }}
+          >
+            {job.company?.name?.charAt(0)?.toUpperCase() || "?"}
+          </div>
           <div className="flex-grow-1 min-w-0">
             <h6 className="fw-bold mb-1 text-truncate" style={{ color: "var(--text-main)" }}>
               {job.title}

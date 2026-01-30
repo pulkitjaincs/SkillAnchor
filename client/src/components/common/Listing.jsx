@@ -7,10 +7,9 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
     setIsClosing(true);
     setTimeout(() => {
       onClose();
-    }, 350); // Match exit animation duration
+    }, 350);
   };
 
-  // Determine animation class
   const getAnimationClass = () => {
     if (isClosing) return 'animate-exit-listing';
     if (isSwitch) return 'animate-switch-listing';
@@ -35,9 +34,7 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
         background: "var(--bg-card)",
         color: "var(--text-main)"
       }}>
-      {/* Hero Header */}
       <div className="position-relative" style={{ height: "160px", background: "linear-gradient(135deg, var(--primary-100), var(--zinc-100))" }}>
-        {/* Close Button - Acts as Back on Mobile */}
         <button
           onClick={handleClose}
           className="position-absolute top-0 start-0 m-3 btn rounded-circle shadow-sm p-0 d-flex align-items-center justify-content-center hover-scale"
@@ -87,7 +84,7 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
           {[
             { label: "Salary", value: `₹${job.salaryMin?.toLocaleString()}-${job.salaryMax?.toLocaleString()}`, icon: "bi-cash-stack" },
             { label: "Job Type", value: job.jobType, icon: "bi-briefcase-fill" },
-            { label: "Experience", value:`${job.experienceMin}+ Years`, icon: "bi-star-fill" },
+            { label: "Experience", value: `${job.experienceMin}+ Years`, icon: "bi-star-fill" },
           ].map((stat, idx) => (
             <div key={idx} className="col-md-4">
               <div className="p-3 rounded-4 border" style={{ background: "var(--bg-surface)", borderColor: "var(--border-color)" }}>
@@ -110,9 +107,7 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
           <p style={{ lineHeight: "1.8", fontSize: "1.05rem", color: "var(--text-muted)" }}>
             {job.description}
           </p>
-          {/* <div className="mt-3 p-4 rounded-4" style={{ whiteSpace: "pre-line", lineHeight: "1.8", background: "var(--bg-surface)", color: "var(--text-muted)" }}>
-            {job.description}
-          </div> */}
+
         </div>
 
         <div className="mb-4">
