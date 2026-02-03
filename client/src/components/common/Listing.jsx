@@ -1,6 +1,9 @@
 import { useState } from "react";
+import { useAuth } from '../../context/AuthContext';
 
 const Listing = ({ job, onClose, isSwitch = false }) => {
+  const { user } = useAuth();
+
   const [isClosing, setIsClosing] = useState(false);
 
   const handleClose = () => {
@@ -72,17 +75,20 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
             <h5 className="fw-medium mb-2" style={{ color: "var(--text-muted)" }}>{job.company?.name}</h5>
             <div className="d-flex align-items-center gap-3 small" style={{ color: "var(--text-muted)" }}>
               <span className="d-flex align-items-center gap-1"><i className="bi bi-geo-alt-fill text-primary"></i> {job.city}, {job.state}</span>
-              <span className="d-flex align-items-center gap-1"><i className="bi bi-clock-fill text-primary"></i> Posted {new Date(job.createdAt).toLocaleDateString()}</span>
+              <span className="d-flex align-items-center gap-1"><i className="bi bi-clock-fill text-primary"></i> Posted {new Date(job.createdAt).toLocaleDateString('en-GB')}</span>
             </div>
           </div>
-          <button className="btn btn-premium px-5 py-3 rounded-4 fw-bold shadow-lg text-uppercase tracking-wider">
-            Apply Now
-          </button>
+          {user?.role !== 'employer' && (
+            <button className="btn btn-premium px-5 py-3 rounded-4 fw-bold shadow-lg text-uppercase tracking-wider">
+              Apply Now
+            </button>
+          )}
+
         </div>
 
         <div className="row g-3 mb-5">
           {[
-            { label: "Salary", value: `₹${job.salaryMin?.toLocaleString()}-${job.salaryMax?.toLocaleString()}`, icon: "bi-cash-stack" },
+            { label: "Salary", value: `₹${job.salaryMin?.toLocaleString()}${job.salaryMax ? `-${job.salaryMax.toLocaleString()}` : '+'}`, icon: "bi-cash-stack" },
             { label: "Job Type", value: job.jobType, icon: "bi-briefcase-fill" },
             { label: "Experience", value: `${job.experienceMin}+ Years`, icon: "bi-star-fill" },
           ].map((stat, idx) => (

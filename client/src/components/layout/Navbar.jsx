@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
+
 const Navbar = ({ name }) => {
   const [scrolled, setScrolled] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
@@ -56,7 +57,7 @@ const Navbar = ({ name }) => {
         style={{ transition: "all 0.5s cubic-bezier(0.16, 1, 0.3, 1)" }}
       >
         <div className="container-fluid d-flex align-items-center">
-          <Link className="navbar-brand fw-bolder fs-4 d-flex align-items-center gap-2 me-4" to="/">
+          <Link className="navbar-brand fw-bolder fs-4 d-flex align-items-center gap-2 me-4 logo-hover" to="/">
             <div className="d-flex align-items-center justify-content-center rounded-circle"
               style={{ width: "32px", height: "32px", background: "var(--text-main)", color: "var(--bg-body)" }}>
               <span className="fw-bold" style={{ fontSize: "16px", letterSpacing: "-0.05em" }}>K</span>
@@ -164,9 +165,17 @@ const Navbar = ({ name }) => {
 
           <div className="collapse navbar-collapse flex-grow-0" id="navContent">
             <ul className="navbar-nav ms-auto mb-2 mb-lg-0 gap-2 gap-lg-4 align-items-center">
-              <li className="nav-item">
-                <Link className="nav-link fw-medium px-2 hover-dark" to="/" style={{ color: "var(--text-muted)" }}>Find Jobs</Link>
-              </li>
+              {user?.role === 'employer' && (
+                <li className="nav-item">
+                  <Link className="nav-link fw-medium px-2 hover-dark" to="/my-jobs" style={{ color: "var(--text-muted)" }}>My Jobs</Link>
+                </li>
+              )}
+
+              {user?.role === 'worker' && (
+                <li className="nav-item">
+                  <Link className="nav-link fw-medium px-2 hover-dark" to="/my-applications" style={{ color: "var(--text-muted)" }}>My Applications</Link>
+                </li>
+              )}
               <li className="nav-item">
                 <Link className="nav-link fw-medium px-2 hover-dark" to="#" style={{ color: "var(--text-muted)" }}>Companies</Link>
               </li>
@@ -174,7 +183,7 @@ const Navbar = ({ name }) => {
               <li className="nav-item">
                 <button
                   onClick={toggleTheme}
-                  className="btn rounded-circle d-flex align-items-center justify-content-center p-0"
+                  className="btn rounded-circle d-flex align-items-center justify-content-center p-0 theme-toggle"
                   style={{
                     width: "40px",
                     height: "40px",
@@ -211,7 +220,6 @@ const Navbar = ({ name }) => {
                   )}
                 </button>
               </li>
-
               {user ? (
                 <li className="nav-item">
                   <div className="d-flex align-items-center gap-3">
@@ -224,7 +232,7 @@ const Navbar = ({ name }) => {
                         {user.name}
                       </span>
                     </div>
-                    <button onClick={handleLogout} className="btn rounded-pill px-3 py-2 fw-medium"
+                    <button onClick={handleLogout} className="btn rounded-pill px-3 py-2 fw-medium logout-btn"
                       style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', fontSize: '0.85rem' }}>
                       Logout
                     </button>

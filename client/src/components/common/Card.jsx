@@ -53,10 +53,10 @@ const Card = ({ job, isSelected, onClick }) => {
               <div className="d-flex align-items-center gap-2">
                 <i className="bi bi-wallet2" style={{ color: "var(--text-muted)", fontSize: "1rem" }}></i>
                 <span className="fw-bold text-gradient" style={{ fontSize: "0.95rem" }}>
-                  ₹{job.salaryMin}-{job.salaryMax}
+                  ₹{job.salaryMin?.toLocaleString()}{job.salaryMax ? `-${job.salaryMax.toLocaleString()}` : '+'}
                 </span>
               </div>
-              <small style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{new Date(job.createdAt).toLocaleDateString()}</small>
+              <small style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{new Date(job.createdAt).toLocaleDateString('en-GB')}</small>
             </div>
           </div>
         </div>

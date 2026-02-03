@@ -117,6 +117,139 @@ h6 {
     -webkit-text-fill-color: transparent;
 }
 
+/* Hover effect for nav links */
+.hover-dark {
+    transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.hover-dark:hover {
+    color: var(--text-main) !important;
+    opacity: 1;
+}
+
+/* Button hover effects */
+.btn-hover-scale {
+    transition: all 0.2s ease;
+}
+
+.btn-hover-scale:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+    transition: transform 0.3s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.theme-toggle:hover {
+    transform: rotate(15deg) scale(1.1);
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+}
+
+.theme-toggle:active {
+    transform: rotate(0deg) scale(0.95);
+}
+
+/* Logout button */
+.logout-btn {
+    transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+    background: rgba(239, 68, 68, 0.2) !important;
+    border-color: #ef4444 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+/* Logo hover */
+.logo-hover {
+    transition: transform 0.3s ease, opacity 0.2s ease;
+}
+
+.logo-hover:hover {
+    transform: scale(1.05);
+    opacity: 0.85;
+}
+
+/* Post Job button */
+.post-job-btn {
+    transition: all 0.2s ease;
+}
+
+.post-job-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Job card hover */
+.job-card-hover {
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.job-card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+    border-color: var(--primary-500) !important;
+}
+
+/* Premium form inputs */
+.premium-input {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-main);
+    transition: all 0.2s ease;
+}
+
+.premium-input:focus {
+    background: var(--bg-surface);
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    color: var(--text-main);
+}
+
+.premium-input:hover:not(:focus) {
+    border-color: var(--text-muted);
+}
+
+/* View button hover */
+.btn-view-action {
+    transition: all 0.2s ease;
+}
+
+.btn-view-action:hover {
+    background: var(--text-main) !important;
+    color: var(--bg-body) !important;
+    border-color: var(--text-main) !important;
+    transform: scale(1.02);
+}
+
+/* Edit button hover */
+.btn-edit-action {
+    transition: all 0.2s ease;
+}
+
+.btn-edit-action:hover {
+    background: var(--primary-600) !important;
+    color: white !important;
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Delete button hover */
+.btn-delete-action {
+    transition: all 0.2s ease;
+}
+
+.btn-delete-action:hover {
+    background: #ef4444 !important;
+    color: white !important;
+    border-color: #ef4444 !important;
+    transform: scale(1.02);
+}
+
 .btn-primary-gradient {
     background: linear-gradient(135deg, var(--primary-600), var(--primary-500));
     color: #ffffff;

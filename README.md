@@ -15,13 +15,23 @@ A premium job portal for the blue-collar workforce, connecting skilled workers w
 - **Job Details** - View comprehensive job information with company details
 - **User Authentication** - Phone OTP and Email/Password login options
 - **Role-Based Access** - Separate flows for Workers and Employers
+- **Employer Dashboard** - Post, Edit, and Delete job listings
 - **Responsive Design** - Optimized for desktop, tablet, and mobile devices
+
+### Employer Features
+- **Post Jobs** - Create new job listings with detailed information
+- **Edit Jobs** - Update existing job postings
+- **Delete Jobs** - Remove job listings with confirmation
+- **My Jobs** - Dashboard to manage all posted jobs
+- **Job Status** - Track Active, Paused, and Closed jobs
 
 ### UI/UX
 - **Modern UI** - Apple/Linear-inspired interface with premium animations
 - **Dark/Light Theme** - Seamless theme switching with system preference detection
 - **Smooth Animations** - Spring-based easing curves and layered transitions
 - **Glass Morphism** - Premium glass-panel effects on navigation
+- **Premium Forms** - Section dividers, icons, and focus states
+- **Hover Effects** - Subtle scale and color transitions on buttons
 
 ## 🔐 Authentication System
 
@@ -31,7 +41,7 @@ A premium job portal for the blue-collar workforce, connecting skilled workers w
 | Email Login | Email + Password authentication |
 | Registration | Role selection (Worker/Employer) + Name + Phone/Email |
 | Auth Context | Global state management for user session |
-| Protected Routes | Redirect unauthenticated users |
+| Protected Routes | Role-based route protection |
 | Session Persistence | Token stored in localStorage |
 
 ## 🎨 Design Highlights
@@ -43,12 +53,15 @@ A premium job portal for the blue-collar workforce, connecting skilled workers w
 | Switch Listing | Subtle 0.3s slide with content refresh |
 | Close | Scale down to 95% with fade out |
 | Card Hover | 1.05x scale with shadow lift |
+| Button Hover | Scale with color transition |
 
 ### Components
 - **Navbar** - Floating glass-panel with user avatar, logout, theme toggle, and search
 - **Cards** - Hover-interactive job cards with company logos and fallback initials
 - **Listing** - Full job details with hero header and premium styling
 - **Login/Register** - Premium auth forms with inline validation
+- **My Jobs** - Horizontal card layout with status indicators and action buttons
+- **Post/Edit Job** - Premium forms with section dividers and icons
 
 ## 🚀 Quick Start
 
@@ -81,11 +94,15 @@ PORT=5000
 ## 🔌 API Endpoints
 
 ### Health & Jobs
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/health` | Health check |
-| GET | `/api/jobs` | List jobs with cursor pagination |
-| GET | `/api/jobs/:id` | Get single job details |
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/api/health` | Health check | ❌ |
+| GET | `/api/jobs` | List jobs with cursor pagination | ❌ |
+| GET | `/api/jobs/:id` | Get single job details | ❌ |
+| GET | `/api/jobs/my-jobs` | Get employer's posted jobs | ✅ Employer |
+| POST | `/api/jobs` | Create a new job | ✅ Employer |
+| PUT | `/api/jobs/:id` | Update a job | ✅ Employer |
+| DELETE | `/api/jobs/:id` | Delete a job | ✅ Employer |
 
 ### Authentication
 | Method | Endpoint | Description |
@@ -102,9 +119,11 @@ KaamSetu/
 ├── client/                     # Frontend (React/Vite)
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── common/         # Card, Listing
+│   │   │   ├── common/         # Card, Listing, ProtectedRoutes
 │   │   │   └── layout/         # Navbar, Footer
-│   │   ├── pages/              # HomePage, LoginPage, RegisterPage, JobDetailPage
+│   │   ├── pages/              # HomePage, LoginPage, RegisterPage, 
+│   │   │                       # JobDetailPage, MyJobsPage, 
+│   │   │                       # PostJobPage, EditJobPage
 │   │   ├── context/            # AuthContext (global auth state)
 │   │   ├── styles/             # Global CSS with theme variables
 │   │   ├── App.jsx             # Routes configuration
@@ -119,7 +138,7 @@ KaamSetu/
 │       ├── controllers/        # auth.controller, job.controller
 │       ├── models/             # User, OTP, Job, Company, etc.
 │       ├── routes/             # API routes
-│       ├── middleware/         # Auth middleware
+│       ├── middleware/         # Auth middleware (protect, requireRole)
 │       ├── utils/              # generateToken, helpers
 │       ├── app.js              # Express app setup
 │       └── server.js           # Entry point
@@ -169,7 +188,7 @@ KaamSetu uses CSS custom properties for theming:
   --bg-card: #ffffff;
   --text-main: #09090b;
   --text-muted: #71717a;
-  --primary-500: #3b82f6;
+  --primary-500: #6366f1;
 }
 
 [data-theme="dark"] {
@@ -205,15 +224,23 @@ KaamSetu uses CSS custom properties for theming:
 - [x] Auth context for state management
 - [x] Dark/Light theme toggle
 - [x] Responsive design
+- [x] Protected routes (role-based)
+- [x] Post Job (for employers)
+- [x] Edit Job (for employers)
+- [x] Delete Job (for employers)
+- [x] My Jobs dashboard
+- [x] Premium UI styling
+- [x] Date format (dd/mm/yyyy)
 
 ### Coming Soon 🚧
-- [ ] Protected routes (role-based)
-- [ ] Post Job (for employers)
 - [ ] Apply to Jobs (for workers)
-- [ ] My Applications page
-- [ ] Profile management
+- [ ] Job Application System
+- [ ] Employer Applications Dashboard
+- [ ] Worker Profile Management
 - [ ] Job search & filters
-- [ ] Push notifications
+- [ ] Company profiles
+- [ ] Notifications
+- [ ] Messaging system
 
 ## 📄 License
 
