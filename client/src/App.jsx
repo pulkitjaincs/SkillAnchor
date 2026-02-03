@@ -4,6 +4,8 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import JobDetailPage from "./pages/JobDetailPage";
+import ProtectedRoute from "./components/common/ProtectedRoutes";
+import PostJobPage from "./pages/PostJobPage";
 
 function App() {
   return (
@@ -15,8 +17,9 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/jobs/:id" element={<JobDetailPage />} />
-      </Routes>
-    </div>
+        <Route path="/post-job" element={<ProtectedRoute allowedRoles={['employer']}><PostJobPage /></ProtectedRoute>}></Route>
+      </Routes >
+    </div >
   );
 }
 
