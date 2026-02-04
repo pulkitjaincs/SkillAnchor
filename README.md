@@ -104,6 +104,14 @@ PORT=5000
 | PUT | `/api/jobs/:id` | Update a job | ✅ Employer |
 | DELETE | `/api/jobs/:id` | Delete a job | ✅ Employer |
 
+### Applications
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/api/applications/apply/:jobId` | Apply to a job | ✅ Worker |
+| GET | `/api/applications/my-applications` | Get worker's applications | ✅ Worker |
+| GET | `/api/applications/job/:jobId` | Get job applicants | ✅ Employer |
+| PATCH | `/api/applications/:id/status` | Update application status | ✅ Employer |
+
 ### Authentication
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -231,10 +239,13 @@ KaamSetu uses CSS custom properties for theming:
 - [x] My Jobs dashboard
 - [x] Premium UI styling
 - [x] Date format (dd/mm/yyyy)
+- [x] Apply to Jobs (for workers)
+- [x] Job Application System
+- [x] Application status tracking
+- [x] Login redirect with return URL
 
 ### Coming Soon 🚧
-- [ ] Apply to Jobs (for workers)
-- [ ] Job Application System
+- [ ] My Applications page (workers)
 - [ ] Employer Applications Dashboard
 - [ ] Worker Profile Management
 - [ ] Job search & filters

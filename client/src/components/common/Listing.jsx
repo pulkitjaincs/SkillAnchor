@@ -1,17 +1,60 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from '../../context/AuthContext';
+import ApplyModal from "./ApplyModal";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Listing = ({ job, onClose, isSwitch = false }) => {
-  const { user } = useAuth();
-
+  const navigate = useNavigate();
+  const { user, token } = useAuth();
+  const [applying, setApplying] = useState(false);
+  const [applied, setApplied] = useState(false);
+  const [showApplyModal, setShowApplyModal] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
-
+  useEffect(() => {
+    const checkIfApplied = async () => {
+      if (!user || user.role !== 'worker') {
+        setApplied(false);
+        return;
+      }
+      if (user && user.role === 'worker' && token) {
+        try {
+          const res = await axios.get('/api/applications/my-applications', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const hasApplied = res.data.some(app => app.job._id === job._id);
+          setApplied(hasApplied);
+        } catch (error) {
+          console.log('Error checking application status');
+        }
+      }
+    };
+    checkIfApplied();
+  }, [job._id, user, token]);
   const handleClose = () => {
     setIsClosing(true);
     setTimeout(() => {
       onClose();
     }, 350);
   };
+  const handleApply = async (coverNote) => {
+    if (!user) {
+      navigate(`/login?redirect=/?openJob=${job._id}`);
+      return;
+    }
+    setApplying(true);
+    try {
+      await axios.post(`/api/applications/apply/${job._id}`,
+        { coverNote },
+        { headers: { Authorization: `Bearer ${token}` } });
+      setApplied(true);
+      setShowApplyModal(false);
+    } catch (error) {
+      alert(error.response?.data?.message || "Error applying for job");
+    } finally {
+      setApplying(false);
+    }
+  }
 
   const getAnimationClass = () => {
     if (isClosing) return 'animate-exit-listing';
@@ -79,8 +122,18 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
             </div>
           </div>
           {user?.role !== 'employer' && (
-            <button className="btn btn-premium px-5 py-3 rounded-4 fw-bold shadow-lg text-uppercase tracking-wider">
-              Apply Now
+            <button
+              onClick={() => user ?
+                setShowApplyModal(true) :
+                navigate(`/login?redirect=/?openJob=${job._id}`)}
+              disabled={applied}
+              className="btn px-4 py-2 fw-semibold rounded-pill mt-3"
+              style={{ background: applied ? '#22c55e' : 'var(--primary-500)', color: 'white' }}>
+              {applied ? (
+                <><i className="bi bi-check-lg me-2"></i>Applied</>
+              ) : (
+                <><i className="bi bi-send-fill me-2"></i>Apply Now</>
+              )}
             </button>
           )}
 
@@ -129,6 +182,12 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
         </div>
 
       </div>
+      <ApplyModal
+        show={showApplyModal}
+        onClose={() => setShowApplyModal(false)}
+        onApply={handleApply}
+        applying={applying}
+      />
     </div>
   );
 };

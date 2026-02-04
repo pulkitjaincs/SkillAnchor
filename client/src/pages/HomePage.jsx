@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Card from "../components/common/Card";
 import Listing from "../components/common/Listing";
+import { useSearchParams } from "react-router-dom";
 
 function HomePage() {
     const [jobs, setJobs] = useState([]);
@@ -9,7 +10,16 @@ function HomePage() {
     const [hasMore, setHasMore] = useState(true);
     const [cursor, setCursor] = useState(null);
     const [loading, setLoading] = useState(false);
-
+    const [searchParams] = useSearchParams();
+    const openJobId = searchParams.get("openJob");
+    useEffect(() => {
+        if (openJobId && jobs.length > 0) {
+            const job = jobs.find(j => j._id === openJobId);
+            if (job) {
+                setSelectedJob(job);
+            }
+        }
+    }, [openJobId, jobs]);
     useEffect(() => {
         loadJobs();
     }, []);
