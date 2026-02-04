@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import jobRoutes from "./routes/job.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import applicationRoutes from "./routes/application.routes.js";
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/jobs", jobRoutes);
+app.use("/api/applications", applicationRoutes);
 
 app.use((err, req, res, next) => {
     if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
