@@ -86,4 +86,22 @@ router.patch("/:id/status", protect, requireRole("employer"), async (req, res) =
     }
 });
 
+router.delete("/:id", protect, requireRole("worker"), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const application = await Application.findById(id);
+        if (!application) {
+            return res.status(401).json({ message: "Application not found" });
+        }
+        if (application.applicant.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: "Not authorized" });
+        }
+        await Application.findByIdAndDelete(id);
+        res.json({ message: "Application withdrawn successfully" });
+    } catch (error) {
+        console.error("Error withdrawing application: ", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default router;

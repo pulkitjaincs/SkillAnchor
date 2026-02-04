@@ -8,6 +8,8 @@ import ProtectedRoute from "./components/common/ProtectedRoutes";
 import PostJobPage from "./pages/PostJobPage";
 import MyJobsPage from "./pages/MyJobsPage";
 import EditJobPage from "./pages/EditJobPage";
+import MyApplications from "./pages/MyApplications";
+
 function App() {
   return (
     <div className="d-flex flex-column" style={{ minHeight: "100vh", backgroundColor: "var(--bg-body)", transition: "background-color 0.3s" }}>
@@ -21,6 +23,7 @@ function App() {
         <Route path="/post-job" element={<ProtectedRoute allowedRoles={['employer']}><PostJobPage /></ProtectedRoute>}></Route>
         <Route path="/my-jobs" element={<ProtectedRoute allowedRoles={['employer']}><MyJobsPage /></ProtectedRoute>}></Route>
         <Route path="/edit-job/:id" element={<ProtectedRoute allowedRoles={['employer']}><EditJobPage /></ProtectedRoute>}></Route>
+        <Route path="/my-applications" element={<ProtectedRoute allowedRoles={['worker']}><MyApplications /></ProtectedRoute>}></Route>
       </Routes >
     </div >
   );
