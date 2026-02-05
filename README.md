@@ -41,6 +41,7 @@ Built for simplicity. Works on any device.
 
 ### For Workers
 - Browse jobs by category, location, and pay
+- View full job details with salary, skills, benefits, and requirements
 - Filter by full-time, part-time, or flexible hours
 - Apply with one tap
 - Track application status in real-time

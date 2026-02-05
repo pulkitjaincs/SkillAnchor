@@ -121,22 +121,29 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
               <span className="d-flex align-items-center gap-1"><i className="bi bi-clock-fill text-primary"></i> Posted {new Date(job.createdAt).toLocaleDateString('en-GB')}</span>
             </div>
           </div>
-          {user?.role !== 'employer' && (
+          <div className="d-flex gap-2 flex-wrap mt-3">
             <button
-              onClick={() => user ?
-                setShowApplyModal(true) :
-                navigate(`/login?redirect=/?openJob=${job._id}`)}
-              disabled={applied}
-              className="btn px-4 py-2 fw-semibold rounded-pill mt-3"
-              style={{ background: applied ? '#22c55e' : 'var(--primary-500)', color: 'white' }}>
-              {applied ? (
-                <><i className="bi bi-check-lg me-2"></i>Applied</>
-              ) : (
-                <><i className="bi bi-send-fill me-2"></i>Apply Now</>
-              )}
+              onClick={() => navigate(`/jobs/${job._id}`)}
+              className="btn px-4 py-2 fw-semibold rounded-pill"
+              style={{ background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--border-color)' }}>
+              <i className="bi bi-box-arrow-up-right me-2"></i>Full Details
             </button>
-          )}
-
+            {user?.role !== 'employer' && (
+              <button
+                onClick={() => user ?
+                  setShowApplyModal(true) :
+                  navigate(`/login?redirect=/?openJob=${job._id}`)}
+                disabled={applied}
+                className="btn px-4 py-2 fw-semibold rounded-pill"
+                style={{ background: applied ? '#22c55e' : 'var(--primary-500)', color: 'white' }}>
+                {applied ? (
+                  <><i className="bi bi-check-lg me-2"></i>Applied</>
+                ) : (
+                  <><i className="bi bi-send-fill me-2"></i>Apply Now</>
+                )}
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="row g-3 mb-5">

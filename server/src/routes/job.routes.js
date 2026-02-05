@@ -39,9 +39,21 @@ router.get("/my-jobs", protect, requireRole("employer"), async (req, res) => {
 });
 router.get("/:id", async (req, res) => {
     try {
-        const job = await Job.findById(req.params.id)
-            .populate("company")
-            .populate("employer", "name");
+        const shouldIncrement = req.query.noIncrement !== 'true';
+
+        const job = shouldIncrement
+            ? await Job.findByIdAndUpdate(
+                req.params.id,
+                { $inc: { views: 1 } },
+                { new: true }
+            ).populate("company").populate("employer", "name")
+            : await Job.findById(req.params.id)
+                .populate("company")
+                .populate("employer", "name");
+
+        if (!job) {
+            return res.status(404).json({ message: "Job not found" });
+        }
         res.json(job);
     } catch (error) {
         console.error("Error fetching job:", error);

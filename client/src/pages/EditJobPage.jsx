@@ -113,7 +113,6 @@ function EditJobPage() {
                             borderRadius: '24px',
                             border: '1px solid var(--border-color)'
                         }}>
-                        {/* Premium Header */}
                         <div style={{
                             background: 'var(--text-main)',
                             padding: '2rem',
@@ -134,7 +133,6 @@ function EditJobPage() {
                             )}
 
                             <form onSubmit={handleSubmit}>
-                                {/* Section: Basic Info */}
                                 <div className="mb-4">
                                     <h6 className="text-uppercase fw-bold mb-3 d-flex align-items-center" style={{ color: 'var(--text-muted)', fontSize: '0.75rem', letterSpacing: '0.1em' }}>
                                         <span className="d-inline-block me-2" style={{ width: '20px', height: '2px', background: 'var(--primary-500)' }}></span>
