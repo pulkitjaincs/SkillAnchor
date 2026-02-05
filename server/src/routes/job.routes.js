@@ -2,7 +2,7 @@ import express from "express";
 import Job from "../models/Job.model.js"
 import Company from "../models/Company.model.js"
 import { protect, requireRole } from "../middleware/auth.middleware.js";
-
+import Application from "../models/Application.model.js";
 
 const router = express.Router();
 
@@ -37,7 +37,6 @@ router.get("/my-jobs", protect, requireRole("employer"), async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
 router.get("/:id", async (req, res) => {
     try {
         const job = await Job.findById(req.params.id)

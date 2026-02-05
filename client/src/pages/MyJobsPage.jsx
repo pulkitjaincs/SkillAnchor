@@ -52,6 +52,10 @@ function MyJobsPage() {
     return (
         <div className="container py-5">
             <div className="d-flex justify-content-between align-items-center mb-4">
+                <Link to="/" className="text-decoration-none d-inline-flex align-items-center mb-3"
+                    style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    ← Back to Jobs
+                </Link>
                 <h2 className="fw-bold" style={{ color: 'var(--text-main)' }}>My Posted Jobs</h2>
                 <Link to="/post-job" className="btn rounded-pill px-4 py-2 fw-semibold post-job-btn"
                     style={{ background: 'var(--text-main)', color: 'var(--bg-body)' }}>
@@ -74,7 +78,6 @@ function MyJobsPage() {
                                 border: '1px solid var(--border-color)'
                             }}>
 
-                            {/* Status indicator line */}
                             <div style={{
                                 position: 'absolute',
                                 left: 0,
@@ -89,10 +92,8 @@ function MyJobsPage() {
                             }}></div>
 
                             <div className="row align-items-center">
-                                {/* Left: Job Info */}
                                 <div className="col-lg-6 mb-3 mb-lg-0">
                                     <div className="d-flex align-items-start gap-3">
-                                        {/* Job Icon */}
                                         <div className="d-none d-md-flex align-items-center justify-content-center rounded-3"
                                             style={{
                                                 width: '48px',
@@ -116,8 +117,6 @@ function MyJobsPage() {
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* Center: Stats */}
                                 <div className="col-lg-3 mb-3 mb-lg-0">
                                     <div className="d-flex gap-2 justify-content-lg-center">
                                         <span className="badge rounded-pill px-3 py-2" style={{
@@ -129,45 +128,40 @@ function MyJobsPage() {
                                             <i className={`bi ${job.status === 'active' ? 'bi-check-circle-fill' : 'bi-pause-circle-fill'} me-1`}></i>
                                             {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
                                         </span>
-                                        <span className="badge rounded-pill px-3 py-2" style={{
-                                            background: 'var(--bg-surface)',
-                                            color: 'var(--text-muted)',
-                                            border: '1px solid var(--border-color)',
-                                            fontSize: '0.75rem'
-                                        }}>
-                                            <i className="bi bi-people-fill me-1"></i>
-                                            {job.applicationsCount || 0} applicants
-                                        </span>
                                     </div>
                                 </div>
 
-                                {/* Right: Actions */}
                                 <div className="col-lg-3">
-                                    <div className="d-flex gap-2 justify-content-lg-end flex-wrap">
+                                    <div className="d-flex gap-1 justify-content-lg-end" style={{ flexWrap: 'nowrap' }}>
+                                        <Link to={`/jobs/${job._id}/applicants`}
+                                            className="btn btn-sm rounded-3 px-2 py-2 d-flex align-items-center gap-1"
+                                            style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', border: '1px solid rgba(34, 197, 94, 0.2)' }}
+                                            title="View applicants">
+                                            <i className="bi bi-people-fill"></i>
+                                            <span>{job.applicationsCount || 0}</span>
+                                        </Link>
                                         <Link to={`/jobs/${job._id}`}
-                                            className="btn btn-sm rounded-3 px-3 py-2 btn-view-action d-flex align-items-center gap-1"
-                                            style={{ background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--border-color)' }}>
+                                            className="btn btn-sm rounded-3 px-2 py-2 d-flex align-items-center"
+                                            style={{ background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--border-color)' }}
+                                            title="View job">
                                             <i className="bi bi-eye-fill"></i>
-                                            <span className="d-none d-sm-inline">View</span>
                                         </Link>
                                         <Link to={`/edit-job/${job._id}`}
-                                            className="btn btn-sm rounded-3 px-3 py-2 btn-edit-action d-flex align-items-center gap-1"
-                                            style={{ background: 'var(--primary-500)', color: 'white', border: 'none' }}>
+                                            className="btn btn-sm rounded-3 px-2 py-2 d-flex align-items-center"
+                                            style={{ background: 'var(--primary-500)', color: 'white', border: 'none' }}
+                                            title="Edit job">
                                             <i className="bi bi-pencil-fill"></i>
-                                            <span className="d-none d-sm-inline">Edit</span>
                                         </Link>
                                         <button
                                             onClick={() => handleDelete(job._id)}
                                             disabled={deleting === job._id}
-                                            className="btn btn-sm rounded-3 px-3 py-2 btn-delete-action d-flex align-items-center gap-1"
-                                            style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca' }}>
+                                            className="btn btn-sm rounded-3 px-2 py-2 d-flex align-items-center"
+                                            style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca' }}
+                                            title="Delete job">
                                             {deleting === job._id ? (
                                                 <span className="spinner-border spinner-border-sm"></span>
                                             ) : (
-                                                <>
-                                                    <i className="bi bi-trash-fill"></i>
-                                                    <span className="d-none d-sm-inline">Delete</span>
-                                                </>
+                                                <i className="bi bi-trash-fill"></i>
                                             )}
                                         </button>
                                     </div>

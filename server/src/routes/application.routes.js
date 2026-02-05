@@ -26,6 +26,7 @@ router.post("/apply/:jobId", protect, requireRole("worker"), async (req, res) =>
             applicant: req.user._id,
             coverNote: coverNote || ""
         });
+        await Job.findByIdAndUpdate(jobId, { $inc: { applicationsCount: 1 } });
         res.status(201).json(application);
     } catch (error) {
         console.log("Error applying to job:", error);
@@ -96,6 +97,7 @@ router.delete("/:id", protect, requireRole("worker"), async (req, res) => {
         if (application.applicant.toString() !== req.user._id.toString()) {
             return res.status(403).json({ message: "Not authorized" });
         }
+        await Job.findByIdAndUpdate(application.job, { $inc: { applicationsCount: -1 } });
         await Application.findByIdAndDelete(id);
         res.json({ message: "Application withdrawn successfully" });
     } catch (error) {

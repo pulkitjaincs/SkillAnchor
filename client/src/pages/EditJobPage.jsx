@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
@@ -61,7 +61,6 @@ function EditJobPage() {
             finally {
                 setLoading(false);
             }
-
         };
         fetchJob();
     }, [id]);
@@ -102,6 +101,10 @@ function EditJobPage() {
     }
     return (
         <div className="container py-5">
+            <Link to="/my-jobs" className="text-decoration-none d-inline-flex align-items-center mb-3"
+                style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                ← Back to My Jobs
+            </Link>
             <div className="row justify-content-center">
                 <div className="col-lg-8">
                     <div className="card border-0 overflow-hidden"

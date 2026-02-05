@@ -70,6 +70,10 @@ function MyApplications() {
         );
     } return (
         <div className="container py-5">
+            <Link to="/" className="text-decoration-none d-inline-flex align-items-center mb-3"
+                style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                ← Back to Jobs
+            </Link>
             <h2 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>
                 <i className="bi bi-file-text me-2" style={{ color: 'var(--primary-500)' }}></i>
                 My Applications

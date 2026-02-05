@@ -48,8 +48,9 @@ Built for simplicity. Works on any device.
 
 ### For Employers
 - Post jobs with salary, schedule, and requirements
-- View applicants with contact details
-- Update status: Pending → Reviewed → Shortlisted → Hired
+- View applicants dashboard with contact details and cover notes
+- Track application count per job in real-time
+- Update status: Pending → Viewed → Shortlisted → Hired → Rejected
 - Manage all listings from one dashboard
 
 ### Platform
@@ -172,6 +173,7 @@ KaamSetu/
 | GET | `/api/applications/my-applications` | Worker |
 | GET | `/api/applications/job/:jobId` | Employer |
 | PATCH | `/api/applications/:id/status` | Employer |
+| DELETE | `/api/applications/:id` | Worker |
 
 ---
 

@@ -9,6 +9,7 @@ import PostJobPage from "./pages/PostJobPage";
 import MyJobsPage from "./pages/MyJobsPage";
 import EditJobPage from "./pages/EditJobPage";
 import MyApplications from "./pages/MyApplications";
+import JobApplicantsPage from "./pages/JobApplicantsPage";
 
 function App() {
   return (
@@ -24,7 +25,7 @@ function App() {
         <Route path="/my-jobs" element={<ProtectedRoute allowedRoles={['employer']}><MyJobsPage /></ProtectedRoute>}></Route>
         <Route path="/edit-job/:id" element={<ProtectedRoute allowedRoles={['employer']}><EditJobPage /></ProtectedRoute>}></Route>
         <Route path="/my-applications" element={<ProtectedRoute allowedRoles={['worker']}><MyApplications /></ProtectedRoute>}></Route>
-      </Routes >
+        <Route path="/jobs/:jobId/applicants" element={<ProtectedRoute allowedRoles={['employer']}><JobApplicantsPage /></ProtectedRoute>}></Route></Routes >
     </div >
   );
 }
