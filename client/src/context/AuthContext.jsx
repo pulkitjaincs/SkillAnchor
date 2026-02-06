@@ -2,6 +2,8 @@ import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext(null);
 
+import axios from "axios";
+
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(null);
@@ -12,13 +14,22 @@ export function AuthProvider({ children }) {
         if (storedToken && storedUser) {
             setToken(storedToken);
             setUser(JSON.parse(storedUser));
+            axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
         }
         setLoading(false);
     }, []);
+
     const login = (newToken, newUser) => {
         localStorage.setItem('token', newToken);
         localStorage.setItem('user', JSON.stringify(newUser));
         setToken(newToken);
+        setUser(newUser);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+    };
+
+    const updateUserData = (userData) => {
+        const newUser = { ...user, ...userData };
+        localStorage.setItem('user', JSON.stringify(newUser));
         setUser(newUser);
     };
     const logout = () => {
@@ -26,10 +37,11 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('user');
         setToken(null);
         setUser(null);
+        delete axios.defaults.headers.common['Authorization'];
     };
     return (
         <AuthContext.Provider
-            value={{ user, token, loading, login, logout }}>
+            value={{ user, token, loading, login, logout, updateUserData }}>
             {children}
         </AuthContext.Provider>);
 }

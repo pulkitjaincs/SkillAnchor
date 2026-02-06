@@ -22,6 +22,7 @@ const WorkerProfileSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    email: String,
     whatsapp: String,
     city: {
         type: String,

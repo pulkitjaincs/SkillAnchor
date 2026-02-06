@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 
 function LoginPage() {
     const [loginMethod, setLoginMethod] = useState('phone');
-    const [emailMethod, setEmailMethod] = useState('password'); // 'password' or 'otp'
+    const [emailMethod, setEmailMethod] = useState('password'); 
     const [otpSent, setOtpSent] = useState(false);
     const [phone, setPhone] = useState('');
     const [otp, setOtp] = useState('');

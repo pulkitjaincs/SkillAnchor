@@ -184,3 +184,92 @@ export const logout = async (req, res) => {
     }
 }
 
+export const updatePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const user = await User.findById(req.user._id);
+
+        if (!user.password) {
+            return res.status(400).json({ error: "You are logged in via OTP. Set a password via Forgot Password flow if needed." }); // Or allow setting it without current?
+        }
+
+        const match = await bcrypt.compare(currentPassword, user.password);
+        if (!match) {
+            return res.status(400).json({ error: "Incorrect current password" });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({ error: "New password must be at least 8 characters" });
+        }
+
+        user.password = await bcrypt.hash(newPassword, 12);
+        await user.save();
+
+        res.json({ message: "Password updated successfully" });
+    } catch (error) {
+        console.error("Update Password Error:", error);
+        res.status(500).json({ error: "Failed to update password" });
+    }
+};
+export const sendUpdateOTP = async (req, res) => {
+    try {
+        const { email, phone } = req.body;
+        const conditions = [];
+
+        if (email) {
+            const exists = await User.findOne({ email, _id: { $ne: req.user._id } });
+            if (exists) return res.status(400).json({ error: "Email already in use" });
+            conditions.push({ email });
+        }
+        if (phone) {
+            const exists = await User.findOne({ phone, _id: { $ne: req.user._id } });
+            if (exists) return res.status(400).json({ error: "Phone number already in use" });
+            conditions.push({ phone });
+        }
+
+        if (conditions.length === 0) {
+            return res.status(400).json({ error: "Email or Phone required" });
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        await OTP.findOneAndUpdate({ $or: conditions }, { otp, expiresAt: Date.now() + 10 * 60 * 1000, isUsed: false }, { upsert: true });
+
+        console.log(`Update OTP for ${phone || email}: ${otp}`); 
+        res.status(200).json({ message: "OTP Sent" });
+
+    } catch (error) {
+        console.error("Send Update OTP Error:", error);
+        res.status(500).json({ error: "Failed to send OTP" });
+    }
+};
+
+export const verifyUpdateOTP = async (req, res) => {
+    try {
+        const { email, phone, otp } = req.body;
+        const conditions = [];
+
+        if (email) conditions.push({ email });
+        if (phone) conditions.push({ phone });
+
+        if (conditions.length === 0) return res.status(400).json({ error: "Email or Phone required" });
+
+        const record = await OTP.findOne({ $or: conditions, otp });
+        if (!record || record.expiresAt < Date.now()) {
+            return res.status(400).json({ error: "Invalid or expired OTP" });
+        }
+
+        await OTP.deleteOne({ _id: record._id });
+
+        const updates = {};
+        if (email) updates.email = email;
+        if (phone) updates.phone = phone;
+
+        const user = await User.findByIdAndUpdate(req.user._id, { $set: updates }, { new: true }).select("-password");
+        res.json({ message: "Account updated successfully", user });
+
+    } catch (error) {
+        console.error("Verify Update OTP Error:", error);
+        res.status(500).json({ error: "Failed to verify OTP" });
+    }
+};
+

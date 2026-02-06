@@ -6,7 +6,7 @@ import { useAuth } from "../../context/AuthContext";
 const Navbar = ({ name }) => {
   const [scrolled, setScrolled] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
-  const [theme, setTheme] = useState("system");
+  const [theme, setTheme] = useState("light");
   const inputRef = useRef(null);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -221,9 +221,9 @@ const Navbar = ({ name }) => {
                 </button>
               </li>
               {user ? (
-                <li className="nav-item">
+                <li className="nav-item dropdown">
                   <div className="d-flex align-items-center gap-3">
-                    <div className="d-flex align-items-center gap-2">
+                    <div className="d-flex align-items-center gap-2 cursor-pointer" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                       <div className="rounded-circle d-flex align-items-center justify-content-center fw-bold"
                         style={{ width: '36px', height: '36px', background: 'linear-gradient(135deg, var(--primary-500), var(--primary-700))', color: 'white', fontSize: '0.9rem' }}>
                         {user.name?.charAt(0)?.toUpperCase()}
@@ -231,11 +231,34 @@ const Navbar = ({ name }) => {
                       <span className="fw-medium d-none d-xl-inline" style={{ color: 'var(--text-main)' }}>
                         {user.name}
                       </span>
+                      <i className="bi bi-chevron-down ms-1" style={{ fontSize: '0.8rem' }}></i>
                     </div>
-                    <button onClick={handleLogout} className="btn rounded-pill px-3 py-2 fw-medium logout-btn"
-                      style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', fontSize: '0.85rem' }}>
-                      Logout
-                    </button>
+
+                    <ul className="dropdown-menu dropdown-menu-end shadow-lg animate-slide-in" style={{ borderRadius: '16px', minWidth: '220px', padding: '0.75rem' }}>
+                      <li>
+                        <div className="px-3 py-2">
+                          <h6 className="mb-0 fw-bold">{user.name}</h6>
+                          <small className="text-muted" style={{ fontSize: '0.8rem' }}>{user.email || 'Worker Account'}</small>
+                        </div>
+                      </li>
+                      <li><hr className="dropdown-divider" /></li>
+                      <li>
+                        <Link className="dropdown-item py-2 rounded-2 hover-bg-light fw-medium d-flex align-items-center" to="/profile">
+                          <i className="bi bi-person me-3 text-primary"></i>My Profile
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item py-2 rounded-2 hover-bg-light fw-medium d-flex align-items-center" to="/profile/settings">
+                          <i className="bi bi-gear me-3 text-secondary"></i>Account Settings
+                        </Link>
+                      </li>
+                      <li><hr className="dropdown-divider" /></li>
+                      <li>
+                        <button onClick={handleLogout} className="dropdown-item py-2 rounded-2 hover-bg-light fw-medium d-flex align-items-center text-danger">
+                          <i className="bi bi-box-arrow-right me-3"></i>Logout
+                        </button>
+                      </li>
+                    </ul>
                   </div>
                 </li>
               ) : (

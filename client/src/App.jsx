@@ -11,6 +11,9 @@ import EditJobPage from "./pages/EditJobPage";
 import MyApplications from "./pages/MyApplications";
 import JobApplicantsPage from "./pages/JobApplicantsPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import WorkerProfilePage from "./pages/WorkerProfilePage";
+import EditProfilePage from "./pages/EditProfilePage";
+import SettingsPage from './pages/SettingsPage';
 
 function App() {
   return (
@@ -27,8 +30,12 @@ function App() {
         <Route path="/my-jobs" element={<ProtectedRoute allowedRoles={['employer']}><MyJobsPage /></ProtectedRoute>}></Route>
         <Route path="/edit-job/:id" element={<ProtectedRoute allowedRoles={['employer']}><EditJobPage /></ProtectedRoute>}></Route>
         <Route path="/my-applications" element={<ProtectedRoute allowedRoles={['worker']}><MyApplications /></ProtectedRoute>}></Route>
-        <Route path="/jobs/:jobId/applicants" element={<ProtectedRoute allowedRoles={['employer']}><JobApplicantsPage /></ProtectedRoute>}></Route></Routes >
-    </div >
+        <Route path="/jobs/:jobId/applicants" element={<ProtectedRoute allowedRoles={['employer']}><JobApplicantsPage /></ProtectedRoute>}></Route>
+        <Route path="/profile" element={<ProtectedRoute allowedRoles={['worker']}><WorkerProfilePage /></ProtectedRoute>}></Route>
+        <Route path="/profile/edit" element={<ProtectedRoute allowedRoles={['worker']}><EditProfilePage /></ProtectedRoute>}></Route>
+        <Route path="/profile/settings" element={<ProtectedRoute allowedRoles={['worker']}><SettingsPage /></ProtectedRoute>} />
+      </Routes>
+    </div>
   );
 }
 

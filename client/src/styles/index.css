@@ -35,6 +35,15 @@ html {
     --bg-surface: var(--zinc-100);
     --text-main: var(--zinc-950);
     --text-muted: var(--zinc-500);
+}
+
+/* Bootstrap Overrides */
+.text-muted,
+.form-text {
+    color: var(--text-muted) !important;
+}
+
+:root {
     --border-color: var(--zinc-200);
     --border-active: var(--zinc-900);
     --ring-overlay: var(--zinc-200);
@@ -462,10 +471,6 @@ h6 {
     transform: translateY(0);
 }
 
-.rotate-enter {
-    animation: rotateIn 0.3s ease forwards;
-}
-
 @keyframes rotateIn {
     from {
         transform: rotate(-90deg) scale(0.5);
@@ -476,4 +481,49 @@ h6 {
         transform: rotate(0) scale(1);
         opacity: 1;
     }
+}
+
+/* Custom Dropdown Styling */
+.dropdown-menu {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg);
+    z-index: 2050 !important;
+    /* Ensure it floats above everything */
+}
+
+.dropdown-item {
+    color: var(--text-main);
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: var(--bg-surface);
+    color: var(--text-main);
+}
+
+.dropdown-divider {
+    border-top-color: var(--border-color);
+}
+
+/* Hover bg utility */
+.hover-bg-light:hover {
+    background-color: var(--bg-surface) !important;
+}
+
+/* Settings Page Tweaks */
+.settings-card-inner {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+}
+
+.settings-card-inner:hover {
+    background: var(--bg-surface);
+    border-color: var(--zinc-400);
+}
+
+[data-theme="dark"] .settings-card-inner:hover {
+    border-color: var(--zinc-600);
 }

@@ -6,6 +6,14 @@ const WorkExperienceSchema = new mongoose.Schema({
         ref: "User",
         required: true,
     },
+    isVisible: {
+        type: Boolean,
+        default: true,
+    },
+    linkedApplication: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Application",
+    },
     employer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",

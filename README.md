@@ -160,6 +160,16 @@ KaamSetu/
 | POST | `/api/auth/forgot-password` | Send password reset OTP |
 | POST | `/api/auth/reset-password` | Reset password with OTP |
 | POST | `/api/auth/logout` | Logout user |
+| POST | `/api/auth/update-password` | Change password (authenticated) |
+| POST | `/api/auth/send-update-otp` | Send OTP to update email/phone |
+| POST | `/api/auth/verify-update-otp` | Verify OTP and update account |
+
+### Worker Profile
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/profile/me` | Get current user's profile |
+| PUT | `/api/profile/me` | Update profile (skills, about, etc) |
 
 ### Jobs
 
