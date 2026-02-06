@@ -5,12 +5,14 @@ import { useAuth } from '../context/AuthContext';
 
 function LoginPage() {
     const [loginMethod, setLoginMethod] = useState('phone');
+    const [emailMethod, setEmailMethod] = useState('password'); // 'password' or 'otp'
     const [otpSent, setOtpSent] = useState(false);
     const [phone, setPhone] = useState('');
     const [otp, setOtp] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const [searchParams] = useSearchParams();
     const redirect = searchParams.get('redirect') || '/';
 
@@ -24,72 +26,103 @@ function LoginPage() {
         }
     }, [user]);
 
-    const handleLogin = () => {
-
+    const resetState = () => {
+        setOtpSent(false);
+        setOtp('');
         setError('');
-        if (loginMethod === 'phone') {
-            if (phone.length !== 10) {
-                setError('Please enter a valid 10-digit phone number');
-                return;
-            }
-            if (!otpSent) {
-                async function sendOtp() {
-                    try {
-                        const sendOtpRequest = await axios.post('/api/auth/send-otp', { phone });
-                        setOtpSent(true);
-                    } catch (error) {
-                        setError(error.response?.data?.error || 'Failed to send OTP');
-                    }
+    };
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        try {
+            // Phone OTP Login
+            if (loginMethod === 'phone') {
+                if (phone.length !== 10) {
+                    setError('Please enter a valid 10-digit phone number');
+                    setLoading(false);
                     return;
                 }
-                sendOtp();
-                return;
-            }
-            if (otp.length !== 6) {
-                setError('Please enter a valid 6-digit OTP');
-                return;
-            }
-            async function verifyOtp() {
-                try {
-                    const verifyOtpRequest = await axios.post('/api/auth/verify-otp', { phone, otp });
-                    if (verifyOtpRequest.data.token) {
-                        login(verifyOtpRequest.data.token, verifyOtpRequest.data.user);
-                        navigate('/');
-                    }
-                } catch (error) {
-                    setError(error.response?.data?.error || 'Failed to verify OTP');
+                if (!otpSent) {
+                    await axios.post('/api/auth/send-otp', { phone });
+                    setOtpSent(true);
+                    setLoading(false);
+                    return;
                 }
-                return;
+                if (otp.length !== 6) {
+                    setError('Please enter a valid 6-digit OTP');
+                    setLoading(false);
+                    return;
+                }
+                const response = await axios.post('/api/auth/verify-otp', { phone, otp });
+                if (response.data.token) {
+                    login(response.data.token, response.data.user);
+                    navigate(redirect);
+                }
             }
-            verifyOtp();
-            return;
+
+            // Email Login
+            if (loginMethod === 'email') {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    setError('Please enter a valid email address');
+                    setLoading(false);
+                    return;
+                }
+
+                // Email + Password
+                if (emailMethod === 'password') {
+                    if (!password) {
+                        setError('Please enter your password');
+                        setLoading(false);
+                        return;
+                    }
+                    const response = await axios.post('/api/auth/login', { email, password });
+                    if (response.data.token) {
+                        login(response.data.token, response.data.user);
+                        navigate(redirect);
+                    }
+                }
+
+                // Email + OTP
+                if (emailMethod === 'otp') {
+                    if (!otpSent) {
+                        await axios.post('/api/auth/send-otp', { email });
+                        setOtpSent(true);
+                        setLoading(false);
+                        return;
+                    }
+                    if (otp.length !== 6) {
+                        setError('Please enter a valid 6-digit OTP');
+                        setLoading(false);
+                        return;
+                    }
+                    const response = await axios.post('/api/auth/verify-otp', { email, otp });
+                    if (response.data.token) {
+                        login(response.data.token, response.data.user);
+                        navigate(redirect);
+                    }
+                }
+            }
+        } catch (err) {
+            setError(err.response?.data?.error || 'Something went wrong');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getButtonText = () => {
+        if (loginMethod === 'phone') {
+            return otpSent ? 'Verify & Login' : 'Send OTP';
         }
         if (loginMethod === 'email') {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                setError('Please enter a valid email address');
-                return;
-            }
-            if (!password) {
-                setError('Please enter your password');
-                return;
-            }
-            async function handleEmailLogin() {
-                try {
-                    const loginRequest = await axios.post('/api/auth/login', { email, password });
-                    if (loginRequest.data.token) {
-                        login(loginRequest.data.token, loginRequest.data.user);
-                        navigate('/');
-                    }
-                } catch (error) {
-                    setError(error.response?.data?.error || 'Failed to login');
-                }
-                return;
-            }
-            handleEmailLogin();
-            return;
+            if (emailMethod === 'password') return 'Sign In';
+            return otpSent ? 'Verify & Login' : 'Send OTP';
         }
-    }
+        return 'Sign In';
+    };
 
     return (
         <div className="container-fluid flex-grow-1 d-flex align-items-center justify-content-center px-4 py-5">
@@ -109,13 +142,14 @@ function LoginPage() {
 
                         <div className="card-body p-4 p-md-5">
 
+                            {/* Phone / Email Toggle */}
                             <div className="d-flex gap-2 mb-4 p-1 rounded-pill" style={{ background: 'var(--bg-surface)' }}>
-                                <button type="button" onClick={() => { setLoginMethod('phone'); setOtpSent(false); }}
+                                <button type="button" onClick={() => { setLoginMethod('phone'); resetState(); }}
                                     className={`btn flex-grow-1 rounded-pill py-2 fw-medium ${loginMethod === 'phone' ? 'shadow-sm' : ''}`}
                                     style={{ background: loginMethod === 'phone' ? 'var(--bg-card)' : 'transparent', color: loginMethod === 'phone' ? 'var(--text-main)' : 'var(--text-muted)', border: 'none', transition: 'all 0.3s ease' }}>
                                     <i className="bi bi-phone me-2"></i>Phone
                                 </button>
-                                <button type="button" onClick={() => { setLoginMethod('email'); setOtpSent(false); }}
+                                <button type="button" onClick={() => { setLoginMethod('email'); resetState(); }}
                                     className={`btn flex-grow-1 rounded-pill py-2 fw-medium ${loginMethod === 'email' ? 'shadow-sm' : ''}`}
                                     style={{ background: loginMethod === 'email' ? 'var(--bg-card)' : 'transparent', color: loginMethod === 'email' ? 'var(--text-main)' : 'var(--text-muted)', border: 'none', transition: 'all 0.3s ease' }}>
                                     <i className="bi bi-envelope me-2"></i>Email
@@ -129,7 +163,8 @@ function LoginPage() {
                                 </div>
                             )}
 
-                            <form>
+                            <form onSubmit={handleLogin}>
+                                {/* Phone OTP Login */}
                                 {loginMethod === 'phone' && (
                                     <>
                                         <div className="mb-4">
@@ -138,7 +173,6 @@ function LoginPage() {
                                                 <span className="input-group-text border-0 fw-medium" style={{ background: 'var(--bg-surface)', color: 'var(--text-muted)', borderRadius: '12px 0 0 12px' }}>+91</span>
                                                 <input
                                                     type="tel"
-                                                    id="phone"
                                                     className="form-control border-0 py-3"
                                                     placeholder="Enter your phone number"
                                                     value={phone}
@@ -153,19 +187,19 @@ function LoginPage() {
                                                 <label className="form-label fw-medium small text-uppercase" style={{ color: 'var(--text-muted)', letterSpacing: '0.5px' }}>Enter OTP</label>
                                                 <input
                                                     type="text"
-                                                    id="otp"
                                                     className="form-control border-0 py-3"
                                                     placeholder="6-digit OTP"
                                                     maxLength={6}
                                                     value={otp}
                                                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                                     style={{ background: 'var(--bg-surface)', color: 'var(--text-main)', borderRadius: '12px', fontSize: '1.2rem', letterSpacing: '0.5em', textAlign: 'center' }} />
-                                                <button type="button" className="btn btn-link p-0 mt-2 text-decoration-none" onClick={() => setOtpSent(false)} style={{ color: 'var(--primary-600)', fontSize: '0.875rem' }}>Change number</button>
+                                                <button type="button" className="btn btn-link p-0 mt-2 text-decoration-none" onClick={resetState} style={{ color: 'var(--primary-600)', fontSize: '0.875rem' }}>Change number</button>
                                             </div>
                                         )}
                                     </>
                                 )}
 
+                                {/* Email Login */}
                                 {loginMethod === 'email' && (
                                     <>
                                         <div className="mb-4">
@@ -176,31 +210,76 @@ function LoginPage() {
                                                 placeholder="you@example.com"
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
+                                                disabled={otpSent}
                                                 style={{ background: 'var(--bg-surface)', color: 'var(--text-main)', borderRadius: '12px', fontSize: '1rem' }} />
                                         </div>
 
-                                        <div className="mb-4">
-                                            <label className="form-label fw-medium small text-uppercase d-flex justify-content-between" style={{ color: 'var(--text-muted)', letterSpacing: '0.5px' }}>
-                                                Password
-                                                <Link to="/forgot-password" className="text-decoration-none" style={{ color: 'var(--primary-600)', textTransform: 'none', letterSpacing: 'normal' }}>Forgot?</Link>
-                                            </label>
-                                            <input
-                                                type="password"
-                                                className="form-control border-0 py-3"
-                                                placeholder="Enter your password"
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                                style={{ background: 'var(--bg-surface)', color: 'var(--text-main)', borderRadius: '12px', fontSize: '1rem' }} />
-                                        </div>
+                                        {/* Password / OTP sub-toggle */}
+                                        {!otpSent && (
+                                            <div className="d-flex gap-2 mb-4">
+                                                <button type="button" onClick={() => { setEmailMethod('password'); setOtp(''); }}
+                                                    className={`btn flex-grow-1 py-2 fw-medium rounded-3 ${emailMethod === 'password' ? '' : ''}`}
+                                                    style={{
+                                                        background: emailMethod === 'password' ? 'var(--text-main)' : 'var(--bg-surface)',
+                                                        color: emailMethod === 'password' ? 'var(--bg-body)' : 'var(--text-muted)',
+                                                        border: 'none',
+                                                        fontSize: '0.85rem',
+                                                        transition: 'all 0.3s ease'
+                                                    }}>
+                                                    <i className="bi bi-lock me-1"></i>Password
+                                                </button>
+                                                <button type="button" onClick={() => { setEmailMethod('otp'); setPassword(''); }}
+                                                    className={`btn flex-grow-1 py-2 fw-medium rounded-3`}
+                                                    style={{
+                                                        background: emailMethod === 'otp' ? 'var(--text-main)' : 'var(--bg-surface)',
+                                                        color: emailMethod === 'otp' ? 'var(--bg-body)' : 'var(--text-muted)',
+                                                        border: 'none',
+                                                        fontSize: '0.85rem',
+                                                        transition: 'all 0.3s ease'
+                                                    }}>
+                                                    <i className="bi bi-shield-lock me-1"></i>OTP
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {/* Password input */}
+                                        {emailMethod === 'password' && (
+                                            <div className="mb-4">
+                                                <label className="form-label fw-medium small text-uppercase d-flex justify-content-between" style={{ color: 'var(--text-muted)', letterSpacing: '0.5px' }}>
+                                                    Password
+                                                    <Link to="/forgot-password" className="text-decoration-none" style={{ color: 'var(--primary-600)', textTransform: 'none', letterSpacing: 'normal' }}>Forgot?</Link>
+                                                </label>
+                                                <input
+                                                    type="password"
+                                                    className="form-control border-0 py-3"
+                                                    placeholder="Enter your password"
+                                                    value={password}
+                                                    onChange={(e) => setPassword(e.target.value)}
+                                                    style={{ background: 'var(--bg-surface)', color: 'var(--text-main)', borderRadius: '12px', fontSize: '1rem' }} />
+                                            </div>
+                                        )}
+
+                                        {/* Email OTP input */}
+                                        {emailMethod === 'otp' && otpSent && (
+                                            <div className="mb-4">
+                                                <label className="form-label fw-medium small text-uppercase" style={{ color: 'var(--text-muted)', letterSpacing: '0.5px' }}>Enter OTP</label>
+                                                <input
+                                                    type="text"
+                                                    className="form-control border-0 py-3"
+                                                    placeholder="6-digit OTP"
+                                                    maxLength={6}
+                                                    value={otp}
+                                                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                                    style={{ background: 'var(--bg-surface)', color: 'var(--text-main)', borderRadius: '12px', fontSize: '1.2rem', letterSpacing: '0.5em', textAlign: 'center' }} />
+                                                <button type="button" className="btn btn-link p-0 mt-2 text-decoration-none" onClick={resetState} style={{ color: 'var(--primary-600)', fontSize: '0.875rem' }}>Change email</button>
+                                            </div>
+                                        )}
                                     </>
                                 )}
 
-                                <button type="submit" className="btn w-100 py-3 fw-bold rounded-pill shadow-lg" onClick={(e) => {
-                                    e.preventDefault();
-                                    handleLogin();
-                                }}
+                                <button type="submit" className="btn w-100 py-3 fw-bold rounded-pill shadow-lg" disabled={loading}
                                     style={{ background: 'var(--text-main)', color: 'var(--bg-body)', fontSize: '1rem', transition: 'all 0.3s ease' }}>
-                                    {loginMethod === 'phone' ? (otpSent ? 'Verify & Login' : 'Send OTP') : 'Sign In'}
+                                    {loading ? 'Please wait...' : getButtonText()}
                                 </button>
                             </form>
 

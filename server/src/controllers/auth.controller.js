@@ -5,10 +5,16 @@ import { generateToken } from "../utils/generateToken.js";
 
 export const sendOTP = async (req, res) => {
     try {
-        const { phone } = req.body;
+        const { phone, email } = req.body;
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        await OTP.findOneAndUpdate({ phone }, { otp, expiresAt: Date.now() + 10 * 60 * 1000, isUsed: false }, { upsert: true });
-        console.log(`OTP for ${phone}: ${otp}`);
+        const conditions = [];
+        if (email) conditions.push({ email });
+        if (phone) conditions.push({ phone });
+        if (conditions.length === 0) {
+            return res.status(400).json({ error: "Email or Phone required" });
+        }
+        await OTP.findOneAndUpdate({ $or: conditions }, { otp, expiresAt: Date.now() + 10 * 60 * 1000, isUsed: false }, { upsert: true });
+        console.log(`OTP for ${phone ? phone : email}: ${otp}`);
         res.status(200).json({ message: "OTP Sent" });
     } catch (err) {
         console.error("Send OTP Error: ", err);
@@ -18,8 +24,14 @@ export const sendOTP = async (req, res) => {
 
 export const verifyOTP = async (req, res) => {
     try {
-        const { phone, name, otp, role } = req.body;
-        const record = await OTP.findOne({ phone, otp });
+        const { phone, name, otp, role, email } = req.body;
+        const conditions = [];
+        if (email) conditions.push({ email });
+        if (phone) conditions.push({ phone });
+        if (conditions.length === 0) {
+            return res.status(400).json({ error: "Email or Phone required" });
+        }
+        const record = await OTP.findOne({ $or: conditions, otp });
         if (!record || record.expiresAt < Date.now()) {
             return res.status(400).json({ error: "Invalid or expired OTP" });
         }
@@ -47,7 +59,10 @@ export const register = async (req, res) => {
         if (exists) {
             return res.status(400).json({ error: "Email already exists!" });
         }
-        const hashedPassword = await bcrypt.hash(password, 10);
+        if (password.length < 8) {
+            return res.status(400).json({ error: "Password must be at least 8 characters long" });
+        }
+        const hashedPassword = await bcrypt.hash(password, 12);
         const user = await User.create({
             email,
             password: hashedPassword,
@@ -104,3 +119,68 @@ export const login = async (req, res) => {
         res.status(500).json({ error: "Login failed" });
     }
 };
+
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email, phone } = req.body;
+        const conditions = [];
+        if (email) { conditions.push({ email }) };
+        if (phone) { conditions.push({ phone }) };
+        if (conditions.length === 0) {
+            return res.status(400).json({ error: "Email or Phone required" });
+        }
+
+        const user = await User.findOne({ $or: conditions });
+        if (!user) {
+            return res.status(400).json({ error: "User not exist" });
+        }
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        await OTP.findOneAndUpdate({ $or: conditions }, { otp, expiresAt: Date.now() + 10 * 60 * 1000, isUsed: false }, { upsert: true });
+        console.log(`OTP for ${phone ? phone : email}: ${otp}`);
+        res.status(200).json({ message: "OTP Sent" });
+    } catch (err) {
+        console.error("Send OTP Error: ", err);
+        res.status(500).json({ error: "Send OTP failed" });
+    }
+}
+export const resetPassword = async (req, res) => {
+    try {
+        const { email, phone, otp, newPassword } = req.body;
+        const conditions = [];
+        if (email) { conditions.push({ email }) };
+        if (phone) { conditions.push({ phone }) };
+        if (conditions.length === 0) {
+            return res.status(400).json({ error: "Email or Phone required" });
+        }
+        const record = await OTP.findOne({ $or: conditions, otp });
+        if (!record || record.expiresAt < Date.now()) {
+            return res.status(400).json({ error: "Invalid or expired OTP" });
+        }
+        await OTP.deleteOne({ _id: record._id });
+        const user = await User.findOne({ $or: conditions });
+        if (!user) {
+            return res.status(400).json({ error: "User not exist" });
+        }
+        if (!newPassword || newPassword.length < 8) {
+            return res.status(400).json({ error: "Password must be at least 8 characters long" });
+        }
+        const hashedPassword = await bcrypt.hash(newPassword, 12);
+        user.password = hashedPassword;
+        await user.save();
+        res.status(200).json({ message: "Password reset successfully" });
+    } catch (error) {
+        console.error("Reset Password Error: ", error);
+        res.status(500).json({ error: "Reset Password failed" });
+    }
+}
+
+export const logout = async (req, res) => {
+    try {
+        res.clearCookie("token");
+        res.json({ message: "Logout successfully" });
+    } catch (error) {
+        console.error("Logout Error: ", error);
+        res.status(500).json({ error: "Logout failed" });
+    }
+}
+

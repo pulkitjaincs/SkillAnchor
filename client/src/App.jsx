@@ -10,6 +10,7 @@ import MyJobsPage from "./pages/MyJobsPage";
 import EditJobPage from "./pages/EditJobPage";
 import MyApplications from "./pages/MyApplications";
 import JobApplicantsPage from "./pages/JobApplicantsPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/jobs/:id" element={<JobDetailPage />} />
         <Route path="/post-job" element={<ProtectedRoute allowedRoles={['employer']}><PostJobPage /></ProtectedRoute>}></Route>
         <Route path="/my-jobs" element={<ProtectedRoute allowedRoles={['employer']}><MyJobsPage /></ProtectedRoute>}></Route>

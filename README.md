@@ -56,7 +56,9 @@ Built for simplicity. Works on any device.
 
 ### Platform
 - Phone OTP login (no password needed)
-- Email login option
+- Email OTP login (passwordless option)
+- Email + password login
+- Forgot password with OTP verification
 - Responsive design for mobile and desktop
 - Dark and light mode
 
@@ -151,10 +153,13 @@ KaamSetu/
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/auth/send-otp` | Send OTP to phone |
+| POST | `/api/auth/send-otp` | Send OTP to phone or email |
 | POST | `/api/auth/verify-otp` | Verify OTP and login |
 | POST | `/api/auth/register` | Register with email |
-| POST | `/api/auth/login` | Login with email |
+| POST | `/api/auth/login` | Login with email + password |
+| POST | `/api/auth/forgot-password` | Send password reset OTP |
+| POST | `/api/auth/reset-password` | Reset password with OTP |
+| POST | `/api/auth/logout` | Logout user |
 
 ### Jobs
 
