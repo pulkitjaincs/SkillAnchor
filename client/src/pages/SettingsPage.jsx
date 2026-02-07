@@ -243,7 +243,7 @@ function SettingsPage() {
                                             <span className="fw-semibold" style={{ color: 'var(--text-main)', fontSize: '1rem' }}>
                                                 {user?.email || <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Not linked</span>}
                                             </span>
-                                            {user?.authType === 'email' && (
+                                            {user?.emailVerified && (
                                                 <span style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600 }}>
                                                     <i className="bi bi-check-circle-fill me-1"></i>Verified
                                                 </span>
@@ -314,7 +314,7 @@ function SettingsPage() {
                                             <span className="fw-semibold" style={{ color: 'var(--text-main)', fontSize: '1rem' }}>
                                                 {user?.phone ? `+91 ${user.phone}` : <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Not linked</span>}
                                             </span>
-                                            {user?.authType === 'phone' && (
+                                            {user?.phoneVerified && (
                                                 <span style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600 }}>
                                                     <i className="bi bi-check-circle-fill me-1"></i>Verified
                                                 </span>

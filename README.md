@@ -49,6 +49,8 @@ Built for simplicity. Works on any device.
 - **Profile photo upload** with S3 cloud storage
 - **Multi-step profile wizard** for easy onboarding
 - **Profile completion tracking** with visual progress
+- **WhatsApp number support** for direct communication
+- **Secure phone display** (read-only in profile, updated via OTP in settings)
 
 ### For Employers
 - Post jobs with salary, schedule, and requirements
@@ -64,7 +66,9 @@ Built for simplicity. Works on any device.
 - Forgot password with OTP verification
 - Responsive design for mobile and desktop
 - **Modern UI** with refined components and smooth animations
-- Dark and light mode with smooth transitions
+- **Dark and light mode** with smooth transitions
+- **Trust Badges**: Verified phone/email markers in Settings and Profile
+- **Secure Contact Guard**: Force contact updates through OTP verification
 
 ---
 
@@ -222,13 +226,15 @@ KaamSetu/
 - [x] Profile photo uploads with S3
 - [x] Multi-step profile wizard
 - [x] Client-side profile completion tracking
+- [x] Secure contact verification (OTP-based updates)
+- [x] Trust badges for verified users
 - [ ] Advanced search with location and salary filters
 - [ ] Shift-based job scheduling
 - [ ] In-app messaging
 - [ ] Push notifications
 - [ ] Worker ratings and reviews
 - [ ] Multi-language support
-- [ ] Identity verification
+- [ ] Identity verification (Document-based)
 
 ---
 

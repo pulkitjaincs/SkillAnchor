@@ -19,7 +19,9 @@ const EmployerProfileSchema = new mongoose.Schema({
     },
     phone: {
         type: String,
-        required: true,
+    },
+    whatsapp: {
+        type: String,
     },
     isHiringManager: {
         type: Boolean,

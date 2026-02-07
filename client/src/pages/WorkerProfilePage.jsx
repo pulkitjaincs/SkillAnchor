@@ -8,9 +8,20 @@ function WorkerProfilePage() {
     const [profile, setProfile] = useState(null);
     const [workHistory, setWorkHistory] = useState([]);
     const [completionPercent, setCompletionPercent] = useState(0);
+    const isEmployer = profile?.role === 'employer';
 
     const calculateCompletion = (p) => {
         if (!p) return 0;
+
+        if (p.role === 'employer') {
+            let score = 0;
+            if (p.name) score += 25;
+            if (p.phone) score += 25;
+            if (p.designation) score += 25;
+            if (p.company) score += 25;
+            return Math.min(score, 100);
+        }
+
         let score = 0;
 
         if (p.name) score += 10;
@@ -134,11 +145,22 @@ function WorkerProfilePage() {
                                         )}
                                     </div>
                                     <p className="mb-2" style={{ color: 'var(--text-muted)' }}>
-                                        <i className="bi bi-geo-alt me-1"></i>{profile.city}, {profile.state}
+                                        {isEmployer ? (
+                                            <>
+                                                {profile.company?.name && <><i className="bi bi-building me-1"></i>{profile.company.name}<span className="mx-2">•</span></>}
+                                                <i className="bi bi-telephone me-1"></i>{profile.phone}
+                                                {profile.phoneVerified && <i className="bi bi-patch-check-fill ms-1 text-success" title="Verified"></i>}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i className="bi bi-geo-alt me-1"></i>{profile.city}, {profile.state}
+                                                <span className="mx-2">•</span>
+                                                <i className="bi bi-calendar3 me-1"></i>{getAge(profile.dob)} years old
+                                            </>
+                                        )}
                                         <span className="mx-2">•</span>
-                                        <i className="bi bi-calendar3 me-1"></i>{getAge(profile.dob)} years old
-                                        <span className="mx-2">•</span>
-                                        <i className="bi bi-briefcase me-1"></i>{profile.totalExperienceYears} years exp
+                                        <i className="bi bi-briefcase me-1"></i>
+                                        {isEmployer ? (profile.designation || 'Employer') : `${profile.totalExperienceYears} years exp`}
                                     </p>
                                     <p className="mb-3" style={{ color: 'var(--text-muted)' }}>{profile.bio}</p>
 
@@ -156,115 +178,153 @@ function WorkerProfilePage() {
                         </div>
                     </div>
 
-                    <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '20px', background: 'var(--bg-card)' }}>
-                        <div className="card-body p-4">
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <h5 className="fw-bold mb-0" style={{ color: 'var(--text-main)' }}>
-                                    <i className="bi bi-tools me-2"></i>Skills
-                                </h5>
-                                <Link to="/profile/edit" className="btn btn-sm btn-link text-decoration-none" style={{ color: 'var(--primary-600)' }}>
-                                    <i className="bi bi-plus-lg me-1"></i>Add
-                                </Link>
-                            </div>
-                            <div className="d-flex flex-wrap gap-2">
-                                {profile.skills?.length > 0 ? (
-                                    profile.skills.map((skill, i) => (
-                                        <span key={i} className="badge rounded-pill px-3 py-2"
-                                            style={{ background: 'var(--bg-surface)', color: 'var(--text-main)', fontSize: '0.9rem' }}>
-                                            {skill}
-                                        </span>
-                                    ))
-                                ) : (
-                                    <p className="text-muted small fst-italic">No skills added yet.</p>
-                                )}
+                    {!isEmployer && (
+                        <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '20px', background: 'var(--bg-card)' }}>
+                            <div className="card-body p-4">
+                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 className="fw-bold mb-0" style={{ color: 'var(--text-main)' }}>
+                                        <i className="bi bi-tools me-2"></i>Skills
+                                    </h5>
+                                    <Link to="/profile/edit" className="btn btn-sm btn-link text-decoration-none" style={{ color: 'var(--primary-600)' }}>
+                                        <i className="bi bi-plus-lg me-1"></i>Add
+                                    </Link>
+                                </div>
+                                <div className="d-flex flex-wrap gap-2">
+                                    {profile.skills?.length > 0 ? (
+                                        profile.skills.map((skill, i) => (
+                                            <span key={i} className="badge rounded-pill px-3 py-2"
+                                                style={{ background: 'var(--bg-surface)', color: 'var(--text-main)', fontSize: '0.9rem' }}>
+                                                {skill}
+                                            </span>
+                                        ))
+                                    ) : (
+                                        <p className="text-muted small fst-italic">No skills added yet.</p>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
 
-                    <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '20px', background: 'var(--bg-card)' }}>
-                        <div className="card-body p-4">
-                            <div className="d-flex justify-content-between align-items-center mb-4">
-                                <h5 className="fw-bold mb-0" style={{ color: 'var(--text-main)' }}>
-                                    <i className="bi bi-briefcase me-2"></i>Work History
+                    {isEmployer && (
+                        <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '20px', background: 'var(--bg-card)' }}>
+                            <div className="card-body p-4">
+                                <h5 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>
+                                    <i className="bi bi-grid me-2"></i>Quick Actions
                                 </h5>
-                                <button className="btn btn-sm btn-link text-decoration-none" style={{ color: 'var(--primary-600)' }}>
-                                    <i className="bi bi-plus-lg me-1"></i>Add Experience
-                                </button>
+                                <div className="d-flex flex-column gap-3">
+                                    <Link to="/post-job" className="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none"
+                                        style={{ background: 'var(--bg-surface)', transition: 'all 0.2s' }}>
+                                        <div className="d-flex align-items-center justify-content-center rounded-circle"
+                                            style={{ width: '44px', height: '44px', background: 'rgba(99, 102, 241, 0.1)' }}>
+                                            <i className="bi bi-plus-lg" style={{ color: 'var(--primary-600)' }}></i>
+                                        </div>
+                                        <div>
+                                            <p className="mb-0 fw-semibold" style={{ color: 'var(--text-main)' }}>Post a New Job</p>
+                                            <p className="mb-0 small" style={{ color: 'var(--text-muted)' }}>Find workers for your business</p>
+                                        </div>
+                                    </Link>
+                                    <Link to="/my-jobs" className="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none"
+                                        style={{ background: 'var(--bg-surface)', transition: 'all 0.2s' }}>
+                                        <div className="d-flex align-items-center justify-content-center rounded-circle"
+                                            style={{ width: '44px', height: '44px', background: 'rgba(34, 197, 94, 0.1)' }}>
+                                            <i className="bi bi-briefcase" style={{ color: '#22c55e' }}></i>
+                                        </div>
+                                        <div>
+                                            <p className="mb-0 fw-semibold" style={{ color: 'var(--text-main)' }}>View My Jobs</p>
+                                            <p className="mb-0 small" style={{ color: 'var(--text-muted)' }}>Manage your job listings</p>
+                                        </div>
+                                    </Link>
+                                </div>
                             </div>
+                        </div>
+                    )}
 
-                            <div className="d-flex flex-column gap-3">
-                                {workHistory.length > 0 ? (
-                                    workHistory.map((work) => (
-                                        <div key={work._id} className="p-3 rounded-3"
-                                            style={{ background: 'var(--bg-surface)', opacity: work.isVisible ? 1 : 0.6 }}>
-                                            <div className="d-flex justify-content-between align-items-start">
-                                                <div className="flex-grow-1">
-                                                    <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                                        <h6 className="fw-bold mb-0" style={{ color: 'var(--text-main)' }}>{work.role}</h6>
-                                                        {work.isCurrent && (
-                                                            <span className="badge bg-primary-subtle text-primary rounded-pill">Current</span>
-                                                        )}
-                                                        {work.isVerified && (
-                                                            <span className="badge bg-success-subtle text-success rounded-pill">
-                                                                <i className="bi bi-patch-check-fill me-1"></i>Verified
-                                                            </span>
-                                                        )}
-                                                        {!work.isVisible && (
-                                                            <span className="badge bg-secondary-subtle text-secondary rounded-pill">
-                                                                <i className="bi bi-eye-slash me-1"></i>Hidden
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <p className="mb-1" style={{ color: 'var(--text-muted)' }}>
-                                                        <i className="bi bi-building me-1"></i>{work.company?.name || 'Unknown Company'}
-                                                    </p>
-                                                    <p className="mb-2 small" style={{ color: 'var(--text-muted)' }}>
-                                                        <i className="bi bi-calendar3 me-1"></i>
-                                                        {formatDate(work.startDate)} - {formatDate(work.endDate)}
-                                                    </p>
-                                                    {work.skills?.length > 0 && (
-                                                        <div className="d-flex flex-wrap gap-1 mb-2">
-                                                            {work.skills.map((skill, i) => (
-                                                                <span key={i} className="badge rounded-pill"
-                                                                    style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                                                                    {skill}
+                    {!isEmployer && (
+                        <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '20px', background: 'var(--bg-card)' }}>
+                            <div className="card-body p-4">
+                                <div className="d-flex justify-content-between align-items-center mb-4">
+                                    <h5 className="fw-bold mb-0" style={{ color: 'var(--text-main)' }}>
+                                        <i className="bi bi-briefcase me-2"></i>Work History
+                                    </h5>
+                                    <button className="btn btn-sm btn-link text-decoration-none" style={{ color: 'var(--primary-600)' }}>
+                                        <i className="bi bi-plus-lg me-1"></i>Add Experience
+                                    </button>
+                                </div>
+
+                                <div className="d-flex flex-column gap-3">
+                                    {workHistory.length > 0 ? (
+                                        workHistory.map((work) => (
+                                            <div key={work._id} className="p-3 rounded-3"
+                                                style={{ background: 'var(--bg-surface)', opacity: work.isVisible ? 1 : 0.6 }}>
+                                                <div className="d-flex justify-content-between align-items-start">
+                                                    <div className="flex-grow-1">
+                                                        <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                                            <h6 className="fw-bold mb-0" style={{ color: 'var(--text-main)' }}>{work.role}</h6>
+                                                            {work.isCurrent && (
+                                                                <span className="badge bg-primary-subtle text-primary rounded-pill">Current</span>
+                                                            )}
+                                                            {work.isVerified && (
+                                                                <span className="badge bg-success-subtle text-success rounded-pill">
+                                                                    <i className="bi bi-patch-check-fill me-1"></i>Verified
                                                                 </span>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                    {work.rating && (
-                                                        <div className="d-flex align-items-center gap-1">
-                                                            {[...Array(5)].map((_, i) => (
-                                                                <i key={i} className={`bi bi-star${i < work.rating ? '-fill' : ''}`}
-                                                                    style={{ color: i < work.rating ? '#fbbf24' : 'var(--text-muted)', fontSize: '0.875rem' }}></i>
-                                                            ))}
-                                                            {work.review && (
-                                                                <span className="ms-2 small fst-italic" style={{ color: 'var(--text-muted)' }}>
-                                                                    "{work.review}"
+                                                            )}
+                                                            {!work.isVisible && (
+                                                                <span className="badge bg-secondary-subtle text-secondary rounded-pill">
+                                                                    <i className="bi bi-eye-slash me-1"></i>Hidden
                                                                 </span>
                                                             )}
                                                         </div>
-                                                    )}
-                                                </div>
-                                                <div className="d-flex gap-2">
-                                                    <button className="btn btn-sm btn-link p-1" title={work.isVisible ? 'Hide' : 'Show'}
-                                                        style={{ color: 'var(--text-muted)' }}>
-                                                        <i className={`bi bi-eye${work.isVisible ? '' : '-slash'}`}></i>
-                                                    </button>
-                                                    <button className="btn btn-sm btn-link p-1" title="Edit"
-                                                        style={{ color: 'var(--text-muted)' }}>
-                                                        <i className="bi bi-pencil"></i>
-                                                    </button>
+                                                        <p className="mb-1" style={{ color: 'var(--text-muted)' }}>
+                                                            <i className="bi bi-building me-1"></i>{work.company?.name || 'Unknown Company'}
+                                                        </p>
+                                                        <p className="mb-2 small" style={{ color: 'var(--text-muted)' }}>
+                                                            <i className="bi bi-calendar3 me-1"></i>
+                                                            {formatDate(work.startDate)} - {formatDate(work.endDate)}
+                                                        </p>
+                                                        {work.skills?.length > 0 && (
+                                                            <div className="d-flex flex-wrap gap-1 mb-2">
+                                                                {work.skills.map((skill, i) => (
+                                                                    <span key={i} className="badge rounded-pill"
+                                                                        style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                                                                        {skill}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                        {work.rating && (
+                                                            <div className="d-flex align-items-center gap-1">
+                                                                {[...Array(5)].map((_, i) => (
+                                                                    <i key={i} className={`bi bi-star${i < work.rating ? '-fill' : ''}`}
+                                                                        style={{ color: i < work.rating ? '#fbbf24' : 'var(--text-muted)', fontSize: '0.875rem' }}></i>
+                                                                ))}
+                                                                {work.review && (
+                                                                    <span className="ms-2 small fst-italic" style={{ color: 'var(--text-muted)' }}>
+                                                                        "{work.review}"
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="d-flex gap-2">
+                                                        <button className="btn btn-sm btn-link p-1" title={work.isVisible ? 'Hide' : 'Show'}
+                                                            style={{ color: 'var(--text-muted)' }}>
+                                                            <i className={`bi bi-eye${work.isVisible ? '' : '-slash'}`}></i>
+                                                        </button>
+                                                        <button className="btn btn-sm btn-link p-1" title="Edit"
+                                                            style={{ color: 'var(--text-muted)' }}>
+                                                            <i className="bi bi-pencil"></i>
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-muted small fst-italic">No work history added.</p>
-                                )}
+                                        ))
+                                    ) : (
+                                        <p className="text-muted small fst-italic">No work history added.</p>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 <div className="col-lg-4">
@@ -312,96 +372,100 @@ function WorkerProfilePage() {
                         </div>
                     </div>
 
-                    <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '20px', background: 'var(--bg-card)' }}>
-                        <div className="card-body p-4">
-                            <h5 className="fw-bold mb-3" style={{ color: 'var(--text-main)' }}>
-                                <i className="bi bi-currency-rupee me-2"></i>Expected Salary
-                            </h5>
-                            <p className="mb-1 fs-4 fw-bold" style={{ color: 'var(--text-main)' }}>
-                                ₹{profile.expectedSalary?.min?.toLocaleString()}{profile.expectedSalary?.max ? ` - ₹${profile.expectedSalary.max.toLocaleString()}` : '+'}
-                            </p>
-                            <p className="mb-0 small" style={{ color: 'var(--text-muted)' }}>
-                                per {profile.expectedSalary?.type === 'monthly' ? 'month' : 'day'}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '20px', background: 'var(--bg-card)' }}>
-                        <div className="card-body p-4">
-                            <h5 className="fw-bold mb-3" style={{ color: 'var(--text-main)' }}>
-                                <i className="bi bi-translate me-2"></i>Languages
-                            </h5>
-                            <div className="d-flex flex-wrap gap-2">
-                                {profile.languages?.map((lang, i) => (
-                                    <span key={i} className="badge rounded-pill px-3 py-2"
-                                        style={{ background: 'var(--bg-surface)', color: 'var(--text-main)' }}>
-                                        {lang}
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="card border-0 shadow-sm" style={{ borderRadius: '20px', background: 'var(--bg-card)' }}>
-                        <div className="card-body p-4">
-                            <h5 className="fw-bold mb-3" style={{ color: 'var(--text-main)' }}>
-                                <i className="bi bi-file-earmark-text me-2"></i>Documents
-                            </h5>
-                            <div className="d-flex flex-column gap-3">
-                                <div className="d-flex align-items-center justify-content-between p-3 rounded-3" style={{ background: 'var(--bg-surface)' }}>
-                                    <div className="d-flex align-items-center gap-2">
-                                        <i className="bi bi-credit-card-2-front" style={{ color: 'var(--text-main)' }}></i>
-                                        <span style={{ color: 'var(--text-main)' }}>Aadhaar</span>
-                                    </div>
-                                    {profile.documents?.aadhaar?.verified ? (
-                                        <span className="badge bg-success rounded-pill">
-                                            <i className="bi bi-check-lg me-1"></i>Verified
-                                        </span>
-                                    ) : profile.documents?.aadhaar?.number ? (
-                                        <span className="badge bg-warning text-dark rounded-pill">Pending</span>
-                                    ) : (
-                                        <button className="btn btn-sm btn-link text-decoration-none p-0" style={{ color: 'var(--primary-600)' }}>
-                                            <i className="bi bi-plus-lg me-1"></i>Add
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="d-flex align-items-center justify-content-between p-3 rounded-3" style={{ background: 'var(--bg-surface)' }}>
-                                    <div className="d-flex align-items-center gap-2">
-                                        <i className="bi bi-card-text" style={{ color: 'var(--text-main)' }}></i>
-                                        <span style={{ color: 'var(--text-main)' }}>PAN Card</span>
-                                    </div>
-                                    {profile.documents?.pan?.verified ? (
-                                        <span className="badge bg-success rounded-pill">
-                                            <i className="bi bi-check-lg me-1"></i>Verified
-                                        </span>
-                                    ) : profile.documents?.pan?.number ? (
-                                        <span className="badge bg-warning text-dark rounded-pill">Pending</span>
-                                    ) : (
-                                        <button className="btn btn-sm btn-link text-decoration-none p-0" style={{ color: 'var(--primary-600)' }}>
-                                            <i className="bi bi-plus-lg me-1"></i>Add
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="d-flex align-items-center justify-content-between p-3 rounded-3" style={{ background: 'var(--bg-surface)' }}>
-                                    <div className="d-flex align-items-center gap-2">
-                                        <i className="bi bi-car-front" style={{ color: 'var(--text-main)' }}></i>
-                                        <span style={{ color: 'var(--text-main)' }}>Driving License</span>
-                                    </div>
-                                    {profile.documents?.license?.verified ? (
-                                        <span className="badge bg-success rounded-pill">
-                                            <i className="bi bi-check-lg me-1"></i>Verified
-                                        </span>
-                                    ) : profile.documents?.license?.number ? (
-                                        <span className="badge bg-warning text-dark rounded-pill">Pending</span>
-                                    ) : (
-                                        <button className="btn btn-sm btn-link text-decoration-none p-0" style={{ color: 'var(--primary-600)' }}>
-                                            <i className="bi bi-plus-lg me-1"></i>Add
-                                        </button>
-                                    )}
+                    {!isEmployer && (
+                        <>
+                            <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '20px', background: 'var(--bg-card)' }}>
+                                <div className="card-body p-4">
+                                    <h5 className="fw-bold mb-3" style={{ color: 'var(--text-main)' }}>
+                                        <i className="bi bi-currency-rupee me-2"></i>Expected Salary
+                                    </h5>
+                                    <p className="mb-1 fs-4 fw-bold" style={{ color: 'var(--text-main)' }}>
+                                        ₹{profile.expectedSalary?.min?.toLocaleString()}{profile.expectedSalary?.max ? ` - ₹${profile.expectedSalary.max.toLocaleString()}` : '+'}
+                                    </p>
+                                    <p className="mb-0 small" style={{ color: 'var(--text-muted)' }}>
+                                        per {profile.expectedSalary?.type === 'monthly' ? 'month' : 'day'}
+                                    </p>
                                 </div>
                             </div>
-                        </div>
-                    </div>
+
+                            <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '20px', background: 'var(--bg-card)' }}>
+                                <div className="card-body p-4">
+                                    <h5 className="fw-bold mb-3" style={{ color: 'var(--text-main)' }}>
+                                        <i className="bi bi-translate me-2"></i>Languages
+                                    </h5>
+                                    <div className="d-flex flex-wrap gap-2">
+                                        {profile.languages?.map((lang, i) => (
+                                            <span key={i} className="badge rounded-pill px-3 py-2"
+                                                style={{ background: 'var(--bg-surface)', color: 'var(--text-main)' }}>
+                                                {lang}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="card border-0 shadow-sm" style={{ borderRadius: '20px', background: 'var(--bg-card)' }}>
+                                <div className="card-body p-4">
+                                    <h5 className="fw-bold mb-3" style={{ color: 'var(--text-main)' }}>
+                                        <i className="bi bi-file-earmark-text me-2"></i>Documents
+                                    </h5>
+                                    <div className="d-flex flex-column gap-3">
+                                        <div className="d-flex align-items-center justify-content-between p-3 rounded-3" style={{ background: 'var(--bg-surface)' }}>
+                                            <div className="d-flex align-items-center gap-2">
+                                                <i className="bi bi-credit-card-2-front" style={{ color: 'var(--text-main)' }}></i>
+                                                <span style={{ color: 'var(--text-main)' }}>Aadhaar</span>
+                                            </div>
+                                            {profile.documents?.aadhaar?.verified ? (
+                                                <span className="badge bg-success rounded-pill">
+                                                    <i className="bi bi-check-lg me-1"></i>Verified
+                                                </span>
+                                            ) : profile.documents?.aadhaar?.number ? (
+                                                <span className="badge bg-warning text-dark rounded-pill">Pending</span>
+                                            ) : (
+                                                <button className="btn btn-sm btn-link text-decoration-none p-0" style={{ color: 'var(--primary-600)' }}>
+                                                    <i className="bi bi-plus-lg me-1"></i>Add
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="d-flex align-items-center justify-content-between p-3 rounded-3" style={{ background: 'var(--bg-surface)' }}>
+                                            <div className="d-flex align-items-center gap-2">
+                                                <i className="bi bi-card-text" style={{ color: 'var(--text-main)' }}></i>
+                                                <span style={{ color: 'var(--text-main)' }}>PAN Card</span>
+                                            </div>
+                                            {profile.documents?.pan?.verified ? (
+                                                <span className="badge bg-success rounded-pill">
+                                                    <i className="bi bi-check-lg me-1"></i>Verified
+                                                </span>
+                                            ) : profile.documents?.pan?.number ? (
+                                                <span className="badge bg-warning text-dark rounded-pill">Pending</span>
+                                            ) : (
+                                                <button className="btn btn-sm btn-link text-decoration-none p-0" style={{ color: 'var(--primary-600)' }}>
+                                                    <i className="bi bi-plus-lg me-1"></i>Add
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="d-flex align-items-center justify-content-between p-3 rounded-3" style={{ background: 'var(--bg-surface)' }}>
+                                            <div className="d-flex align-items-center gap-2">
+                                                <i className="bi bi-car-front" style={{ color: 'var(--text-main)' }}></i>
+                                                <span style={{ color: 'var(--text-main)' }}>Driving License</span>
+                                            </div>
+                                            {profile.documents?.license?.verified ? (
+                                                <span className="badge bg-success rounded-pill">
+                                                    <i className="bi bi-check-lg me-1"></i>Verified
+                                                </span>
+                                            ) : profile.documents?.license?.number ? (
+                                                <span className="badge bg-warning text-dark rounded-pill">Pending</span>
+                                            ) : (
+                                                <button className="btn btn-sm btn-link text-decoration-none p-0" style={{ color: 'var(--primary-600)' }}>
+                                                    <i className="bi bi-plus-lg me-1"></i>Add
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

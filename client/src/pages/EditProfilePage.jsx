@@ -5,11 +5,12 @@ import { useNavigate } from 'react-router-dom';
 
 function EditProfilePage() {
     const navigate = useNavigate();
-    const { updateUserData } = useAuth();
+    const { updateUserData, user } = useAuth();
+    const isEmployer = user?.role === 'employer';
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
     const [currentStep, setCurrentStep] = useState(1);
-    const totalSteps = 4;
+    const totalSteps = isEmployer ? 1 : 4;
     const [avatar, setAvatar] = useState(null);
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
     const fileInputRef = useRef(null);
@@ -32,10 +33,14 @@ function EditProfilePage() {
         expectedSalaryType: 'monthly',
         aadhaarNumber: '',
         panNumber: '',
-        licenseNumber: ''
+        licenseNumber: '',
+        designation: '',
+        isHiringManager: false
     });
 
-    const steps = [
+    const steps = isEmployer ? [
+        { number: 1, title: 'Profile', icon: 'bi-person-fill', desc: 'Your details' }
+    ] : [
         { number: 1, title: 'Basics', icon: 'bi-person-fill', desc: 'Name & identity' },
         { number: 2, title: 'Location', icon: 'bi-geo-alt-fill', desc: 'Where you are' },
         { number: 3, title: 'Skills', icon: 'bi-stars', desc: 'What you do' },
@@ -68,6 +73,8 @@ function EditProfilePage() {
                     licenseNumber: p.documents?.license?.number || ''
                 });
                 if (p.avatar) setAvatar(p.avatar);
+                if (p.designation) setFormData(prev => ({ ...prev, designation: p.designation }));
+                if (p.isHiringManager) setFormData(prev => ({ ...prev, isHiringManager: p.isHiringManager }));
             } catch (err) {
                 if (err.response?.status !== 404) console.error("Failed to fetch profile", err);
             } finally {
@@ -103,30 +110,40 @@ function EditProfilePage() {
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            const payload = {
-                name: formData.name,
-                gender: formData.gender,
-                dob: formData.dob,
-                phone: formData.phone,
-                whatsapp: formData.whatsapp,
-                email: formData.email,
-                city: formData.city,
-                state: formData.state,
-                pincode: formData.pincode,
-                bio: formData.bio,
-                languages: formData.languages.split(',').map(s => s.trim()).filter(s => s),
-                skills: formData.skills.split(',').map(s => s.trim()).filter(s => s),
-                expectedSalary: {
-                    min: Number(formData.expectedSalaryMin) || undefined,
-                    max: formData.expectedSalaryMax ? Number(formData.expectedSalaryMax) : undefined,
-                    type: formData.expectedSalaryType
-                },
-                documents: {
-                    aadhaar: { number: formData.aadhaarNumber },
-                    pan: { number: formData.panNumber },
-                    license: { number: formData.licenseNumber }
-                }
-            };
+            let payload;
+            if (isEmployer) {
+                payload = {
+                    name: formData.name,
+                    whatsapp: formData.whatsapp,
+                    designation: formData.designation,
+                    isHiringManager: formData.isHiringManager
+                };
+            } else {
+                payload = {
+                    name: formData.name,
+                    gender: formData.gender,
+                    dob: formData.dob,
+                    phone: formData.phone,
+                    whatsapp: formData.whatsapp,
+                    email: formData.email,
+                    city: formData.city,
+                    state: formData.state,
+                    pincode: formData.pincode,
+                    bio: formData.bio,
+                    languages: formData.languages.split(',').map(s => s.trim()).filter(s => s),
+                    skills: formData.skills.split(',').map(s => s.trim()).filter(s => s),
+                    expectedSalary: {
+                        min: Number(formData.expectedSalaryMin) || undefined,
+                        max: formData.expectedSalaryMax ? Number(formData.expectedSalaryMax) : undefined,
+                        type: formData.expectedSalaryType
+                    },
+                    documents: {
+                        aadhaar: { number: formData.aadhaarNumber },
+                        pan: { number: formData.panNumber },
+                        license: { number: formData.licenseNumber }
+                    }
+                };
+            }
             await axios.put('/api/profile/my-profile', payload);
             if (formData.name) updateUserData({ name: formData.name });
             navigate('/profile');
@@ -233,7 +250,9 @@ function EditProfilePage() {
                     {/* Step 1: Basic Info */}
                     {currentStep === 1 && (
                         <div>
-                            <h4 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>Let's start with basics</h4>
+                            <h4 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>
+                                {isEmployer ? 'Your profile details' : "Let's start with basics"}
+                            </h4>
 
                             {/* Photo Upload */}
                             <div className="mb-4 d-flex align-items-center gap-4">
@@ -268,31 +287,91 @@ function EditProfilePage() {
                                     style={inputStyle} className="form-control" placeholder="Enter your full name" />
                             </div>
 
-                            <div className="row g-3 mb-4">
-                                <div className="col-6">
-                                    <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>Gender</label>
-                                    <select name="gender" value={formData.gender} onChange={handleChange}
-                                        style={inputStyle} className="form-select">
-                                        <option value="">Select</option>
-                                        <option value="male">Male</option>
-                                        <option value="female">Female</option>
-                                        <option value="other">Other</option>
-                                    </select>
-                                </div>
-                                <div className="col-6">
-                                    <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>Date of Birth</label>
-                                    <input type="date" name="dob" value={formData.dob} onChange={handleChange}
-                                        style={inputStyle} className="form-control" />
-                                </div>
-                            </div>
-
                             <div className="mb-4">
                                 <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
-                                    <i className="bi bi-whatsapp text-success me-2"></i>WhatsApp Number
+                                    Phone Number
+                                    {user?.phoneVerified ? (
+                                        <span className="badge bg-success-subtle text-success ms-2 rounded-pill">
+                                            <i className="bi bi-patch-check-fill me-1"></i>Verified
+                                        </span>
+                                    ) : (
+                                        <button type="button" onClick={() => navigate('/profile/settings')}
+                                            className="btn btn-link btn-sm text-decoration-none p-0 ms-2" style={{ color: 'var(--primary-600)', fontWeight: 600 }}>
+                                            Verify Now
+                                        </button>
+                                    )}
                                 </label>
-                                <input type="tel" name="whatsapp" value={formData.whatsapp} onChange={handleChange} maxLength={10}
-                                    style={inputStyle} className="form-control" placeholder="10-digit number" />
+                                <div className="d-flex align-items-center gap-2">
+                                    <input type="tel" value={user?.phone || ''} readOnly
+                                        style={{ ...inputStyle, background: 'var(--bg-surface)', cursor: 'not-allowed' }}
+                                        className="form-control" placeholder="Not set" />
+                                    <button type="button" onClick={() => navigate('/profile/settings')}
+                                        className="btn btn-outline-secondary" style={{ borderRadius: '12px', whiteSpace: 'nowrap', fontSize: '0.85rem', fontWeight: 500 }}>
+                                        <i className="bi bi-gear me-1"></i>Change
+                                    </button>
+                                </div>
+                                <small className="text-muted" style={{ fontSize: '0.75rem' }}>Phone can only be changed via Account Settings with OTP verification</small>
                             </div>
+
+                            {isEmployer ? (
+                                <>
+                                    {/* WhatsApp for employers */}
+                                    <div className="mb-4">
+                                        <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
+                                            <i className="bi bi-whatsapp text-success me-2"></i>WhatsApp Number
+                                        </label>
+                                        <input type="tel" name="whatsapp" value={formData.whatsapp} onChange={handleChange} maxLength={10}
+                                            style={inputStyle} className="form-control" placeholder="10-digit number (optional)" />
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>Designation</label>
+                                        <input type="text" name="designation" value={formData.designation} onChange={handleChange}
+                                            style={inputStyle} className="form-control" placeholder="e.g. HR Manager, Recruiter" />
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <div className="form-check" style={{ paddingLeft: '2rem' }}>
+                                            <input type="checkbox" className="form-check-input" id="isHiringManager"
+                                                checked={formData.isHiringManager}
+                                                onChange={(e) => setFormData({ ...formData, isHiringManager: e.target.checked })}
+                                                style={{ width: '20px', height: '20px', marginRight: '12px' }} />
+                                            <label className="form-check-label fw-semibold" htmlFor="isHiringManager" style={{ color: 'var(--text-main)' }}>
+                                                I am a Hiring Manager
+                                            </label>
+                                            <p className="mb-0 small" style={{ color: 'var(--text-muted)' }}>Check if you directly handle hiring decisions</p>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="row g-3 mb-4">
+                                        <div className="col-6">
+                                            <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>Gender</label>
+                                            <select name="gender" value={formData.gender} onChange={handleChange}
+                                                style={inputStyle} className="form-select">
+                                                <option value="">Select</option>
+                                                <option value="male">Male</option>
+                                                <option value="female">Female</option>
+                                                <option value="other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div className="col-6">
+                                            <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>Date of Birth</label>
+                                            <input type="date" name="dob" value={formData.dob} onChange={handleChange}
+                                                style={inputStyle} className="form-control" />
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
+                                            <i className="bi bi-whatsapp text-success me-2"></i>WhatsApp Number
+                                        </label>
+                                        <input type="tel" name="whatsapp" value={formData.whatsapp} onChange={handleChange} maxLength={10}
+                                            style={inputStyle} className="form-control" placeholder="10-digit number" />
+                                    </div>
+                                </>
+                            )}
                         </div>
                     )}
 

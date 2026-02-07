@@ -38,9 +38,10 @@ export const verifyOTP = async (req, res) => {
         await OTP.deleteOne({ _id: record._id });
         let user = await User.findOne({ phone });
         if (!user) {
-            user = await User.create({ phone, name, authType: "phone", role });
+            user = await User.create({ phone, name, authType: "phone", role, phoneVerified: true });
+        } else {
+            user.phoneVerified = true;
         }
-        user.isVerified = true;
         await user.save();
         const safeUser = user.toObject();
         delete safeUser.password;
@@ -69,7 +70,7 @@ export const register = async (req, res) => {
             authType: "email",
             role,
             name,
-            isVerified: true
+            emailVerified: true
         });
         const safeUser = user.toObject();
         delete safeUser.password;
@@ -234,7 +235,7 @@ export const sendUpdateOTP = async (req, res) => {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         await OTP.findOneAndUpdate({ $or: conditions }, { otp, expiresAt: Date.now() + 10 * 60 * 1000, isUsed: false }, { upsert: true });
 
-        console.log(`Update OTP for ${phone || email}: ${otp}`); 
+        console.log(`Update OTP for ${phone || email}: ${otp}`);
         res.status(200).json({ message: "OTP Sent" });
 
     } catch (error) {
@@ -264,7 +265,15 @@ export const verifyUpdateOTP = async (req, res) => {
         if (email) updates.email = email;
         if (phone) updates.phone = phone;
 
-        const user = await User.findByIdAndUpdate(req.user._id, { $set: updates }, { new: true }).select("-password");
+        const user = await User.findByIdAndUpdate(
+            req.user._id,
+            {
+                $set: updates,
+                ...(email ? { emailVerified: true } : {}),
+                ...(phone ? { phoneVerified: true } : {})
+            },
+            { new: true }
+        ).select("-password");
         res.json({ message: "Account updated successfully", user });
 
     } catch (error) {
