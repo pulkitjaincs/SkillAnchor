@@ -1,6 +1,39 @@
 import WorkerProfile from "../models/WorkerProfile.model.js";
 import WorkExperience from "../models/WorkExperience.model.js";
 import User from "../models/User.model.js";
+import multer from "multer";
+import { uploadToS3 } from "../config/s3.js";
+
+const storage = multer.memoryStorage();
+
+const fileFilter = (req, file, cb) => {
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    cb(null, allowed.includes(file.mimetype));
+};
+
+export const uploadMiddleware = multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } }).single("avatar");
+
+export const uploadAvatar = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded or invalid format" });
+        }
+
+        const key = `avatars/${req.user._id}-${Date.now()}.jpg`;
+        const avatarUrl = await uploadToS3(req.file.buffer, req.file.mimetype, key);
+
+        await WorkerProfile.findOneAndUpdate(
+            { user: req.user._id },
+            { $set: { avatar: avatarUrl } },
+            { upsert: true }
+        );
+
+        return res.status(200).json({ avatar: avatarUrl });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Avatar upload failed" });
+    }
+};
 
 export const getMyProfile = async (req, res) => {
     try {

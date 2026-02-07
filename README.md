@@ -46,6 +46,9 @@ Built for simplicity. Works on any device.
 - Apply with one tap
 - Track application status in real-time
 - Save jobs for later
+- **Profile photo upload** with S3 cloud storage
+- **Multi-step profile wizard** for easy onboarding
+- **Profile completion tracking** with visual progress
 
 ### For Employers
 - Post jobs with salary, schedule, and requirements
@@ -60,7 +63,8 @@ Built for simplicity. Works on any device.
 - Email + password login
 - Forgot password with OTP verification
 - Responsive design for mobile and desktop
-- Dark and light mode
+- **Modern UI** with refined components and smooth animations
+- Dark and light mode with smooth transitions
 
 ---
 
@@ -93,14 +97,18 @@ cd KaamSetu
 npm run install:all
 ```
 
-### Configuration
-
 Create `server/.env`:
 
 ```env
 MONGO_URI=mongodb://localhost:27017/kaamsetu
 JWT_SECRET=your-secret-key
 PORT=5000
+
+# AWS S3 (for profile photo uploads)
+AWS_REGION=ap-south-1
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+AWS_BUCKET_NAME=your-bucket-name
 ```
 
 ### Run Locally
@@ -123,16 +131,17 @@ Frontend: `http://localhost:5173` | Backend: `http://localhost:5000`
 KaamSetu/
 ├── client/                 # React frontend
 │   └── src/
-│       ├── components/     # UI components
-│       ├── pages/          # Home, Login, Jobs, Applications
-│       ├── context/        # Auth state
-│       └── services/       # API calls
+│       ├── components/     # UI components (Navbar, Cards)
+│       ├── pages/          # Home, Login, Jobs, Profile, Settings
+│       ├── context/        # Auth state management
+│       └── styles/         # Global CSS with design system
 │
 └── server/                 # Express backend
     └── src/
         ├── controllers/    # Business logic
-        ├── models/         # User, Job, Application
+        ├── models/         # User, Job, Application, WorkerProfile
         ├── routes/         # API endpoints
+        ├── config/         # Database, S3 configuration
         └── middleware/     # Auth guards
 ```
 
@@ -140,10 +149,11 @@ KaamSetu/
 
 | Layer | Technology |
 |-------|------------|
-| Frontend | React 19, Vite, React Router |
-| Backend | Node.js, Express, Mongoose |
+| Frontend | React 19, Vite, React Router, Bootstrap 5 |
+| Backend | Node.js, Express, Mongoose, Multer |
 | Database | MongoDB |
 | Auth | JWT, bcrypt, OTP |
+| Storage | AWS S3 |
 
 ---
 
@@ -168,8 +178,9 @@ KaamSetu/
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/profile/me` | Get current user's profile |
-| PUT | `/api/profile/me` | Update profile (skills, about, etc) |
+| GET | `/api/profile/my-profile` | Get current user's profile |
+| PUT | `/api/profile/my-profile` | Update profile (skills, bio, etc) |
+| POST | `/api/profile/upload-avatar` | Upload profile photo to S3 |
 
 ### Jobs
 
@@ -207,6 +218,10 @@ KaamSetu/
 
 ## Roadmap
 
+- [x] Premium UI redesign (Edit Profile, Settings, Navbar)
+- [x] Profile photo uploads with S3
+- [x] Multi-step profile wizard
+- [x] Client-side profile completion tracking
 - [ ] Advanced search with location and salary filters
 - [ ] Shift-based job scheduling
 - [ ] In-app messaging
@@ -223,7 +238,7 @@ Contributions welcome. Open an issue or submit a pull request.
 
 ## License
 
-MIT © 2025
+MIT © 2025-2026
 
 ---
 

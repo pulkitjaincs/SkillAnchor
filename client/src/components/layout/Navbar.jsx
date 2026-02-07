@@ -225,37 +225,113 @@ const Navbar = ({ name }) => {
                   <div className="d-flex align-items-center gap-3">
                     <div className="d-flex align-items-center gap-2 cursor-pointer" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                       <div className="rounded-circle d-flex align-items-center justify-content-center fw-bold"
-                        style={{ width: '36px', height: '36px', background: 'linear-gradient(135deg, var(--primary-500), var(--primary-700))', color: 'white', fontSize: '0.9rem' }}>
+                        style={{
+                          width: '44px', height: '44px',
+                          background: 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
+                          color: 'white', fontSize: '1rem',
+                          boxShadow: '0 6px 20px rgba(99, 102, 241, 0.35)',
+                          border: '2px solid rgba(255,255,255,0.2)'
+                        }}>
                         {user.name?.charAt(0)?.toUpperCase()}
                       </div>
-                      <span className="fw-medium d-none d-xl-inline" style={{ color: 'var(--text-main)' }}>
+                      <span className="fw-semibold d-none d-xl-inline" style={{ color: 'var(--text-main)', fontSize: '0.95rem' }}>
                         {user.name}
                       </span>
-                      <i className="bi bi-chevron-down ms-1" style={{ fontSize: '0.8rem' }}></i>
+                      <i className="bi bi-chevron-down" style={{ fontSize: '0.65rem', color: 'var(--text-muted)', transition: 'transform 0.2s' }}></i>
                     </div>
 
-                    <ul className="dropdown-menu dropdown-menu-end shadow-lg animate-slide-in" style={{ borderRadius: '16px', minWidth: '220px', padding: '0.75rem' }}>
-                      <li>
-                        <div className="px-3 py-2">
-                          <h6 className="mb-0 fw-bold">{user.name}</h6>
-                          <small className="text-muted" style={{ fontSize: '0.8rem' }}>{user.email || 'Worker Account'}</small>
+                    <ul className="dropdown-menu dropdown-menu-end border-0"
+                      style={{
+                        borderRadius: '24px',
+                        minWidth: '280px',
+                        padding: '12px',
+                        background: 'var(--bg-card)',
+                        backdropFilter: 'blur(24px)',
+                        boxShadow: '0 25px 80px rgba(0, 0, 0, 0.18), 0 10px 30px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255,255,255,0.1)',
+                        border: '1px solid var(--border-color)',
+                        marginTop: '14px',
+                        animation: 'dropdownSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                      }}>
+
+                      {/* User Info Header */}
+                      <li style={{
+                        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.04))',
+                        borderRadius: '16px', padding: '16px', marginBottom: '8px'
+                      }}>
+                        <div className="d-flex align-items-center gap-3">
+                          <div className="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
+                            style={{
+                              width: '56px', height: '56px',
+                              background: 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
+                              color: 'white', fontSize: '1.25rem',
+                              boxShadow: '0 8px 24px rgba(99, 102, 241, 0.3)'
+                            }}>
+                            {user.name?.charAt(0)?.toUpperCase()}
+                          </div>
+                          <div className="flex-grow-1 min-width-0">
+                            <h6 className="mb-1 fw-bold text-truncate" style={{ color: 'var(--text-main)', fontSize: '1rem' }}>{user.name}</h6>
+                            <small className="text-truncate d-block" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                              {user.email || user.phone || 'Worker Account'}
+                            </small>
+                          </div>
                         </div>
                       </li>
-                      <li><hr className="dropdown-divider" /></li>
+
+                      {/* Menu Items */}
                       <li>
-                        <Link className="dropdown-item py-2 rounded-2 hover-bg-light fw-medium d-flex align-items-center" to="/profile">
-                          <i className="bi bi-person me-3 text-primary"></i>My Profile
+                        <Link className="dropdown-item rounded-3 d-flex align-items-center gap-3"
+                          to="/profile"
+                          style={{
+                            color: 'var(--text-main)', transition: 'all 0.15s ease',
+                            padding: '12px 14px', fontWeight: 500
+                          }}>
+                          <div className="d-flex align-items-center justify-content-center"
+                            style={{
+                              width: '36px', height: '36px', borderRadius: '12px',
+                              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(99, 102, 241, 0.05))'
+                            }}>
+                            <i className="bi bi-person-fill" style={{ color: 'var(--primary-600)', fontSize: '1rem' }}></i>
+                          </div>
+                          <span>My Profile</span>
                         </Link>
                       </li>
                       <li>
-                        <Link className="dropdown-item py-2 rounded-2 hover-bg-light fw-medium d-flex align-items-center" to="/profile/settings">
-                          <i className="bi bi-gear me-3 text-secondary"></i>Account Settings
+                        <Link className="dropdown-item rounded-3 d-flex align-items-center gap-3"
+                          to="/profile/settings"
+                          style={{
+                            color: 'var(--text-main)', transition: 'all 0.15s ease',
+                            padding: '12px 14px', fontWeight: 500
+                          }}>
+                          <div className="d-flex align-items-center justify-content-center"
+                            style={{
+                              width: '36px', height: '36px', borderRadius: '12px',
+                              background: 'linear-gradient(135deg, rgba(107, 114, 128, 0.12), rgba(107, 114, 128, 0.04))'
+                            }}>
+                            <i className="bi bi-gear-fill" style={{ color: 'var(--text-muted)', fontSize: '1rem' }}></i>
+                          </div>
+                          <span>Account Settings</span>
                         </Link>
                       </li>
-                      <li><hr className="dropdown-divider" /></li>
+
+                      <li style={{ padding: '8px 0' }}>
+                        <hr style={{ margin: 0, borderColor: 'var(--border-color)', opacity: 0.5 }} />
+                      </li>
+
                       <li>
-                        <button onClick={handleLogout} className="dropdown-item py-2 rounded-2 hover-bg-light fw-medium d-flex align-items-center text-danger">
-                          <i className="bi bi-box-arrow-right me-3"></i>Logout
+                        <button onClick={handleLogout}
+                          className="dropdown-item rounded-3 d-flex align-items-center gap-3 w-100"
+                          style={{
+                            color: '#ef4444', transition: 'all 0.15s ease',
+                            padding: '12px 14px', fontWeight: 500
+                          }}>
+                          <div className="d-flex align-items-center justify-content-center"
+                            style={{
+                              width: '36px', height: '36px', borderRadius: '12px',
+                              background: 'rgba(239, 68, 68, 0.1)'
+                            }}>
+                            <i className="bi bi-box-arrow-right" style={{ fontSize: '1rem' }}></i>
+                          </div>
+                          <span>Logout</span>
                         </button>
                       </li>
                     </ul>

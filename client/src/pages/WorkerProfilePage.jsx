@@ -7,6 +7,28 @@ function WorkerProfilePage() {
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);
     const [workHistory, setWorkHistory] = useState([]);
+    const [completionPercent, setCompletionPercent] = useState(0);
+
+    const calculateCompletion = (p) => {
+        if (!p) return 0;
+        let score = 0;
+
+        if (p.name) score += 10;
+        if (p.gender) score += 10;
+        if (p.phone) score += 10;
+        if (p.city && p.state) score += 10;
+
+        if (p.skills?.length > 0) score += 15;
+        if (p.languages?.length > 0) score += 10;
+        if (p.bio) score += 10;
+        if (p.expectedSalary?.min) score += 10;
+
+        if (p.dob) score += 5;
+        if (p.documents?.aadhaar?.number) score += 5;
+        if (p.documents?.pan?.number) score += 5;
+
+        return Math.min(score, 100);
+    };
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -14,6 +36,7 @@ function WorkerProfilePage() {
                 const res = await axios.get('/api/profile/my-profile');
                 setProfile(res.data);
                 setWorkHistory(res.data.workHistory || []);
+                setCompletionPercent(calculateCompletion(res.data));
             } catch (err) {
                 if (err.response?.status === 404) {
                     navigate('/profile/edit');
@@ -59,13 +82,13 @@ function WorkerProfilePage() {
 
     return (
         <div className="container py-4">
-            {profile.completionPercent < 100 && (
+            {completionPercent < 100 && (
                 <div className="alert mb-4 d-flex align-items-center justify-content-between"
                     style={{ background: 'linear-gradient(135deg, var(--primary-100), var(--zinc-100))', border: 'none', borderRadius: '16px' }}>
                     <div className="d-flex align-items-center gap-3">
                         <div className="d-flex align-items-center justify-content-center rounded-circle"
                             style={{ width: '48px', height: '48px', background: 'var(--bg-card)' }}>
-                            <span className="fw-bold" style={{ color: 'var(--text-main)' }}>{profile.completionPercent}%</span>
+                            <span className="fw-bold" style={{ color: 'var(--text-main)' }}>{completionPercent}%</span>
                         </div>
                         <div>
                             <p className="mb-0 fw-semibold" style={{ color: 'var(--text-main)' }}>Complete your profile</p>
@@ -295,7 +318,7 @@ function WorkerProfilePage() {
                                 <i className="bi bi-currency-rupee me-2"></i>Expected Salary
                             </h5>
                             <p className="mb-1 fs-4 fw-bold" style={{ color: 'var(--text-main)' }}>
-                                ₹{profile.expectedSalary?.min?.toLocaleString()} - ₹{profile.expectedSalary?.max?.toLocaleString()}
+                                ₹{profile.expectedSalary?.min?.toLocaleString()}{profile.expectedSalary?.max ? ` - ₹${profile.expectedSalary.max.toLocaleString()}` : '+'}
                             </p>
                             <p className="mb-0 small" style={{ color: 'var(--text-muted)' }}>
                                 per {profile.expectedSalary?.type === 'monthly' ? 'month' : 'day'}
