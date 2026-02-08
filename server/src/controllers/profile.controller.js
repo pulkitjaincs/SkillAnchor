@@ -145,3 +145,36 @@ export const updateMyProfile = async (req, res) => {
         return res.status(500).json({ message: "Failed to update profile" });
     }
 };
+export const getProfileByUserId = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const profile = await WorkerProfile.findOne({ user: userId })
+            .populate({ path: "workHistory", populate: { path: "company", select: "name logo" } });
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        if (!profile) {
+            return res.status(200).json({
+                name: user.name,
+                email: user.email,
+                phone: user.phone,
+                role: user.role,
+                emailVerified: user.emailVerified,
+                phoneVerified: user.phoneVerified
+            });
+        }
+
+        const profileData = profile.toObject();
+        profileData.role = user.role;
+        profileData.email = user.email;
+        profileData.phone = user.phone;
+        profileData.emailVerified = user.emailVerified;
+        profileData.phoneVerified = user.phoneVerified;
+        if (!profileData.name) profileData.name = user.name;
+        return res.status(200).json(profileData);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Failed to get profile" });
+    }
+}

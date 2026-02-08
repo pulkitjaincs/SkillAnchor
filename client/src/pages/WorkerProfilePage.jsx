@@ -1,14 +1,38 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 
 function WorkerProfilePage() {
+    const { userId } = useParams();
+    const [searchParams] = useSearchParams();
+    const fromJobId = searchParams.get('fromJob');
+    const isOwnProfile = !userId;
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);
     const [workHistory, setWorkHistory] = useState([]);
     const [completionPercent, setCompletionPercent] = useState(0);
     const isEmployer = profile?.role === 'employer';
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const endpoint = isOwnProfile ? '/api/profile/my-profile' : `/api/profile/user/${userId}`;
+                const res = await axios.get(endpoint);
+                setProfile(res.data);
+                setWorkHistory(res.data.workHistory || []);
+                setCompletionPercent(calculateCompletion(res.data));
+            } catch (err) {
+                if (err.response?.status === 404 && isOwnProfile) {
+                    navigate('/profile/edit');
+                } else {
+                    console.error("Failed to fetch profile", err);
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProfile();
+    }, [navigate, userId, isOwnProfile]);
 
     const calculateCompletion = (p) => {
         if (!p) return 0;
@@ -41,25 +65,6 @@ function WorkerProfilePage() {
         return Math.min(score, 100);
     };
 
-    useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                const res = await axios.get('/api/profile/my-profile');
-                setProfile(res.data);
-                setWorkHistory(res.data.workHistory || []);
-                setCompletionPercent(calculateCompletion(res.data));
-            } catch (err) {
-                if (err.response?.status === 404) {
-                    navigate('/profile/edit');
-                } else {
-                    console.error("Failed to fetch profile", err);
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchProfile();
-    }, [navigate]);
 
     const formatDate = (dateStr) => {
         if (!dateStr) return 'Present';
@@ -93,7 +98,15 @@ function WorkerProfilePage() {
 
     return (
         <div className="container py-4">
-            {completionPercent < 100 && (
+            {fromJobId && (
+                <div className="mb-4">
+                    <Link to={`/jobs/${fromJobId}/applicants`} className="text-decoration-none d-inline-flex align-items-center"
+                        style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                        ← Back to Applicants
+                    </Link>
+                </div>
+            )}
+            {isOwnProfile && completionPercent < 100 && (
                 <div className="alert mb-4 d-flex align-items-center justify-content-between"
                     style={{ background: 'linear-gradient(135deg, var(--primary-100), var(--zinc-100))', border: 'none', borderRadius: '16px' }}>
                     <div className="d-flex align-items-center gap-3">
@@ -165,10 +178,12 @@ function WorkerProfilePage() {
                                     <p className="mb-3" style={{ color: 'var(--text-muted)' }}>{profile.bio}</p>
 
                                     <div className="d-flex flex-wrap gap-2">
-                                        <Link to="/profile/edit" className="btn rounded-pill px-4"
-                                            style={{ background: 'var(--text-main)', color: 'var(--bg-body)' }}>
-                                            <i className="bi bi-pencil me-2"></i>Edit Profile
-                                        </Link>
+                                        {isOwnProfile && (
+                                            <Link to="/profile/edit" className="btn rounded-pill px-4"
+                                                style={{ background: 'var(--text-main)', color: 'var(--bg-body)' }}>
+                                                <i className="bi bi-pencil me-2"></i>Edit Profile
+                                            </Link>
+                                        )}
                                         <button className="btn btn-outline-secondary rounded-pill px-4">
                                             <i className="bi bi-share me-2"></i>Share
                                         </button>
@@ -185,9 +200,11 @@ function WorkerProfilePage() {
                                     <h5 className="fw-bold mb-0" style={{ color: 'var(--text-main)' }}>
                                         <i className="bi bi-tools me-2"></i>Skills
                                     </h5>
-                                    <Link to="/profile/edit" className="btn btn-sm btn-link text-decoration-none" style={{ color: 'var(--primary-600)' }}>
-                                        <i className="bi bi-plus-lg me-1"></i>Add
-                                    </Link>
+                                    {isOwnProfile && (
+                                        <Link to="/profile/edit" className="btn btn-sm btn-link text-decoration-none" style={{ color: 'var(--primary-600)' }}>
+                                            <i className="bi bi-plus-lg me-1"></i>Add
+                                        </Link>
+                                    )}
                                 </div>
                                 <div className="d-flex flex-wrap gap-2">
                                     {profile.skills?.length > 0 ? (
@@ -246,9 +263,11 @@ function WorkerProfilePage() {
                                     <h5 className="fw-bold mb-0" style={{ color: 'var(--text-main)' }}>
                                         <i className="bi bi-briefcase me-2"></i>Work History
                                     </h5>
-                                    <button className="btn btn-sm btn-link text-decoration-none" style={{ color: 'var(--primary-600)' }}>
-                                        <i className="bi bi-plus-lg me-1"></i>Add Experience
-                                    </button>
+                                    {isOwnProfile && (
+                                        <button className="btn btn-sm btn-link text-decoration-none" style={{ color: 'var(--primary-600)' }}>
+                                            <i className="bi bi-plus-lg me-1"></i>Add Experience
+                                        </button>
+                                    )}
                                 </div>
 
                                 <div className="d-flex flex-column gap-3">
@@ -305,16 +324,18 @@ function WorkerProfilePage() {
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <div className="d-flex gap-2">
-                                                        <button className="btn btn-sm btn-link p-1" title={work.isVisible ? 'Hide' : 'Show'}
-                                                            style={{ color: 'var(--text-muted)' }}>
-                                                            <i className={`bi bi-eye${work.isVisible ? '' : '-slash'}`}></i>
-                                                        </button>
-                                                        <button className="btn btn-sm btn-link p-1" title="Edit"
-                                                            style={{ color: 'var(--text-muted)' }}>
-                                                            <i className="bi bi-pencil"></i>
-                                                        </button>
-                                                    </div>
+                                                    {isOwnProfile && (
+                                                        <div className="d-flex gap-2">
+                                                            <button className="btn btn-sm btn-link p-1" title={work.isVisible ? 'Hide' : 'Show'}
+                                                                style={{ color: 'var(--text-muted)' }}>
+                                                                <i className={`bi bi-eye${work.isVisible ? '' : '-slash'}`}></i>
+                                                            </button>
+                                                            <button className="btn btn-sm btn-link p-1" title="Edit"
+                                                                style={{ color: 'var(--text-muted)' }}>
+                                                                <i className="bi bi-pencil"></i>
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))
@@ -421,11 +442,11 @@ function WorkerProfilePage() {
                                                 </span>
                                             ) : profile.documents?.aadhaar?.number ? (
                                                 <span className="badge bg-warning text-dark rounded-pill">Pending</span>
-                                            ) : (
+                                            ) : isOwnProfile ? (
                                                 <button className="btn btn-sm btn-link text-decoration-none p-0" style={{ color: 'var(--primary-600)' }}>
                                                     <i className="bi bi-plus-lg me-1"></i>Add
                                                 </button>
-                                            )}
+                                            ) : null}
                                         </div>
                                         <div className="d-flex align-items-center justify-content-between p-3 rounded-3" style={{ background: 'var(--bg-surface)' }}>
                                             <div className="d-flex align-items-center gap-2">
@@ -438,11 +459,11 @@ function WorkerProfilePage() {
                                                 </span>
                                             ) : profile.documents?.pan?.number ? (
                                                 <span className="badge bg-warning text-dark rounded-pill">Pending</span>
-                                            ) : (
+                                            ) : isOwnProfile ? (
                                                 <button className="btn btn-sm btn-link text-decoration-none p-0" style={{ color: 'var(--primary-600)' }}>
                                                     <i className="bi bi-plus-lg me-1"></i>Add
                                                 </button>
-                                            )}
+                                            ) : null}
                                         </div>
                                         <div className="d-flex align-items-center justify-content-between p-3 rounded-3" style={{ background: 'var(--bg-surface)' }}>
                                             <div className="d-flex align-items-center gap-2">
@@ -455,11 +476,11 @@ function WorkerProfilePage() {
                                                 </span>
                                             ) : profile.documents?.license?.number ? (
                                                 <span className="badge bg-warning text-dark rounded-pill">Pending</span>
-                                            ) : (
+                                            ) : isOwnProfile ? (
                                                 <button className="btn btn-sm btn-link text-decoration-none p-0" style={{ color: 'var(--primary-600)' }}>
                                                     <i className="bi bi-plus-lg me-1"></i>Add
                                                 </button>
-                                            )}
+                                            ) : null}
                                         </div>
                                     </div>
                                 </div>

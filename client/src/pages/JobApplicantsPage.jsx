@@ -111,9 +111,11 @@ function JobApplicantsPage() {
                                             {app.applicant?.name?.charAt(0).toUpperCase() || '?'}
                                         </div>
                                         <div>
-                                            <h5 className="fw-bold mb-1" style={{ color: 'var(--text-main)', fontSize: '1rem' }}>
-                                                {app.applicant?.name || 'Unknown'}
-                                            </h5>
+                                            <Link to={`/profile/${app.applicant?._id}?fromJob=${jobId}`} className="text-decoration-none">
+                                                <h5 className="fw-bold mb-1" style={{ color: 'var(--text-main)', fontSize: '1rem' }}>
+                                                    {app.applicant?.name || 'Unknown'}
+                                                </h5>
+                                            </Link>
                                             <div className="d-flex flex-wrap gap-3" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                                                 {app.applicant?.phone && (
                                                     <span><i className="bi bi-telephone me-1"></i>{app.applicant.phone}</span>

@@ -32,8 +32,9 @@ function App() {
         <Route path="/my-applications" element={<ProtectedRoute allowedRoles={['worker']}><MyApplications /></ProtectedRoute>}></Route>
         <Route path="/jobs/:jobId/applicants" element={<ProtectedRoute allowedRoles={['employer']}><JobApplicantsPage /></ProtectedRoute>}></Route>
         <Route path="/profile" element={<ProtectedRoute allowedRoles={['worker', 'employer']}><WorkerProfilePage /></ProtectedRoute>}></Route>
+        <Route path="/profile/:userId" element={<ProtectedRoute allowedRoles={['worker', 'employer']}><WorkerProfilePage /></ProtectedRoute>}></Route>
         <Route path="/profile/edit" element={<ProtectedRoute allowedRoles={['worker', 'employer']}><EditProfilePage /></ProtectedRoute>}></Route>
-        <Route path="/profile/settings" element={<ProtectedRoute allowedRoles={['worker', 'employer']}><SettingsPage /></ProtectedRoute>} />
+        <Route path="/profile/settings" element={<ProtectedRoute allowedRoles={['worker', 'employer']}><SettingsPage /></ProtectedRoute>} />  
       </Routes>
     </div>
   );

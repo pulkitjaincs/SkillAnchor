@@ -55,6 +55,7 @@ Built for simplicity. Works on any device.
 ### For Employers
 - Post jobs with salary, schedule, and requirements
 - View applicants dashboard with contact details and cover notes
+- View full applicant profiles to assess skills and experience
 - Track application count per job in real-time
 - Update status: Pending → Viewed → Shortlisted → Hired → Rejected
 - Manage all listings from one dashboard
@@ -183,6 +184,7 @@ KaamSetu/
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/profile/my-profile` | Get current user's profile |
+| GET | `/api/profile/user/:userId` | Get profile by user ID |
 | PUT | `/api/profile/my-profile` | Update profile (skills, bio, etc) |
 | POST | `/api/profile/upload-avatar` | Upload profile photo to S3 |
 
