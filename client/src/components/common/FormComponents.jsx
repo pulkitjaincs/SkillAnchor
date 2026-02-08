@@ -159,7 +159,8 @@ export const Button = ({
     disabled = false,
     loading = false,
     fullWidth = false,
-    className = ''
+    className = '',
+    style = {}
 }) => {
     const variants = {
         primary: { background: 'var(--primary)', color: 'white' },
@@ -181,7 +182,8 @@ export const Button = ({
                 padding: '12px 24px',
                 fontWeight: 600,
                 opacity: disabled ? 0.6 : 1,
-                cursor: disabled ? 'not-allowed' : 'pointer'
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                ...style
             }}
         >
             {loading ? (

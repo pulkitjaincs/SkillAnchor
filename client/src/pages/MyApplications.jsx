@@ -188,7 +188,7 @@ function MyApplications() {
                                 </div>
                             </div>
                             <div className="modal-footer border-0 pt-0">
-                                <Link to={`/?openJob=${selectedApp.job?._id}`} className="btn rounded-pill px-4 w-100"
+                                <Link to={`/jobs/${selectedApp.job?._id}`} className="btn rounded-pill px-4 w-100"
                                     style={{ background: 'var(--primary-500)', color: 'white', textDecoration: 'none', transition: 'all 0.2s ease' }}
                                     onMouseEnter={e => { e.target.style.transform = 'scale(1.02)'; e.target.style.boxShadow = '0 4px 15px rgba(99, 102, 241, 0.4)'; }}
                                     onMouseLeave={e => { e.target.style.transform = 'scale(1)'; e.target.style.boxShadow = 'none'; }}>

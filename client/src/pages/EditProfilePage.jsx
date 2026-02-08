@@ -28,6 +28,7 @@ function EditProfilePage() {
         isCurrent: false,
         description: ''
     });
+    const [expStatus, setExpStatus] = useState({ type: '', message: '' });
 
     const handleNewExpChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -117,23 +118,27 @@ function EditProfilePage() {
     };
     const handleAddWorkExperience = async () => {
         const { role, companyName, startDate, endDate, isCurrent, description } = newExp;
+        setExpStatus({ type: '', message: '' });
 
-        if (role && companyName && startDate) {
+        if (role && startDate) {
             try {
                 await workExperienceAPI.create({
                     role,
-                    companyName,
+                    companyName: companyName || undefined,
                     startDate,
                     endDate: isCurrent ? null : endDate,
                     isCurrent,
                     description
                 });
-                window.location.reload();
+                setExpStatus({ type: 'success', message: 'Experience added successfully!' });
+                setNewExp({ role: '', companyName: '', startDate: '', endDate: '', isCurrent: false, description: '' });
+                // Refresh and stay on the current step
+                setTimeout(() => window.location.href = `/profile/edit?step=${currentStep}`, 1500);
             } catch (err) {
-                alert("Failed to add experience");
+                setExpStatus({ type: 'error', message: 'Failed to add experience. Please try again.' });
             }
         } else {
-            alert("Please fill Role, Company and Start Date");
+            setExpStatus({ type: 'error', message: 'Please fill Role and Start Date' });
         }
     }
 
@@ -219,6 +224,16 @@ function EditProfilePage() {
         <div style={{ minHeight: '100vh', padding: '40px 20px' }}>
             <div className="container" style={{ maxWidth: '680px' }}>
 
+                {/* Back Button */}
+                <button
+                    type="button"
+                    onClick={() => navigate('/profile')}
+                    className="btn btn-link text-muted mb-4 d-inline-flex align-items-center p-0"
+                    style={{ fontSize: '0.9rem', textDecoration: 'none' }}
+                >
+                    <i className="bi bi-arrow-left me-2"></i>Back to Profile
+                </button>
+
                 {/* Header */}
                 <div className="text-center mb-5">
                     <div className="d-inline-flex align-items-center justify-content-center mb-4"
@@ -237,43 +252,45 @@ function EditProfilePage() {
                     </p>
                 </div>
 
-                <div className="d-flex justify-content-center gap-2 mb-5">
-                    {steps.map((step) => (
-                        <div
-                            key={step.number}
-                            onClick={() => setCurrentStep(step.number)}
-                            className="d-flex flex-column align-items-center"
-                            style={{
-                                cursor: 'pointer',
-                                padding: '16px 20px',
-                                borderRadius: '16px',
-                                background: currentStep === step.number ? 'var(--bg-card)' : 'transparent',
-                                border: currentStep === step.number ? '1px solid var(--border-color)' : '1px solid transparent',
-                                boxShadow: currentStep === step.number ? '0 4px 20px rgba(0,0,0,0.08)' : 'none',
-                                transition: 'all 0.3s ease',
-                                minWidth: '90px'
-                            }}>
-                            <div style={{
-                                width: '40px', height: '40px', borderRadius: '12px',
-                                background: currentStep >= step.number
-                                    ? 'linear-gradient(135deg, var(--primary-500), #8b5cf6)'
-                                    : 'var(--bg-surface)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                marginBottom: '8px',
-                                transition: 'all 0.3s ease'
-                            }}>
-                                <i className={`bi ${step.icon}`} style={{
-                                    color: currentStep >= step.number ? 'white' : 'var(--text-muted)',
-                                    fontSize: '1rem'
-                                }}></i>
+                {totalSteps > 1 && (
+                    <div className="d-flex justify-content-center gap-2 mb-5">
+                        {steps.map((step) => (
+                            <div
+                                key={step.number}
+                                onClick={() => setCurrentStep(step.number)}
+                                className="d-flex flex-column align-items-center"
+                                style={{
+                                    cursor: 'pointer',
+                                    padding: '16px 20px',
+                                    borderRadius: '16px',
+                                    background: currentStep === step.number ? 'var(--bg-card)' : 'transparent',
+                                    border: currentStep === step.number ? '1px solid var(--border-color)' : '1px solid transparent',
+                                    boxShadow: currentStep === step.number ? '0 4px 20px rgba(0,0,0,0.08)' : 'none',
+                                    transition: 'all 0.3s ease',
+                                    minWidth: '90px'
+                                }}>
+                                <div style={{
+                                    width: '40px', height: '40px', borderRadius: '12px',
+                                    background: currentStep >= step.number
+                                        ? 'linear-gradient(135deg, var(--primary-500), #8b5cf6)'
+                                        : 'var(--bg-surface)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    marginBottom: '8px',
+                                    transition: 'all 0.3s ease'
+                                }}>
+                                    <i className={`bi ${step.icon}`} style={{
+                                        color: currentStep >= step.number ? 'white' : 'var(--text-muted)',
+                                        fontSize: '1rem'
+                                    }}></i>
+                                </div>
+                                <span style={{
+                                    fontSize: '0.75rem', fontWeight: 600,
+                                    color: currentStep === step.number ? 'var(--text-main)' : 'var(--text-muted)'
+                                }}>{step.title}</span>
                             </div>
-                            <span style={{
-                                fontSize: '0.75rem', fontWeight: 600,
-                                color: currentStep === step.number ? 'var(--text-main)' : 'var(--text-muted)'
-                            }}>{step.title}</span>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )}
 
                 <div style={{
                     background: 'var(--bg-card)',
@@ -342,7 +359,7 @@ function EditProfilePage() {
                                 </label>
                                 <div className="d-flex align-items-center gap-2">
                                     <input type="tel" value={user?.phone || ''} readOnly
-                                        style={{ ...inputStyle, background: 'var(--bg-surface)', cursor: 'not-allowed' }}
+                                        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '12px 16px', color: 'var(--text-primary)', cursor: 'not-allowed' }}
                                         className="form-control" placeholder="Not set" />
                                     <button type="button" onClick={() => navigate('/profile/settings')}
                                         className="btn btn-outline-secondary" style={{ borderRadius: '12px', whiteSpace: 'nowrap', fontSize: '0.85rem', fontWeight: 500 }}>
@@ -517,30 +534,83 @@ function EditProfilePage() {
 
                             <div className="d-flex flex-column gap-3 mb-4">
                                 {user?.workHistory?.map((exp) => (
-                                    <div key={exp._id} className="p-3 rounded-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)' }}>
+                                    <div key={exp._id} className="p-3 rounded-3" style={{
+                                        background: 'var(--bg-surface)',
+                                        border: exp.isVerified ? '1px solid #10b981' : '1px solid var(--border-color)'
+                                    }}>
                                         <div className="d-flex justify-content-between align-items-start">
-                                            <div>
-                                                <h6 className="fw-bold mb-0">{exp.role}</h6>
-                                                <p className="small text-muted mb-1">{exp.companyName || exp.company?.name}</p>
+                                            <div className="flex-grow-1">
+                                                <div className="d-flex align-items-center gap-2 mb-1">
+                                                    <h6 className="fw-bold mb-0">{exp.role}</h6>
+                                                    {exp.isVerified && (
+                                                        <span className="badge" style={{
+                                                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                                                            fontSize: '0.65rem',
+                                                            padding: '3px 8px'
+                                                        }}>
+                                                            <i className="bi bi-patch-check-fill me-1"></i>Verified
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {(exp.companyName || exp.company?.name) && (
+                                                    <p className="small text-muted mb-1">{exp.companyName || exp.company?.name}</p>
+                                                )}
                                                 <p className="small text-muted mb-0">
                                                     {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : 'Present'}
                                                 </p>
-
                                             </div>
-                                            {exp.addedBy === 'worker' && (
-                                                <button type="button" className="btn btn-sm text-danger border-0"
-                                                    onClick={() => handleDeleteWorkExperience(exp._id)}>
-                                                    <i className="bi bi-trash"></i>
-                                                </button>
+                                            {!exp.isVerified && (
+                                                <div className="d-flex gap-1">
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-sm border-0"
+                                                        style={{ color: 'var(--text-muted)' }}
+                                                        onClick={() => {
+                                                            setNewExp({
+                                                                role: exp.role || '',
+                                                                companyName: exp.companyName || '',
+                                                                startDate: exp.startDate ? new Date(exp.startDate).toISOString().split('T')[0] : '',
+                                                                endDate: exp.endDate ? new Date(exp.endDate).toISOString().split('T')[0] : '',
+                                                                isCurrent: !exp.endDate,
+                                                                description: exp.description || ''
+                                                            });
+                                                            handleDeleteWorkExperience(exp._id);
+                                                            setExpStatus({ type: 'success', message: 'Editing experience - update the form below and save.' });
+                                                        }}
+                                                        title="Edit"
+                                                    >
+                                                        <i className="bi bi-pencil"></i>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-sm text-danger border-0"
+                                                        onClick={() => handleDeleteWorkExperience(exp._id)}
+                                                        title="Delete"
+                                                    >
+                                                        <i className="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
                                             )}
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="card border-0 p-3 mb-3" style={{ background: 'var(--bg-surface)' }}>
-                                <h6 className="fw-bold mb-3" style={{ color: 'var(--text-main)' }}>Add New Experience</h6>
-                                <div className="row g-2">
+                            <div className="p-4 rounded-4" style={{
+                                background: 'var(--bg-card)',
+                                border: '1px solid var(--border-color)',
+                                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.06)'
+                            }}>
+                                <div className="d-flex align-items-center gap-3 mb-4">
+                                    <div className="d-flex align-items-center justify-content-center" style={{
+                                        width: '44px', height: '44px', borderRadius: '12px',
+                                        background: 'linear-gradient(135deg, var(--primary-500), #8b5cf6)'
+                                    }}>
+                                        <i className="bi bi-plus-lg text-white fs-5"></i>
+                                    </div>
+                                    <h6 className="fw-bold mb-0" style={{ color: 'var(--text-main)', fontSize: '1.1rem' }}>Add New Experience</h6>
+                                </div>
+                                <div className="row g-3">
                                     <div className="col-md-6">
                                         <InputField
                                             label="Job Title / Role"
@@ -605,9 +675,25 @@ function EditProfilePage() {
                                         />
                                     </div>
                                 </div>
-                                <Button onClick={handleAddWorkExperience} style={{ marginTop: '16px' }}>
+                                <Button
+                                    onClick={handleAddWorkExperience}
+                                    style={{
+                                        marginTop: '20px',
+                                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                                        boxShadow: '0 6px 20px rgba(16, 185, 129, 0.3)',
+                                        width: '100%'
+                                    }}
+                                >
                                     <i className="bi bi-plus-lg me-2"></i>Add Experience
                                 </Button>
+
+                                {expStatus.message && (
+                                    <div className={`alert ${expStatus.type === 'success' ? 'alert-success' : 'alert-danger'} mt-3 mb-0 d-flex align-items-center`}
+                                        style={{ borderRadius: '12px', fontSize: '0.9rem' }}>
+                                        <i className={`bi ${expStatus.type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'} me-2`}></i>
+                                        {expStatus.message}
+                                    </div>
+                                )}
                             </div>
 
                         </div>
@@ -692,7 +778,15 @@ function EditProfilePage() {
                     )}
 
                     {currentStep < totalSteps ? (
-                        <Button onClick={nextStep} style={{ width: 'auto', padding: '14px 32px' }}>
+                        <Button
+                            onClick={nextStep}
+                            style={{
+                                width: 'auto',
+                                padding: '14px 32px',
+                                background: 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
+                                boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)'
+                            }}
+                        >
                             Continue<i className="bi bi-arrow-right ms-2"></i>
                         </Button>
                     ) : (

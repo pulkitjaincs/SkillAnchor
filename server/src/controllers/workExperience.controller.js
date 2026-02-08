@@ -1,4 +1,5 @@
 import WorkExperience from "../models/WorkExperience.model.js";
+import WorkerProfile from "../models/WorkerProfile.model.js";
 
 export const getWorkExperiencesByUser = async (req, res) => {
     try {
@@ -20,6 +21,12 @@ export const createWorkExperience = async (req, res) => {
             addedBy: "worker",
             isVerified: false
         });
+
+        await WorkerProfile.findOneAndUpdate(
+            { user: req.user._id },
+            { $push: { workHistory: exp._id } }
+        );
+
         res.status(201).json(exp);
     } catch (error) {
         console.error("Error creating work experience:", error);

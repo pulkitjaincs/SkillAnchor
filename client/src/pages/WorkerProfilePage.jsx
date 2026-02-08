@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { profileAPI } from '../services/api';
+import { profileAPI, workExperienceAPI } from '../services/api';
 import { formatDate, formatSalary, getInitials } from '../utils/index';
 
 function WorkerProfilePage() {
     const { userId } = useParams();
     const [searchParams] = useSearchParams();
     const fromJobId = searchParams.get('fromJob');
+    const fromTeam = searchParams.get('from') === 'team';
     const isOwnProfile = !userId;
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);
     const [workHistory, setWorkHistory] = useState([]);
     const [completionPercent, setCompletionPercent] = useState(0);
+    const [selectedExp, setSelectedExp] = useState(null);
     const isEmployer = profile?.role === 'employer';
     useEffect(() => {
         const fetchProfile = async () => {
@@ -76,32 +78,171 @@ function WorkerProfilePage() {
         if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
         return age;
     };
-    const ExperienceCard = ({ exp }) => (
-        <div className="card mb-3 border-0 shadow-sm p-3" style={{ borderRadius: '16px', background: 'var(--bg-card)' }}>
-            <div className="d-flex justify-content-between align-items-start">
-                <div className="d-flex gap-3 w-100">
-                    <div className="rounded-3 bg-primary bg-opacity-10 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: '50px', height: '50px' }}>
-                        <i className="bi bi-briefcase-fill text-primary fs-4"></i>
-                    </div>
-                    <div className="flex-grow-1">
-                        <div className="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 className="fw-bold mb-0">{exp.role}</h6>
-                                <p className="text-muted mb-1 small">{exp.companyName || exp.company?.name}</p>
-                            </div>
-                            {exp.isVerified && (
-                                <span className="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2">
-                                    <i className="bi bi-patch-check-fill me-1"></i> Verified
-                                </span>
-                            )}
-                        </div>
 
-                        <div className="small text-muted mb-2">
-                            {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : 'Present'}
-                        </div>
-                        {exp.description && (
-                            <p className="small text-muted mb-0 mt-2" style={{ whiteSpace: 'pre-line' }}>{exp.description}</p>
+    // Edit form state
+    const [editForm, setEditForm] = useState({
+        role: '', companyName: '', startDate: '', endDate: '', isCurrent: false, description: ''
+    });
+    const [editError, setEditError] = useState('');
+    const [editLoading, setEditLoading] = useState(false);
+
+    // When selectedExp changes, populate the edit form
+    const openEditModal = (exp) => {
+        setEditForm({
+            role: exp.role || '',
+            companyName: exp.companyName || '',
+            startDate: exp.startDate ? new Date(exp.startDate).toISOString().split('T')[0] : '',
+            endDate: exp.endDate ? new Date(exp.endDate).toISOString().split('T')[0] : '',
+            isCurrent: !exp.endDate,
+            description: exp.description || ''
+        });
+        setEditError('');
+        setSelectedExp(exp);
+    };
+
+    const validateDates = () => {
+        const today = new Date().toISOString().split('T')[0];
+        if (editForm.startDate > today) {
+            return 'Start date cannot be in the future';
+        }
+        if (!editForm.isCurrent && editForm.endDate && editForm.endDate < editForm.startDate) {
+            return 'End date must be after start date';
+        }
+        return '';
+    };
+
+    const handleUpdateExperience = async () => {
+        if (!editForm.role || !editForm.startDate) {
+            setEditError('Role and Start Date are required');
+            return;
+        }
+        const dateError = validateDates();
+        if (dateError) {
+            setEditError(dateError);
+            return;
+        }
+
+        setEditLoading(true);
+        try {
+            const { data } = await workExperienceAPI.update(selectedExp._id, {
+                role: editForm.role,
+                companyName: editForm.companyName || undefined,
+                startDate: editForm.startDate,
+                endDate: editForm.isCurrent ? null : editForm.endDate,
+                isCurrent: editForm.isCurrent,
+                description: editForm.description
+            });
+            // Update local state
+            setWorkHistory(prev => prev.map(exp => exp._id === selectedExp._id ? data : exp));
+            setSelectedExp(null);
+        } catch (err) {
+            setEditError('Failed to update experience');
+        } finally {
+            setEditLoading(false);
+        }
+    };
+
+    const handleDeleteExperience = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this experience?')) return;
+        try {
+            await workExperienceAPI.delete(id);
+            setWorkHistory(prev => prev.filter(exp => exp._id !== id));
+            setSelectedExp(null);
+        } catch (err) {
+            alert('Failed to delete experience');
+        }
+    };
+
+    // Edit Modal
+    const ExperienceEditModal = () => selectedExp && (
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={() => setSelectedExp(null)}>
+            <div className="modal-dialog modal-dialog-centered" onClick={e => e.stopPropagation()}>
+                <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '20px', background: 'var(--bg-card)' }}>
+                    <div className="modal-header border-0">
+                        <h5 className="modal-title fw-bold">Edit Experience</h5>
+                        <button type="button" className="btn-close" onClick={() => setSelectedExp(null)}></button>
+                    </div>
+                    <div className="modal-body">
+                        {editError && (
+                            <div className="alert alert-danger py-2 small" style={{ borderRadius: '10px' }}>
+                                <i className="bi bi-exclamation-circle me-2"></i>{editError}
+                            </div>
                         )}
+                        <div className="mb-3">
+                            <label className="form-label small fw-semibold">Job Title / Role *</label>
+                            <input
+                                type="text" className="form-control"
+                                value={editForm.role}
+                                onChange={e => setEditForm(prev => ({ ...prev, role: e.target.value }))}
+                                style={{ borderRadius: '10px', background: 'var(--bg-surface)' }}
+                            />
+                        </div>
+                        <div className="mb-3">
+                            <label className="form-label small fw-semibold">Company Name</label>
+                            <input
+                                type="text" className="form-control"
+                                value={editForm.companyName}
+                                onChange={e => setEditForm(prev => ({ ...prev, companyName: e.target.value }))}
+                                style={{ borderRadius: '10px', background: 'var(--bg-surface)' }}
+                            />
+                        </div>
+                        <div className="row g-2 mb-3">
+                            <div className="col-6">
+                                <label className="form-label small fw-semibold">Start Date *</label>
+                                <input
+                                    type="date" className="form-control"
+                                    value={editForm.startDate}
+                                    max={new Date().toISOString().split('T')[0]}
+                                    onChange={e => setEditForm(prev => ({ ...prev, startDate: e.target.value }))}
+                                    style={{ borderRadius: '10px', background: 'var(--bg-surface)' }}
+                                />
+                            </div>
+                            <div className="col-6">
+                                <label className="form-label small fw-semibold">End Date</label>
+                                <input
+                                    type="date" className="form-control"
+                                    value={editForm.endDate}
+                                    min={editForm.startDate}
+                                    disabled={editForm.isCurrent}
+                                    onChange={e => setEditForm(prev => ({ ...prev, endDate: e.target.value }))}
+                                    style={{ borderRadius: '10px', background: 'var(--bg-surface)' }}
+                                />
+                                <div className="form-check mt-1">
+                                    <input className="form-check-input" type="checkbox" id="editExpCurrent"
+                                        checked={editForm.isCurrent}
+                                        onChange={e => setEditForm(prev => ({ ...prev, isCurrent: e.target.checked, endDate: '' }))}
+                                    />
+                                    <label className="form-check-label small text-muted" htmlFor="editExpCurrent">Currently working</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="mb-3">
+                            <label className="form-label small fw-semibold">Description</label>
+                            <textarea
+                                className="form-control" rows="2"
+                                value={editForm.description}
+                                onChange={e => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                                style={{ borderRadius: '10px', background: 'var(--bg-surface)' }}
+                            />
+                        </div>
+                    </div>
+                    <div className="modal-footer border-0 d-flex justify-content-between">
+                        <button
+                            className="btn btn-outline-danger"
+                            style={{ borderRadius: '10px' }}
+                            onClick={() => handleDeleteExperience(selectedExp._id)}
+                        >
+                            <i className="bi bi-trash me-1"></i> Delete
+                        </button>
+                        <button
+                            className="btn btn-primary"
+                            style={{ borderRadius: '10px', background: 'var(--primary-500)', border: 'none' }}
+                            onClick={handleUpdateExperience}
+                            disabled={editLoading}
+                        >
+                            {editLoading ? <span className="spinner-border spinner-border-sm me-2"></span> : null}
+                            Save Changes
+                        </button>
                     </div>
                 </div>
             </div>
@@ -130,6 +271,14 @@ function WorkerProfilePage() {
                     <Link to={`/jobs/${fromJobId}/applicants`} className="text-decoration-none d-inline-flex align-items-center"
                         style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                         ← Back to Applicants
+                    </Link>
+                </div>
+            )}
+            {fromTeam && (
+                <div className="mb-4">
+                    <Link to="/my-team" className="text-decoration-none d-inline-flex align-items-center"
+                        style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                        ← Back to My Team
                     </Link>
                 </div>
             )}
@@ -310,8 +459,48 @@ function WorkerProfilePage() {
 
                                 <div className="d-flex flex-column gap-3">
                                     {workHistory.length > 0 ? (
-                                        workHistory.map((work) => (
-                                            <ExperienceCard key={work._id} exp={work} />
+                                        [...workHistory].sort((a, b) => new Date(b.startDate) - new Date(a.startDate)).map((exp) => (
+                                            <div key={exp._id} className="p-3 rounded-3" style={{
+                                                background: 'var(--bg-surface)',
+                                                border: exp.isVerified ? '1px solid #10b981' : '1px solid var(--border-color)'
+                                            }}>
+                                                <div className="d-flex justify-content-between align-items-start">
+                                                    <div className="flex-grow-1">
+                                                        <div className="d-flex align-items-center gap-2 mb-1">
+                                                            <h6 className="fw-bold mb-0" style={{ color: 'var(--text-main)' }}>{exp.role}</h6>
+                                                            {exp.isVerified && (
+                                                                <span className="badge" style={{
+                                                                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                                                                    fontSize: '0.65rem',
+                                                                    padding: '3px 8px'
+                                                                }}>
+                                                                    <i className="bi bi-patch-check-fill me-1"></i>Verified
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        {(exp.companyName || exp.company?.name) && (
+                                                            <p className="small text-muted mb-1">{exp.companyName || exp.company?.name}</p>
+                                                        )}
+                                                        <p className="small text-muted mb-0">
+                                                            {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : 'Present'}
+                                                        </p>
+                                                        {exp.description && (
+                                                            <p className="small text-muted mb-0 mt-2" style={{ whiteSpace: 'pre-line' }}>{exp.description}</p>
+                                                        )}
+                                                    </div>
+                                                    {isOwnProfile && !exp.isVerified && (
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-sm border-0 p-1"
+                                                            style={{ color: 'var(--text-muted)' }}
+                                                            onClick={() => openEditModal(exp)}
+                                                            title="Edit"
+                                                        >
+                                                            <i className="bi bi-three-dots-vertical fs-5"></i>
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
                                         ))
                                     ) : (
                                         <p className="text-muted small fst-italic">No work history added.</p>
@@ -399,6 +588,8 @@ function WorkerProfilePage() {
                                 </div>
                             </div>
 
+
+
                             <div className="card border-0 shadow-sm" style={{ borderRadius: '20px', background: 'var(--bg-card)' }}>
                                 <div className="card-body p-4">
                                     <h5 className="fw-bold mb-3" style={{ color: 'var(--text-main)' }}>
@@ -463,6 +654,9 @@ function WorkerProfilePage() {
                     )}
                 </div>
             </div>
+
+            {/* Experience Edit Modal */}
+            <ExperienceEditModal />
         </div>
     );
 }

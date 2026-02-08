@@ -1,4 +1,5 @@
 import Job from "../models/Job.model.js";
+import "../models/Company.model.js"; // Required for populate
 
 export const getAllJobs = async (req, res) => {
     try {

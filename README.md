@@ -50,6 +50,7 @@ Built for simplicity. Works on any device.
 - **Multi-step profile wizard** for easy onboarding
 - **Profile completion tracking** with visual progress
 - **WhatsApp number support** for direct communication
+- **Work Experience Management**: Add and manage past roles with a sleek inline edit flow and smart date validation
 - **Secure phone display** (read-only in profile, updated via OTP in settings)
 
 ### For Employers
@@ -58,7 +59,8 @@ Built for simplicity. Works on any device.
 - View full applicant profiles to assess skills and experience
 - Track application count per job in real-time
 - Update status: Pending → Viewed → Shortlisted → Hired → Rejected
-- Manage all listings from one dashboard
+- **Premium My Team Dashboard**: Manage active hires with a high-fidelity interface, quick-call actions, and deep-link profile navigation
+- **Manage all listings** from one dashboard
 
 ### Platform
 - Phone OTP login (no password needed)
