@@ -21,8 +21,8 @@ const WorkExperienceSchema = new mongoose.Schema({
     company: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Company",
-        required: true,
     },
+    companyName: String,
     role: {
         type: String,
         required: true,
@@ -43,6 +43,10 @@ const WorkExperienceSchema = new mongoose.Schema({
             type: String,
             enum: ["monthly", "daily"],
         },
+    },
+    description: {
+        type: String,
+        maxlength: 1000,
     },
     skills: [String],
     addedBy: {

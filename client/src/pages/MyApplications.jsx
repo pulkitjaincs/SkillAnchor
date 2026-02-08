@@ -131,15 +131,23 @@ function MyApplications() {
                                 </button>
                                 <button
                                     onClick={() => handleWithdraw(app._id)}
-                                    disabled={withdrawing === app._id}
+                                    disabled={withdrawing === app._id || app.status === 'hired'}
                                     className="d-flex align-items-center justify-content-center rounded-pill px-3 py-2 border-0"
-                                    style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', fontSize: '0.85rem', transition: 'all 0.2s ease', cursor: 'pointer' }}
+                                    style={{
+                                        background: app.status === 'hired' ? 'var(--bg-surface)' : 'rgba(239, 68, 68, 0.15)',
+                                        color: app.status === 'hired' ? 'var(--text-muted)' : '#ef4444',
+                                        fontSize: '0.85rem', transition: 'all 0.2s ease', cursor: app.status === 'hired' ? 'not-allowed' : 'pointer'
+                                    }}
                                     onMouseEnter={e => { if (!e.target.disabled) { e.target.style.transform = 'scale(1.05)'; e.target.style.background = '#ef4444'; e.target.style.color = 'white'; } }}
-                                    onMouseLeave={e => { e.target.style.transform = 'scale(1)'; e.target.style.background = 'rgba(239, 68, 68, 0.15)'; e.target.style.color = '#ef4444'; }}>
+                                    onMouseLeave={e => {
+                                        if (app.status !== 'hired') {
+                                            e.target.style.transform = 'scale(1)'; e.target.style.background = 'rgba(239, 68, 68, 0.15)'; e.target.style.color = '#ef4444';
+                                        }
+                                    }}>
                                     {withdrawing === app._id ? (
                                         <span className="spinner-border spinner-border-sm"></span>
                                     ) : (
-                                        <><i className="bi bi-x-lg me-1"></i> Withdraw</>
+                                        <><i className="bi bi-x-lg me-1"></i> {app.status === 'hired' ? 'Hired' : 'Withdraw'}</>
                                     )}
                                 </button>
                             </div>

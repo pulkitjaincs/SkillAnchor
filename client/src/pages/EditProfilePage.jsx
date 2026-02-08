@@ -1,7 +1,7 @@
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 function EditProfilePage() {
     const navigate = useNavigate();
@@ -9,8 +9,10 @@ function EditProfilePage() {
     const isEmployer = user?.role === 'employer';
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
-    const [currentStep, setCurrentStep] = useState(1);
-    const totalSteps = isEmployer ? 1 : 4;
+    const [searchParams] = useSearchParams();
+    const initialStep = parseInt(searchParams.get('step')) || 1;
+    const [currentStep, setCurrentStep] = useState(initialStep);
+    const totalSteps = isEmployer ? 1 : 5;
     const [avatar, setAvatar] = useState(null);
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
     const fileInputRef = useRef(null);
@@ -44,7 +46,8 @@ function EditProfilePage() {
         { number: 1, title: 'Basics', icon: 'bi-person-fill', desc: 'Name & identity' },
         { number: 2, title: 'Location', icon: 'bi-geo-alt-fill', desc: 'Where you are' },
         { number: 3, title: 'Skills', icon: 'bi-stars', desc: 'What you do' },
-        { number: 4, title: 'Finish', icon: 'bi-check-circle-fill', desc: 'Salary & docs' }
+        { number: 4, title: 'Experience', icon: 'bi-briefcase-fill', desc: 'Work history' },
+        { number: 5, title: 'Finish', icon: 'bi-check-circle-fill', desc: 'Salary & docs' }
     ];
 
     useEffect(() => {
@@ -198,7 +201,6 @@ function EditProfilePage() {
                     </p>
                 </div>
 
-                {/* Progress Steps */}
                 <div className="d-flex justify-content-center gap-2 mb-5">
                     {steps.map((step) => (
                         <div
@@ -237,7 +239,6 @@ function EditProfilePage() {
                     ))}
                 </div>
 
-                {/* Form Card */}
                 <div style={{
                     background: 'var(--bg-card)',
                     borderRadius: '24px',
@@ -247,14 +248,12 @@ function EditProfilePage() {
                     marginBottom: '24px'
                 }}>
 
-                    {/* Step 1: Basic Info */}
                     {currentStep === 1 && (
                         <div>
                             <h4 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>
                                 {isEmployer ? 'Your profile details' : "Let's start with basics"}
                             </h4>
 
-                            {/* Photo Upload */}
                             <div className="mb-4 d-flex align-items-center gap-4">
                                 <div style={{ position: 'relative' }}>
                                     <div style={{
@@ -315,7 +314,6 @@ function EditProfilePage() {
 
                             {isEmployer ? (
                                 <>
-                                    {/* WhatsApp for employers */}
                                     <div className="mb-4">
                                         <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
                                             <i className="bi bi-whatsapp text-success me-2"></i>WhatsApp Number
@@ -375,12 +373,10 @@ function EditProfilePage() {
                         </div>
                     )}
 
-                    {/* Step 2: Location */}
                     {currentStep === 2 && (
                         <div>
                             <h4 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>Where are you located?</h4>
 
-                            {/* Settings redirect card */}
                             <div className="d-flex align-items-center justify-content-between mb-4 p-3"
                                 style={{ background: 'var(--bg-surface)', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
                                 <div className="d-flex align-items-center gap-3">
@@ -419,7 +415,6 @@ function EditProfilePage() {
                         </div>
                     )}
 
-                    {/* Step 3: Professional */}
                     {currentStep === 3 && (
                         <div>
                             <h4 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>Tell us about your skills</h4>
@@ -459,8 +454,101 @@ function EditProfilePage() {
                         </div>
                     )}
 
-                    {/* Step 4: Salary & Docs */}
                     {currentStep === 4 && (
+                        <div>
+                            <div className="d-flex justify-content-between align-items-center mb-4">
+                                <h4 className="fw-bold mb-0" style={{ color: 'var(--text-main)' }}>Work History</h4>
+                            </div>
+
+                            <p className="text-muted small mb-4">
+                                Add your past work experience to improve your profile score.
+                                <br /><span className="text-primary">Note: Verified experiences from jobs you were hired for on KaamSetu cannot be edited here.</span>
+                            </p>
+
+                            <div className="d-flex flex-column gap-3 mb-4">
+                                {user?.workHistory?.map((exp) => (
+                                    <div key={exp._id} className="p-3 rounded-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)' }}>
+                                        <div className="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 className="fw-bold mb-0">{exp.role}</h6>
+                                                <p className="small text-muted mb-1">{exp.companyName || exp.company?.name}</p>
+                                                <p className="small text-muted mb-0">
+                                                    {new Date(exp.startDate).toLocaleDateString()} - {exp.endDate ? new Date(exp.endDate).toLocaleDateString() : 'Present'}
+                                                </p>
+                                            </div>
+                                            {exp.addedBy === 'worker' && (
+                                                <button type="button" className="btn btn-sm text-danger border-0"
+                                                    onClick={async () => {
+                                                        if (window.confirm('Delete this entry?')) {
+                                                            await axios.delete(`/api/work-experience/${exp._id}`);
+                                                            window.location.reload();
+                                                        }
+                                                    }}>
+                                                    <i className="bi bi-trash"></i>
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="card border-0 p-3 mb-3" style={{ background: 'var(--bg-surface)' }}>
+                                <h6 className="fw-bold mb-3" style={{ color: 'var(--text-main)' }}>Add New Experience</h6>
+                                <div className="row g-3">
+                                    <div className="col-md-6">
+                                        <label className="form-label small text-muted">Job Title / Role</label>
+                                        <input type="text" id="expRole" className="form-control form-control-sm" style={inputStyle} placeholder="e.g. Electrician" />
+                                    </div>
+                                    <div className="col-md-6">
+                                        <label className="form-label small text-muted">Company Name</label>
+                                        <input type="text" id="expCompany" className="form-control form-control-sm" style={inputStyle} placeholder="e.g. ABC Pvt Ltd" />
+                                    </div>
+                                    <div className="col-md-6">
+                                        <label className="form-label small text-muted">Start Date</label>
+                                        <input type="date" id="expStart" className="form-control form-control-sm" style={inputStyle} />
+                                    </div>
+                                    <div className="col-md-6">
+                                        <label className="form-label small text-muted">End Date</label>
+                                        <input type="date" id="expEnd" className="form-control form-control-sm" style={inputStyle} />
+                                        <div className="form-check mt-1">
+                                            <input className="form-check-input" type="checkbox" id="expCurrent" />
+                                            <label className="form-check-label small text-muted" htmlFor="expCurrent">Currently working here</label>
+                                        </div>
+                                    </div>
+                                    <div className="col-12">
+                                        <label className="form-label small text-muted">Description (Optional)</label>
+                                        <textarea id="expDesc" className="form-control form-control-sm" rows="2" style={inputStyle} placeholder="Describe your role..."></textarea>
+                                    </div>
+                                </div>
+                                <button type="button" className="btn btn-primary btn-sm rounded-pill mt-3 w-100"
+                                    onClick={() => {
+                                        const role = document.getElementById('expRole').value;
+                                        const companyName = document.getElementById('expCompany').value;
+                                        const startDate = document.getElementById('expStart').value;
+                                        const endDate = document.getElementById('expEnd').value;
+                                        const isCurrent = document.getElementById('expCurrent').checked;
+                                        const description = document.getElementById('expDesc').value;
+
+                                        if (role && companyName && startDate) {
+                                            axios.post('/api/work-experience', {
+                                                role,
+                                                companyName,
+                                                startDate,
+                                                endDate: isCurrent ? null : endDate,
+                                                isCurrent,
+                                                description
+                                            }).then(() => window.location.reload());
+                                        } else {
+                                            alert("Please fill Role, Company and Start Date");
+                                        }
+                                    }}>
+                                    <i className="bi bi-plus-lg me-2"></i>Add Experience
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {currentStep === 5 && (
                         <div>
                             <h4 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>Almost done!</h4>
 
@@ -505,7 +593,6 @@ function EditProfilePage() {
                     )}
                 </div>
 
-                {/* Navigation */}
                 <div className="d-flex justify-content-between align-items-center">
                     {currentStep > 1 ? (
                         <button type="button" onClick={prevStep}

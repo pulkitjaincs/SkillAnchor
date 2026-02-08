@@ -68,7 +68,7 @@ function WorkerProfilePage() {
 
     const formatDate = (dateStr) => {
         if (!dateStr) return 'Present';
-        return new Date(dateStr).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
+        return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
     };
 
     const getAge = (dob) => {
@@ -80,6 +80,37 @@ function WorkerProfilePage() {
         if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
         return age;
     };
+    const ExperienceCard = ({ exp }) => (
+        <div className="card mb-3 border-0 shadow-sm p-3" style={{ borderRadius: '16px', background: 'var(--bg-card)' }}>
+            <div className="d-flex justify-content-between align-items-start">
+                <div className="d-flex gap-3 w-100">
+                    <div className="rounded-3 bg-primary bg-opacity-10 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: '50px', height: '50px' }}>
+                        <i className="bi bi-briefcase-fill text-primary fs-4"></i>
+                    </div>
+                    <div className="flex-grow-1">
+                        <div className="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 className="fw-bold mb-0">{exp.role}</h6>
+                                <p className="text-muted mb-1 small">{exp.companyName || exp.company?.name}</p>
+                            </div>
+                            {exp.isVerified && (
+                                <span className="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2">
+                                    <i className="bi bi-patch-check-fill me-1"></i> Verified
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="small text-muted mb-2">
+                            {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : 'Present'}
+                        </div>
+                        {exp.description && (
+                            <p className="small text-muted mb-0 mt-2" style={{ whiteSpace: 'pre-line' }}>{exp.description}</p>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 
     if (loading) {
         return (
@@ -106,7 +137,7 @@ function WorkerProfilePage() {
                     </Link>
                 </div>
             )}
-            {isOwnProfile && completionPercent < 100 && (
+            {isOwnProfile && !isEmployer && completionPercent < 100 && (
                 <div className="alert mb-4 d-flex align-items-center justify-content-between"
                     style={{ background: 'linear-gradient(135deg, var(--primary-100), var(--zinc-100))', border: 'none', borderRadius: '16px' }}>
                     <div className="d-flex align-items-center gap-3">
@@ -251,6 +282,17 @@ function WorkerProfilePage() {
                                             <p className="mb-0 small" style={{ color: 'var(--text-muted)' }}>Manage your job listings</p>
                                         </div>
                                     </Link>
+                                    <Link to="/my-team" className="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none"
+                                        style={{ background: 'var(--bg-surface)', transition: 'all 0.2s' }}>
+                                        <div className="d-flex align-items-center justify-content-center rounded-circle"
+                                            style={{ width: '44px', height: '44px', background: 'rgba(59, 130, 246, 0.1)' }}>
+                                            <i className="bi bi-people" style={{ color: '#3b82f6' }}></i>
+                                        </div>
+                                        <div>
+                                            <p className="mb-0 fw-semibold" style={{ color: 'var(--text-main)' }}>My Team</p>
+                                            <p className="mb-0 small" style={{ color: 'var(--text-muted)' }}>Manage your hired workers</p>
+                                        </div>
+                                    </Link>
                                 </div>
                             </div>
                         </div>
@@ -264,80 +306,16 @@ function WorkerProfilePage() {
                                         <i className="bi bi-briefcase me-2"></i>Work History
                                     </h5>
                                     {isOwnProfile && (
-                                        <button className="btn btn-sm btn-link text-decoration-none" style={{ color: 'var(--primary-600)' }}>
+                                        <Link to="/profile/edit?step=4" className="btn btn-sm btn-link text-decoration-none" style={{ color: 'var(--primary-600)' }}>
                                             <i className="bi bi-plus-lg me-1"></i>Add Experience
-                                        </button>
+                                        </Link>
                                     )}
                                 </div>
 
                                 <div className="d-flex flex-column gap-3">
                                     {workHistory.length > 0 ? (
                                         workHistory.map((work) => (
-                                            <div key={work._id} className="p-3 rounded-3"
-                                                style={{ background: 'var(--bg-surface)', opacity: work.isVisible ? 1 : 0.6 }}>
-                                                <div className="d-flex justify-content-between align-items-start">
-                                                    <div className="flex-grow-1">
-                                                        <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                                            <h6 className="fw-bold mb-0" style={{ color: 'var(--text-main)' }}>{work.role}</h6>
-                                                            {work.isCurrent && (
-                                                                <span className="badge bg-primary-subtle text-primary rounded-pill">Current</span>
-                                                            )}
-                                                            {work.isVerified && (
-                                                                <span className="badge bg-success-subtle text-success rounded-pill">
-                                                                    <i className="bi bi-patch-check-fill me-1"></i>Verified
-                                                                </span>
-                                                            )}
-                                                            {!work.isVisible && (
-                                                                <span className="badge bg-secondary-subtle text-secondary rounded-pill">
-                                                                    <i className="bi bi-eye-slash me-1"></i>Hidden
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <p className="mb-1" style={{ color: 'var(--text-muted)' }}>
-                                                            <i className="bi bi-building me-1"></i>{work.company?.name || 'Unknown Company'}
-                                                        </p>
-                                                        <p className="mb-2 small" style={{ color: 'var(--text-muted)' }}>
-                                                            <i className="bi bi-calendar3 me-1"></i>
-                                                            {formatDate(work.startDate)} - {formatDate(work.endDate)}
-                                                        </p>
-                                                        {work.skills?.length > 0 && (
-                                                            <div className="d-flex flex-wrap gap-1 mb-2">
-                                                                {work.skills.map((skill, i) => (
-                                                                    <span key={i} className="badge rounded-pill"
-                                                                        style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                                                                        {skill}
-                                                                    </span>
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                        {work.rating && (
-                                                            <div className="d-flex align-items-center gap-1">
-                                                                {[...Array(5)].map((_, i) => (
-                                                                    <i key={i} className={`bi bi-star${i < work.rating ? '-fill' : ''}`}
-                                                                        style={{ color: i < work.rating ? '#fbbf24' : 'var(--text-muted)', fontSize: '0.875rem' }}></i>
-                                                                ))}
-                                                                {work.review && (
-                                                                    <span className="ms-2 small fst-italic" style={{ color: 'var(--text-muted)' }}>
-                                                                        "{work.review}"
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    {isOwnProfile && (
-                                                        <div className="d-flex gap-2">
-                                                            <button className="btn btn-sm btn-link p-1" title={work.isVisible ? 'Hide' : 'Show'}
-                                                                style={{ color: 'var(--text-muted)' }}>
-                                                                <i className={`bi bi-eye${work.isVisible ? '' : '-slash'}`}></i>
-                                                            </button>
-                                                            <button className="btn btn-sm btn-link p-1" title="Edit"
-                                                                style={{ color: 'var(--text-muted)' }}>
-                                                                <i className="bi bi-pencil"></i>
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
+                                            <ExperienceCard key={work._id} exp={work} />
                                         ))
                                     ) : (
                                         <p className="text-muted small fst-italic">No work history added.</p>

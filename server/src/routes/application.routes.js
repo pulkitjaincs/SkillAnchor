@@ -2,6 +2,8 @@ import express from "express";
 import { protect, requireRole } from "../middleware/auth.middleware.js";
 import Application from "../models/Application.model.js";
 import Job from "../models/Job.model.js";
+import WorkExperience from "../models/WorkExperience.model.js";
+import WorkerProfile from "../models/WorkerProfile.model.js";
 
 const router = express.Router();
 
@@ -70,7 +72,7 @@ router.patch("/:id/status", protect, requireRole("employer"), async (req, res) =
     try {
         const { id } = req.params;
         const { status } = req.body;
-        const application = await Application.findById(id).populate("job");
+        const application = await Application.findById(id).populate({ path: "job", populate: { path: "company" } });
         if (!application) {
             return res.status(404).json({ message: "Application not found" });
         }
@@ -80,12 +82,37 @@ router.patch("/:id/status", protect, requireRole("employer"), async (req, res) =
         application.status = status;
         application.statusHistory.push({ status, at: new Date() });
         await application.save();
+
+        if (status === "hired") {
+            const workExp = await WorkExperience.create({
+                worker: application.applicant,
+                employer: req.user._id,
+                company: application.job.company?._id,
+                companyName: application.job.company?.name,
+                role: application.job.title,
+                startDate: new Date(),
+                isCurrent: true,
+                addedBy: "employer",
+                isVerified: true,
+            });
+
+            await WorkerProfile.findOneAndUpdate(
+                { user: application.applicant },
+                {
+                    $push: { workHistory: workExp._id },
+                    $set: { currentlyEmployed: true }
+                }
+            );
+        }
+
         res.json(application);
     } catch (error) {
         console.error("Error updating application: ", error);
         res.status(500).json({ error: error.message });
     }
 });
+
+
 
 router.delete("/:id", protect, requireRole("worker"), async (req, res) => {
     try {

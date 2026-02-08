@@ -166,9 +166,14 @@ const Navbar = ({ name }) => {
           <div className="collapse navbar-collapse flex-grow-0" id="navContent">
             <ul className="navbar-nav ms-auto mb-2 mb-lg-0 gap-2 gap-lg-4 align-items-center">
               {user?.role === 'employer' && (
-                <li className="nav-item">
-                  <Link className="nav-link fw-medium px-2 hover-dark" to="/my-jobs" style={{ color: "var(--text-muted)" }}>My Jobs</Link>
-                </li>
+                <>
+                  <li className="nav-item">
+                    <Link className="nav-link fw-medium px-2 hover-dark" to="/my-jobs" style={{ color: "var(--text-muted)" }}>My Jobs</Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link className="nav-link fw-medium px-2 hover-dark" to="/my-team" style={{ color: "var(--text-muted)" }}>My Team</Link>
+                  </li>
+                </>
               )}
 
               {user?.role === 'worker' && (

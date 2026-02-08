@@ -230,6 +230,8 @@ KaamSetu/
 - [x] Client-side profile completion tracking
 - [x] Secure contact verification (OTP-based updates)
 - [x] Trust badges for verified users
+- [x] **Work Experience System**: Manual entry + Automatic verification on hire
+- [x] **Employer Team View**: manage active employees
 - [ ] Advanced search with location and salary filters
 - [ ] Shift-based job scheduling
 - [ ] In-app messaging
