@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
+import { applicationsAPI } from '../services/api';
+import { formatDate, formatSalary } from '../utils/index';
 
 
 function MyApplications() {
-    const { token } = useAuth();
     const [applications, setApplications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [withdrawing, setWithdrawing] = useState(null);
@@ -17,11 +16,7 @@ function MyApplications() {
         }
         setWithdrawing(appId);
         try {
-            await axios.delete(`/api/applications/${appId}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
+            await applicationsAPI.withdraw(appId);
             setApplications(applications.filter(app => app._id !== appId));
         } catch (error) {
             alert("Failed to withdraw application");
@@ -33,10 +28,8 @@ function MyApplications() {
     useEffect(() => {
         const fetchApplications = async () => {
             try {
-                const res = await axios.get('/api/applications/my-applications', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                setApplications(res.data);
+                const {data} = await applicationsAPI.getMyApplications();
+                setApplications(data);
             } catch (error) {
                 console.error("Error fetching applications: ", error);
             } finally {
@@ -44,7 +37,7 @@ function MyApplications() {
             }
         }
         fetchApplications();
-    }, [token]);
+    }, []);
     const getStatusBadge = (status) => {
         const styles = {
             pending: { bg: 'rgba(251, 191, 36, 0.1)', color: '#f59e0b', icon: 'bi-clock-fill' },
@@ -104,9 +97,7 @@ function MyApplications() {
                                         </h5>
                                         <div className="d-flex flex-wrap gap-3" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                                             <span><i className="bi bi-geo-alt me-1"></i>{app.job?.city}, {app.job?.state}</span>
-                                            <span><i className="bi bi-currency-rupee me-1"></i>
-                                                {app.job?.salaryMin?.toLocaleString()}{app.job?.salaryMax ? `-${app.job.salaryMax.toLocaleString()}` : '+'}
-                                            </span>
+                                            <span><i className="bi bi-currency-rupee me-1"></i>{formatSalary(app.job?.salaryMin, app.job?.salaryMax)}</span>
                                         </div>
                                     </div>
                                     <div className="col-lg-6">
@@ -114,7 +105,7 @@ function MyApplications() {
                                             {getStatusBadge(app.status)}
                                             <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                                                 <i className="bi bi-calendar3 me-1"></i>
-                                                {new Date(app.appliedAt).toLocaleDateString('en-GB')}
+                                                {formatDate(app.appliedAt)}
                                             </span>
                                         </div>
                                     </div>
@@ -174,9 +165,7 @@ function MyApplications() {
                             <div className="modal-body">
                                 <div className="d-flex flex-wrap gap-3 mb-3" style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                                     <span><i className="bi bi-geo-alt me-1"></i>{selectedApp.job?.city}, {selectedApp.job?.state}</span>
-                                    <span><i className="bi bi-currency-rupee me-1"></i>
-                                        {selectedApp.job?.salaryMin?.toLocaleString()}{selectedApp.job?.salaryMax ? `-${selectedApp.job.salaryMax.toLocaleString()}` : '+'}
-                                    </span>
+                                    <span><i className="bi bi-currency-rupee me-1"></i>{formatSalary(selectedApp.job?.salaryMin, selectedApp.job?.salaryMax)}</span>
                                 </div>
 
                                 <div className="mb-3">
@@ -194,7 +183,7 @@ function MyApplications() {
                                 <div>
                                     <small style={{ color: 'var(--text-muted)' }}>Applied On</small>
                                     <div style={{ color: 'var(--text-main)' }}>
-                                        {new Date(selectedApp.appliedAt).toLocaleDateString('en-GB')}
+                                        {formatDate(selectedApp.appliedAt)}
                                     </div>
                                 </div>
                             </div>

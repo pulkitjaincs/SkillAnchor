@@ -1,7 +1,10 @@
-import { useAuth } from '../context/AuthContext';
 import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useForm } from '../hooks';
+import { profileAPI, workExperienceAPI } from '../services/api';
+import { formatDate } from '../utils';
+import { InputField, SelectField, TextAreaField, Button } from '../components/common/FormComponents';
 
 function EditProfilePage() {
     const navigate = useNavigate();
@@ -17,7 +20,28 @@ function EditProfilePage() {
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
     const fileInputRef = useRef(null);
 
-    const [formData, setFormData] = useState({
+    const [newExp, setNewExp] = useState({
+        role: '',
+        companyName: '',
+        startDate: '',
+        endDate: '',
+        isCurrent: false,
+        description: ''
+    });
+
+    const handleNewExpChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setNewExp(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    };
+
+
+    const {
+        values: formData,
+        handleChange,
+        setValues,
+        loading: saving,
+        setLoading: setSaving
+    } = useForm({
         name: '',
         gender: '',
         dob: '',
@@ -53,9 +77,8 @@ function EditProfilePage() {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const res = await axios.get('/api/profile/my-profile');
-                const p = res.data;
-                setFormData({
+                const { data: p } = await profileAPI.getMyProfile();
+                setValues({
                     name: p.name || '',
                     gender: p.gender || '',
                     dob: p.dob ? new Date(p.dob).toISOString().split('T')[0] : '',
@@ -76,8 +99,8 @@ function EditProfilePage() {
                     licenseNumber: p.documents?.license?.number || ''
                 });
                 if (p.avatar) setAvatar(p.avatar);
-                if (p.designation) setFormData(prev => ({ ...prev, designation: p.designation }));
-                if (p.isHiringManager) setFormData(prev => ({ ...prev, isHiringManager: p.isHiringManager }));
+                if (p.designation) setValues(prev => ({ ...prev, designation: p.designation }));
+                if (p.isHiringManager) setValues(prev => ({ ...prev, isHiringManager: p.isHiringManager }));
             } catch (err) {
                 if (err.response?.status !== 404) console.error("Failed to fetch profile", err);
             } finally {
@@ -86,11 +109,34 @@ function EditProfilePage() {
         };
         fetchProfile();
     }, []);
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+    const handleDeleteWorkExperience = async (id) => {
+        if (window.confirm('Delete this entry?')) {
+            await workExperienceAPI.delete(id);
+            window.location.reload();
+        }
     };
+    const handleAddWorkExperience = async () => {
+        const { role, companyName, startDate, endDate, isCurrent, description } = newExp;
+
+        if (role && companyName && startDate) {
+            try {
+                await workExperienceAPI.create({
+                    role,
+                    companyName,
+                    startDate,
+                    endDate: isCurrent ? null : endDate,
+                    isCurrent,
+                    description
+                });
+                window.location.reload();
+            } catch (err) {
+                alert("Failed to add experience");
+            }
+        } else {
+            alert("Please fill Role, Company and Start Date");
+        }
+    }
+
 
     const handleAvatarUpload = async (e) => {
         const file = e.target.files?.[0];
@@ -99,10 +145,8 @@ function EditProfilePage() {
         try {
             const formData = new FormData();
             formData.append('avatar', file);
-            const res = await axios.post('/api/profile/upload-avatar', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            setAvatar(res.data.avatar);
+            const { data } = await profileAPI.uploadAvatar(formData);
+            setAvatar(data.avatar);
         } catch (err) {
             alert('Failed to upload photo');
         } finally {
@@ -111,7 +155,7 @@ function EditProfilePage() {
     };
 
     const handleSubmit = async () => {
-        setLoading(true);
+        setSaving(true);
         try {
             let payload;
             if (isEmployer) {
@@ -147,14 +191,14 @@ function EditProfilePage() {
                     }
                 };
             }
-            await axios.put('/api/profile/my-profile', payload);
+            await profileAPI.updateMyProfile(payload);
             if (formData.name) updateUserData({ name: formData.name });
             navigate('/profile');
         } catch (err) {
             console.error("Save failed", err);
             alert(err.response?.data?.message || "Failed to save profile.");
         } finally {
-            setLoading(false);
+            setSaving(false);
         }
     };
 
@@ -169,15 +213,7 @@ function EditProfilePage() {
         );
     }
 
-    const inputStyle = {
-        background: 'var(--bg-surface)',
-        border: '1px solid var(--border-color)',
-        borderRadius: '14px',
-        padding: '16px 18px',
-        fontSize: '0.95rem',
-        color: 'var(--text-main)',
-        transition: 'all 0.2s ease'
-    };
+
 
     return (
         <div style={{ minHeight: '100vh', padding: '40px 20px' }}>
@@ -280,11 +316,15 @@ function EditProfilePage() {
                                 </div>
                             </div>
 
-                            <div className="mb-4">
-                                <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>Full Name</label>
-                                <input type="text" name="name" value={formData.name} onChange={handleChange}
-                                    style={inputStyle} className="form-control" placeholder="Enter your full name" />
-                            </div>
+                            <InputField
+                                label="Full Name"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                placeholder="Enter your full name"
+                                required
+                            />
+
 
                             <div className="mb-4">
                                 <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
@@ -314,25 +354,31 @@ function EditProfilePage() {
 
                             {isEmployer ? (
                                 <>
-                                    <div className="mb-4">
-                                        <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
-                                            <i className="bi bi-whatsapp text-success me-2"></i>WhatsApp Number
-                                        </label>
-                                        <input type="tel" name="whatsapp" value={formData.whatsapp} onChange={handleChange} maxLength={10}
-                                            style={inputStyle} className="form-control" placeholder="10-digit number (optional)" />
-                                    </div>
+                                    <InputField
+                                        label="WhatsApp Number"
+                                        name="whatsapp"
+                                        value={formData.whatsapp}
+                                        onChange={handleChange}
+                                        type="tel"
+                                        maxLength={10}
+                                        icon="bi-whatsapp"
+                                        placeholder="10-digit number (optional)"
+                                    />
 
-                                    <div className="mb-4">
-                                        <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>Designation</label>
-                                        <input type="text" name="designation" value={formData.designation} onChange={handleChange}
-                                            style={inputStyle} className="form-control" placeholder="e.g. HR Manager, Recruiter" />
-                                    </div>
+                                    <InputField
+                                        label="Designation"
+                                        name="designation"
+                                        value={formData.designation}
+                                        onChange={handleChange}
+                                        placeholder="e.g. HR Manager, Recruiter"
+                                    />
+
 
                                     <div className="mb-4">
                                         <div className="form-check" style={{ paddingLeft: '2rem' }}>
                                             <input type="checkbox" className="form-check-input" id="isHiringManager"
                                                 checked={formData.isHiringManager}
-                                                onChange={(e) => setFormData({ ...formData, isHiringManager: e.target.checked })}
+                                                onChange={(e) => setValues({ ...formData, isHiringManager: e.target.checked })}
                                                 style={{ width: '20px', height: '20px', marginRight: '12px' }} />
                                             <label className="form-check-label fw-semibold" htmlFor="isHiringManager" style={{ color: 'var(--text-main)' }}>
                                                 I am a Hiring Manager
@@ -345,29 +391,40 @@ function EditProfilePage() {
                                 <>
                                     <div className="row g-3 mb-4">
                                         <div className="col-6">
-                                            <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>Gender</label>
-                                            <select name="gender" value={formData.gender} onChange={handleChange}
-                                                style={inputStyle} className="form-select">
-                                                <option value="">Select</option>
-                                                <option value="male">Male</option>
-                                                <option value="female">Female</option>
-                                                <option value="other">Other</option>
-                                            </select>
+                                            <SelectField
+                                                label="Gender"
+                                                name="gender"
+                                                value={formData.gender}
+                                                onChange={handleChange}
+                                                options={[
+                                                    { label: 'Male', value: 'male' },
+                                                    { label: 'Female', value: 'female' },
+                                                    { label: 'Other', value: 'other' }
+                                                ]}
+                                            />
                                         </div>
                                         <div className="col-6">
-                                            <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>Date of Birth</label>
-                                            <input type="date" name="dob" value={formData.dob} onChange={handleChange}
-                                                style={inputStyle} className="form-control" />
+                                            <InputField
+                                                label="Date of Birth"
+                                                name="dob"
+                                                type="date"
+                                                value={formData.dob}
+                                                onChange={handleChange}
+                                            />
                                         </div>
                                     </div>
 
-                                    <div className="mb-4">
-                                        <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
-                                            <i className="bi bi-whatsapp text-success me-2"></i>WhatsApp Number
-                                        </label>
-                                        <input type="tel" name="whatsapp" value={formData.whatsapp} onChange={handleChange} maxLength={10}
-                                            style={inputStyle} className="form-control" placeholder="10-digit number" />
-                                    </div>
+                                    <InputField
+                                        label="WhatsApp Number"
+                                        name="whatsapp"
+                                        value={formData.whatsapp}
+                                        onChange={handleChange}
+                                        type="tel"
+                                        maxLength={10}
+                                        icon="bi-whatsapp"
+                                        placeholder="10-digit number"
+                                    />
+
                                 </>
                             )}
                         </div>
@@ -396,22 +453,17 @@ function EditProfilePage() {
 
                             <div className="row g-3 mb-4">
                                 <div className="col-6">
-                                    <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>City</label>
-                                    <input type="text" name="city" value={formData.city} onChange={handleChange}
-                                        style={inputStyle} className="form-control" placeholder="e.g. Mumbai" />
+                                    <InputField label="City" name="city" value={formData.city} onChange={handleChange} placeholder="e.g. Mumbai" />
                                 </div>
                                 <div className="col-6">
-                                    <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>State</label>
-                                    <input type="text" name="state" value={formData.state} onChange={handleChange}
-                                        style={inputStyle} className="form-control" placeholder="e.g. Maharashtra" />
+                                    <InputField label="State" name="state" value={formData.state} onChange={handleChange} placeholder="e.g. Maharashtra" />
                                 </div>
                             </div>
 
                             <div className="col-6">
-                                <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>Pincode</label>
-                                <input type="text" name="pincode" value={formData.pincode} onChange={handleChange} maxLength={6}
-                                    style={inputStyle} className="form-control" placeholder="e.g. 400001" />
+                                <InputField label="Pincode" name="pincode" value={formData.pincode} onChange={handleChange} maxLength={6} placeholder="e.g. 400001" />
                             </div>
+
                         </div>
                     )}
 
@@ -419,38 +471,36 @@ function EditProfilePage() {
                         <div>
                             <h4 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>Tell us about your skills</h4>
 
-                            <div className="mb-4">
-                                <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>Bio</label>
-                                <textarea name="bio" value={formData.bio} onChange={handleChange} rows="3"
-                                    style={{ ...inputStyle, resize: 'none' }} className="form-control"
-                                    placeholder="Tell employers about yourself..." />
-                            </div>
+                            <TextAreaField label="Bio" name="bio" value={formData.bio} onChange={handleChange} rows="3" placeholder="Tell employers about yourself..." />
 
-                            <div className="mb-4">
-                                <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
-                                    Skills <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(comma separated)</span>
-                                </label>
-                                <input type="text" name="skills" value={formData.skills} onChange={handleChange}
-                                    style={inputStyle} className="form-control" placeholder="e.g. Driving, Cooking, Electrician" />
-                                {formData.skills && (
-                                    <div className="d-flex flex-wrap gap-2 mt-3">
-                                        {formData.skills.split(',').filter(s => s.trim()).map((s, i) => (
-                                            <span key={i} style={{
-                                                background: 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
-                                                color: 'white', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 500
-                                            }}>{s.trim()}</span>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                            <InputField
+                                label="Skills"
+                                name="skills"
+                                value={formData.skills}
+                                onChange={handleChange}
+                                placeholder="e.g. Driving, Cooking, Electrician"
+                                helpText="Comma separated"
+                            />
+                            {formData.skills && (
+                                <div className="d-flex flex-wrap gap-2 mt-2 mb-4">
+                                    {formData.skills.split(',').filter(s => s.trim()).map((s, i) => (
+                                        <span key={i} style={{
+                                            background: 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
+                                            color: 'white', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 500
+                                        }}>{s.trim()}</span>
+                                    ))}
+                                </div>
+                            )}
 
-                            <div className="mb-4">
-                                <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
-                                    Languages <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(comma separated)</span>
-                                </label>
-                                <input type="text" name="languages" value={formData.languages} onChange={handleChange}
-                                    style={inputStyle} className="form-control" placeholder="e.g. Hindi, English" />
-                            </div>
+                            <InputField
+                                label="Languages"
+                                name="languages"
+                                value={formData.languages}
+                                onChange={handleChange}
+                                placeholder="e.g. Hindi, English"
+                                helpText="Comma separated"
+                            />
+
                         </div>
                     )}
 
@@ -473,17 +523,13 @@ function EditProfilePage() {
                                                 <h6 className="fw-bold mb-0">{exp.role}</h6>
                                                 <p className="small text-muted mb-1">{exp.companyName || exp.company?.name}</p>
                                                 <p className="small text-muted mb-0">
-                                                    {new Date(exp.startDate).toLocaleDateString()} - {exp.endDate ? new Date(exp.endDate).toLocaleDateString() : 'Present'}
+                                                    {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : 'Present'}
                                                 </p>
+
                                             </div>
                                             {exp.addedBy === 'worker' && (
                                                 <button type="button" className="btn btn-sm text-danger border-0"
-                                                    onClick={async () => {
-                                                        if (window.confirm('Delete this entry?')) {
-                                                            await axios.delete(`/api/work-experience/${exp._id}`);
-                                                            window.location.reload();
-                                                        }
-                                                    }}>
+                                                    onClick={() => handleDeleteWorkExperience(exp._id)}>
                                                     <i className="bi bi-trash"></i>
                                                 </button>
                                             )}
@@ -494,57 +540,76 @@ function EditProfilePage() {
 
                             <div className="card border-0 p-3 mb-3" style={{ background: 'var(--bg-surface)' }}>
                                 <h6 className="fw-bold mb-3" style={{ color: 'var(--text-main)' }}>Add New Experience</h6>
-                                <div className="row g-3">
+                                <div className="row g-2">
                                     <div className="col-md-6">
-                                        <label className="form-label small text-muted">Job Title / Role</label>
-                                        <input type="text" id="expRole" className="form-control form-control-sm" style={inputStyle} placeholder="e.g. Electrician" />
+                                        <InputField
+                                            label="Job Title / Role"
+                                            name="role"
+                                            value={newExp.role}
+                                            onChange={handleNewExpChange}
+                                            placeholder="e.g. Electrician"
+                                            sm
+                                        />
                                     </div>
                                     <div className="col-md-6">
-                                        <label className="form-label small text-muted">Company Name</label>
-                                        <input type="text" id="expCompany" className="form-control form-control-sm" style={inputStyle} placeholder="e.g. ABC Pvt Ltd" />
+                                        <InputField
+                                            label="Company Name"
+                                            name="companyName"
+                                            value={newExp.companyName}
+                                            onChange={handleNewExpChange}
+                                            placeholder="e.g. ABC Pvt Ltd"
+                                            sm
+                                        />
                                     </div>
                                     <div className="col-md-6">
-                                        <label className="form-label small text-muted">Start Date</label>
-                                        <input type="date" id="expStart" className="form-control form-control-sm" style={inputStyle} />
+                                        <InputField
+                                            label="Start Date"
+                                            name="startDate"
+                                            type="date"
+                                            value={newExp.startDate}
+                                            onChange={handleNewExpChange}
+                                            sm
+                                        />
                                     </div>
                                     <div className="col-md-6">
-                                        <label className="form-label small text-muted">End Date</label>
-                                        <input type="date" id="expEnd" className="form-control form-control-sm" style={inputStyle} />
+                                        <InputField
+                                            label="End Date"
+                                            name="endDate"
+                                            type="date"
+                                            value={newExp.endDate}
+                                            onChange={handleNewExpChange}
+                                            disabled={newExp.isCurrent}
+                                            sm
+                                        />
                                         <div className="form-check mt-1">
-                                            <input className="form-check-input" type="checkbox" id="expCurrent" />
+                                            <input
+                                                className="form-check-input"
+                                                type="checkbox"
+                                                name="isCurrent"
+                                                id="expCurrent"
+                                                checked={newExp.isCurrent}
+                                                onChange={handleNewExpChange}
+                                            />
                                             <label className="form-check-label small text-muted" htmlFor="expCurrent">Currently working here</label>
                                         </div>
                                     </div>
                                     <div className="col-12">
-                                        <label className="form-label small text-muted">Description (Optional)</label>
-                                        <textarea id="expDesc" className="form-control form-control-sm" rows="2" style={inputStyle} placeholder="Describe your role..."></textarea>
+                                        <TextAreaField
+                                            label="Description (Optional)"
+                                            name="description"
+                                            value={newExp.description}
+                                            onChange={handleNewExpChange}
+                                            rows="2"
+                                            placeholder="Describe your role..."
+                                            sm
+                                        />
                                     </div>
                                 </div>
-                                <button type="button" className="btn btn-primary btn-sm rounded-pill mt-3 w-100"
-                                    onClick={() => {
-                                        const role = document.getElementById('expRole').value;
-                                        const companyName = document.getElementById('expCompany').value;
-                                        const startDate = document.getElementById('expStart').value;
-                                        const endDate = document.getElementById('expEnd').value;
-                                        const isCurrent = document.getElementById('expCurrent').checked;
-                                        const description = document.getElementById('expDesc').value;
-
-                                        if (role && companyName && startDate) {
-                                            axios.post('/api/work-experience', {
-                                                role,
-                                                companyName,
-                                                startDate,
-                                                endDate: isCurrent ? null : endDate,
-                                                isCurrent,
-                                                description
-                                            }).then(() => window.location.reload());
-                                        } else {
-                                            alert("Please fill Role, Company and Start Date");
-                                        }
-                                    }}>
+                                <Button onClick={handleAddWorkExperience} style={{ marginTop: '16px' }}>
                                     <i className="bi bi-plus-lg me-2"></i>Add Experience
-                                </button>
+                                </Button>
                             </div>
+
                         </div>
                     )}
 
@@ -552,58 +617,70 @@ function EditProfilePage() {
                         <div>
                             <h4 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>Almost done!</h4>
 
-                            <p className="fw-semibold mb-3" style={{ color: 'var(--text-main)', fontSize: '0.95rem' }}>Expected Salary</p>
-                            <div className="row g-3 mb-5">
+                            <p className="fw-semibold mb-1" style={{ color: 'var(--text-main)', fontSize: '0.95rem' }}>Expected Salary</p>
+                            <div className="row g-2 mb-4">
                                 <div className="col-4">
-                                    <input type="number" name="expectedSalaryMin" value={formData.expectedSalaryMin} onChange={handleChange}
-                                        style={inputStyle} className="form-control" placeholder="Min ₹" />
+                                    <InputField name="expectedSalaryMin" value={formData.expectedSalaryMin} onChange={handleChange} type="number" placeholder="Min ₹" />
                                 </div>
                                 <div className="col-4">
-                                    <input type="number" name="expectedSalaryMax" value={formData.expectedSalaryMax} onChange={handleChange}
-                                        style={inputStyle} className="form-control" placeholder="Max ₹ (optional)" />
+                                    <InputField name="expectedSalaryMax" value={formData.expectedSalaryMax} onChange={handleChange} type="number" placeholder="Max ₹ (optional)" />
                                 </div>
                                 <div className="col-4">
-                                    <select name="expectedSalaryType" value={formData.expectedSalaryType} onChange={handleChange}
-                                        style={inputStyle} className="form-select">
-                                        <option value="monthly">/ Month</option>
-                                        <option value="daily">/ Day</option>
-                                    </select>
+                                    <SelectField
+                                        name="expectedSalaryType"
+                                        value={formData.expectedSalaryType}
+                                        onChange={handleChange}
+                                        options={[
+                                            { label: '/ Month', value: 'monthly' },
+                                            { label: '/ Day', value: 'daily' }
+                                        ]}
+                                    />
                                 </div>
                             </div>
 
-                            <p className="fw-semibold mb-3" style={{ color: 'var(--text-main)', fontSize: '0.95rem' }}>
+                            <p className="fw-semibold mb-1" style={{ color: 'var(--text-main)', fontSize: '0.95rem' }}>
                                 Identity Documents <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(optional)</span>
                             </p>
-                            <div className="row g-3">
+                            <div className="row g-2">
                                 <div className="col-md-6">
-                                    <input type="text" name="aadhaarNumber" value={formData.aadhaarNumber}
-                                        onChange={(e) => setFormData({ ...formData, aadhaarNumber: e.target.value.replace(/\D/g, '').slice(0, 12) })}
-                                        maxLength={12} style={inputStyle} className="form-control" placeholder="Aadhaar (12 digits)" />
+                                    <InputField
+                                        name="aadhaarNumber"
+                                        value={formData.aadhaarNumber}
+                                        onChange={(e) => setValues({ ...formData, aadhaarNumber: e.target.value.replace(/\D/g, '').slice(0, 12) })}
+                                        maxLength={12}
+                                        placeholder="Aadhaar (12 digits)"
+                                    />
                                 </div>
                                 <div className="col-md-6">
-                                    <input type="text" name="panNumber" value={formData.panNumber} onChange={handleChange}
-                                        maxLength={10} style={{ ...inputStyle, textTransform: 'uppercase' }} className="form-control" placeholder="PAN Number" />
+                                    <InputField
+                                        name="panNumber"
+                                        value={formData.panNumber}
+                                        onChange={handleChange}
+                                        maxLength={10}
+                                        style={{ textTransform: 'uppercase' }}
+                                        placeholder="PAN Number"
+                                    />
                                 </div>
                                 <div className="col-md-6">
-                                    <input type="text" name="licenseNumber" value={formData.licenseNumber} onChange={handleChange}
-                                        style={{ ...inputStyle, textTransform: 'uppercase' }} className="form-control" placeholder="Driving License" />
+                                    <InputField
+                                        name="licenseNumber"
+                                        value={formData.licenseNumber}
+                                        onChange={handleChange}
+                                        style={{ textTransform: 'uppercase' }}
+                                        placeholder="Driving License"
+                                    />
                                 </div>
                             </div>
+
                         </div>
                     )}
                 </div>
 
                 <div className="d-flex justify-content-between align-items-center">
                     {currentStep > 1 ? (
-                        <button type="button" onClick={prevStep}
-                            style={{
-                                background: 'var(--bg-card)', color: 'var(--text-main)',
-                                border: '1px solid var(--border-color)', borderRadius: '14px',
-                                padding: '14px 28px', fontWeight: 600, fontSize: '0.95rem',
-                                cursor: 'pointer', transition: 'all 0.2s ease'
-                            }}>
+                        <Button variant="secondary" onClick={prevStep} style={{ width: 'auto', padding: '14px 28px' }}>
                             <i className="bi bi-arrow-left me-2"></i>Back
-                        </button>
+                        </Button>
                     ) : (
                         <button type="button" onClick={() => navigate('/profile')}
                             style={{
@@ -615,34 +692,25 @@ function EditProfilePage() {
                     )}
 
                     {currentStep < totalSteps ? (
-                        <button type="button" onClick={nextStep}
-                            style={{
-                                background: 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
-                                color: 'white', border: 'none', borderRadius: '14px',
-                                padding: '14px 32px', fontWeight: 600, fontSize: '0.95rem',
-                                cursor: 'pointer', boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)',
-                                transition: 'all 0.2s ease'
-                            }}>
+                        <Button onClick={nextStep} style={{ width: 'auto', padding: '14px 32px' }}>
                             Continue<i className="bi bi-arrow-right ms-2"></i>
-                        </button>
+                        </Button>
                     ) : (
-                        <button type="button" onClick={handleSubmit} disabled={loading}
+                        <Button
+                            onClick={handleSubmit}
+                            loading={saving}
                             style={{
-                                background: loading ? 'var(--text-muted)' : 'linear-gradient(135deg, #10b981, #059669)',
-                                color: 'white', border: 'none', borderRadius: '14px',
-                                padding: '14px 32px', fontWeight: 600, fontSize: '0.95rem',
-                                cursor: loading ? 'not-allowed' : 'pointer',
-                                boxShadow: '0 8px 24px rgba(16, 185, 129, 0.35)',
-                                transition: 'all 0.2s ease'
-                            }}>
-                            {loading ? (
-                                <><span className="spinner-border spinner-border-sm me-2"></span>Saving...</>
-                            ) : (
-                                <><i className="bi bi-check-lg me-2"></i>Save Profile</>
-                            )}
-                        </button>
+                                width: 'auto',
+                                padding: '14px 32px',
+                                background: 'linear-gradient(135deg, #10b981, #059669)',
+                                boxShadow: '0 8px 24px rgba(16, 185, 129, 0.35)'
+                            }}
+                        >
+                            <i className="bi bi-check-lg me-2"></i>Save Profile
+                        </Button>
                     )}
                 </div>
+
             </div>
         </div>
     );

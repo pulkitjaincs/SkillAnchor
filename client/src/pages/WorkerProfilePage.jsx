@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import axios from 'axios';
+import { profileAPI } from '../services/api';
+import { formatDate, formatSalary, getInitials } from '../utils/index';
 
 function WorkerProfilePage() {
     const { userId } = useParams();
@@ -16,11 +17,10 @@ function WorkerProfilePage() {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const endpoint = isOwnProfile ? '/api/profile/my-profile' : `/api/profile/user/${userId}`;
-                const res = await axios.get(endpoint);
-                setProfile(res.data);
-                setWorkHistory(res.data.workHistory || []);
-                setCompletionPercent(calculateCompletion(res.data));
+                const { data } = isOwnProfile ? await profileAPI.getMyProfile() : await profileAPI.getByUserId(userId);
+                setProfile(data);
+                setWorkHistory(data.workHistory || []);
+                setCompletionPercent(calculateCompletion(data));
             } catch (err) {
                 if (err.response?.status === 404 && isOwnProfile) {
                     navigate('/profile/edit');
@@ -66,10 +66,6 @@ function WorkerProfilePage() {
     };
 
 
-    const formatDate = (dateStr) => {
-        if (!dateStr) return 'Present';
-        return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-    };
 
     const getAge = (dob) => {
         if (!dob) return 0;
@@ -166,7 +162,7 @@ function WorkerProfilePage() {
                                             <img src={profile.avatar} alt={profile.name} className="rounded-circle" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                         ) : (
                                             <span className="fw-bold" style={{ fontSize: '48px', color: 'var(--text-main)' }}>
-                                                {profile.name?.charAt(0)}
+                                                {getInitials(profile.name)}
                                             </span>
                                         )}
                                     </div>
@@ -378,8 +374,8 @@ function WorkerProfilePage() {
                                     <h5 className="fw-bold mb-3" style={{ color: 'var(--text-main)' }}>
                                         <i className="bi bi-currency-rupee me-2"></i>Expected Salary
                                     </h5>
-                                    <p className="mb-1 fs-4 fw-bold" style={{ color: 'var(--text-main)' }}>
-                                        ₹{profile.expectedSalary?.min?.toLocaleString()}{profile.expectedSalary?.max ? ` - ₹${profile.expectedSalary.max.toLocaleString()}` : '+'}
+                                    <p className="mb-0 fs-4 fw-bold" style={{ color: 'var(--text-main)' }}>
+                                        {formatSalary(profile.expectedSalary?.min, profile.expectedSalary?.max, profile.expectedSalary?.type)}
                                     </p>
                                     <p className="mb-0 small" style={{ color: 'var(--text-muted)' }}>
                                         per {profile.expectedSalary?.type === 'monthly' ? 'month' : 'day'}

@@ -136,18 +136,21 @@ Frontend: `http://localhost:5173` | Backend: `http://localhost:5000`
 KaamSetu/
 ├── client/                 # React frontend
 │   └── src/
-│       ├── components/     # UI components (Navbar, Cards)
+│       ├── components/     # UI components (Navbar, Cards, FormComponents)
 │       ├── pages/          # Home, Login, Jobs, Profile, Settings
 │       ├── context/        # Auth state management
+│       ├── hooks/          # Custom hooks (useForm, useFetch, useDebounce)
+│       ├── services/       # Centralized API layer
+│       ├── utils/          # Utility functions (formatDate, formatSalary)
 │       └── styles/         # Global CSS with design system
 │
 └── server/                 # Express backend
     └── src/
-        ├── controllers/    # Business logic
+        ├── controllers/    # Business logic (auth, job, profile, etc.)
         ├── models/         # User, Job, Application, WorkerProfile
-        ├── routes/         # API endpoints
+        ├── routes/         # API endpoints (thin wrappers)
         ├── config/         # Database, S3 configuration
-        └── middleware/     # Auth guards
+        └── middleware/     # Auth guards, file upload
 ```
 
 ## Tech Stack
@@ -155,6 +158,7 @@ KaamSetu/
 | Layer | Technology |
 |-------|------------|
 | Frontend | React 19, Vite, React Router, Bootstrap 5 |
+| State | Custom hooks (useForm, useFetch, useDebounce) |
 | Backend | Node.js, Express, Mongoose, Multer |
 | Database | MongoDB |
 | Auth | JWT, bcrypt, OTP |
@@ -232,6 +236,7 @@ KaamSetu/
 - [x] Trust badges for verified users
 - [x] **Work Experience System**: Manual entry + Automatic verification on hire
 - [x] **Employer Team View**: manage active employees
+- [x] **Codebase Standardization**: Centralized API layer, custom hooks, FormComponents
 - [ ] Advanced search with location and salary filters
 - [ ] Shift-based job scheduling
 - [ ] In-app messaging

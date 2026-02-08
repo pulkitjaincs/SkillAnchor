@@ -1,11 +1,9 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
 import { useEffect, useState } from 'react';
+import { jobsAPI } from '../services/api';
+import { formatDate, formatSalary } from '../utils/index';
 
 function MyJobsPage() {
-    const { token } = useAuth();
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [deleting, setDeleting] = useState(null);
@@ -16,9 +14,7 @@ function MyJobsPage() {
         }
         setDeleting(jobId);
         try {
-            await axios.delete(`/api/jobs/${jobId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await jobsAPI.delete(jobId);
             setJobs(jobs.filter(job => job._id !== jobId));
         } catch (error) {
             alert('Failed to delete job');
@@ -29,19 +25,15 @@ function MyJobsPage() {
     useEffect(() => {
         const fetchMyJobs = async () => {
             try {
-                const res = await axios.get('/api/jobs/my-jobs', {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-                setJobs(res.data);
+                const { data } = await jobsAPI.getMyJobs();
+                setJobs(data);
             } catch (error) {
-                console.log(error);
+                // Error fetching jobs - silently handled
             }
             setLoading(false);
         }
         fetchMyJobs();
-    }, [token]);
+    }, []);
     if (loading) {
         return (
             <div className="container py-5 text-center">
@@ -111,8 +103,8 @@ function MyJobsPage() {
                                             </h5>
                                             <div className="d-flex flex-wrap gap-3" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                                                 <span><i className="bi bi-geo-alt me-1"></i>{job.city}, {job.state}</span>
-                                                <span><i className="bi bi-currency-rupee me-1"></i>{job.salaryMin?.toLocaleString()}{job.salaryMax ? `-${job.salaryMax.toLocaleString()}` : '+'}</span>
-                                                <span><i className="bi bi-calendar3 me-1"></i>{new Date(job.createdAt).toLocaleDateString('en-GB')}</span>
+                                                <span><i className="bi bi-currency-rupee me-1"></i>{formatSalary(job.salaryMin, job.salaryMax)}</span>
+                                                <span><i className="bi bi-calendar3 me-1"></i>{formatDate(job.createdAt)}</span>
                                             </div>
                                         </div>
                                     </div>

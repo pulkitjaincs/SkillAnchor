@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useAuth } from '../../context/AuthContext';
 import ApplyModal from "./ApplyModal";
-import axios from "axios";
+import { applicationsAPI } from "../../services/api";
 import { useNavigate } from "react-router-dom";
+import { formatSalary, formatDate } from "../../utils/index";
 
 const Listing = ({ job, onClose, isSwitch = false }) => {
   const navigate = useNavigate();
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
   const [showApplyModal, setShowApplyModal] = useState(false);
@@ -17,11 +18,9 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
         setApplied(false);
         return;
       }
-      if (user && user.role === 'worker' && token) {
+      if (user && user.role === 'worker') {
         try {
-          const res = await axios.get('/api/applications/my-applications', {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+          const res = await applicationsAPI.getMyApplications();
           const hasApplied = res.data.some(app => app.job._id === job._id);
           setApplied(hasApplied);
         } catch (error) {
@@ -30,7 +29,7 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
       }
     };
     checkIfApplied();
-  }, [job._id, user, token]);
+  }, [job._id, user]);
   const handleClose = () => {
     setIsClosing(true);
     setTimeout(() => {
@@ -44,9 +43,7 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
     }
     setApplying(true);
     try {
-      await axios.post(`/api/applications/apply/${job._id}`,
-        { coverNote },
-        { headers: { Authorization: `Bearer ${token}` } });
+      await applicationsAPI.apply(job._id, coverNote);
       setApplied(true);
       setShowApplyModal(false);
     } catch (error) {
@@ -118,7 +115,7 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
             <h5 className="fw-medium mb-2" style={{ color: "var(--text-muted)" }}>{job.company?.name}</h5>
             <div className="d-flex align-items-center gap-3 small" style={{ color: "var(--text-muted)" }}>
               <span className="d-flex align-items-center gap-1"><i className="bi bi-geo-alt-fill text-primary"></i> {job.city}, {job.state}</span>
-              <span className="d-flex align-items-center gap-1"><i className="bi bi-clock-fill text-primary"></i> Posted {new Date(job.createdAt).toLocaleDateString('en-GB')}</span>
+              <span className="d-flex align-items-center gap-1"><i className="bi bi-clock-fill text-primary"></i> Posted {formatDate(job.createdAt)}</span>
             </div>
           </div>
           <div className="d-flex gap-2 flex-wrap mt-3">
@@ -148,7 +145,7 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
 
         <div className="row g-3 mb-5">
           {[
-            { label: "Salary", value: `₹${job.salaryMin?.toLocaleString()}${job.salaryMax ? `-${job.salaryMax.toLocaleString()}` : '+'}`, icon: "bi-cash-stack" },
+            { label: "Salary", value: formatSalary(job.salaryMin, job.salaryMax, job.salaryType), icon: "bi-cash-stack" },
             { label: "Job Type", value: job.jobType, icon: "bi-briefcase-fill" },
             { label: "Experience", value: `${job.experienceMin}+ Years`, icon: "bi-star-fill" },
           ].map((stat, idx) => (

@@ -26,8 +26,8 @@ app.use((err, req, res, next) => {
     if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
         return res.status(400).json({ error: "Invalid JSON" });
     }
-    next(err);
+    console.error(err.stack);
+    res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
 });
-
 
 export default app;

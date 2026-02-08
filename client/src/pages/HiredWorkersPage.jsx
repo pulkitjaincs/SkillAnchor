@@ -1,20 +1,17 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
+import { profileAPI,workExperienceAPI } from '../services/api';
 
 function HiredWorkersPage() {
     const [team, setTeam] = useState([]);
-    const { token } = useAuth();
 
     useEffect(() => {
-        axios.get('/api/profile/my-team', { headers: { Authorization: `Bearer ${token}` } })
-            .then(res => setTeam(res.data));
-    }, [token]);
+        profileAPI.getMyTeam().then(({ data }) => setTeam(data));
+    }, []);
 
     const endEmployment = async (id) => {
         if (!window.confirm("Are you sure you want to end this worker's employment?")) return;
         try {
-            await axios.patch(`/api/work-experience/${id}/end`, {}, { headers: { Authorization: `Bearer ${token}` } });
+            await workExperienceAPI.endEmployment(id);
             setTeam(team.filter(m => m._id !== id));
         } catch (err) {
             alert("Failed to end employment");

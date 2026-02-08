@@ -2,17 +2,7 @@ import WorkerProfile from "../models/WorkerProfile.model.js";
 import EmployerProfile from "../models/EmployerProfile.model.js";
 import WorkExperience from "../models/WorkExperience.model.js";
 import User from "../models/User.model.js";
-import multer from "multer";
 import { uploadToS3 } from "../config/s3.js";
-
-const storage = multer.memoryStorage();
-
-const fileFilter = (req, file, cb) => {
-    const allowed = ["image/jpeg", "image/png", "image/webp"];
-    cb(null, allowed.includes(file.mimetype));
-};
-
-export const uploadMiddleware = multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } }).single("avatar");
 
 export const uploadAvatar = async (req, res) => {
     try {
@@ -36,6 +26,24 @@ export const uploadAvatar = async (req, res) => {
         return res.status(500).json({ message: "Avatar upload failed" });
     }
 };
+
+export const getMyTeam = async (req, res) => {
+    try {
+        const team = await WorkExperience.find({
+            employer: req.user._id,
+            $or: [
+                { endDate: { $exists: false } },
+                { endDate: null }
+            ]
+        }).populate("worker", "name phone avatar email");
+
+        res.json(team);
+    } catch (error) {
+        console.error("Error fetching team:", error);
+        res.status(500).json({ message: "Error fetching team" });
+    }
+};
+
 
 export const getMyProfile = async (req, res) => {
     try {

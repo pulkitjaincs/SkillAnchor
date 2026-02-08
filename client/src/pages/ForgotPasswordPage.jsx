@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { authAPI } from '../services/api';
 
 function ForgotPasswordPage() {
     const [method, setMethod] = useState('email');
@@ -37,7 +37,7 @@ function ForgotPasswordPage() {
         setLoading(true);
         try {
             const payload = method === 'email' ? { email } : { phone };
-            await axios.post('/api/auth/forgot-password', payload);
+            await authAPI.forgotPassword(payload);
             setSuccess('OTP sent!');
             setStep(2);
         } catch (err) {
@@ -72,7 +72,7 @@ function ForgotPasswordPage() {
             const payload = method === 'email'
                 ? { email, otp, newPassword }
                 : { phone, otp, newPassword };
-            await axios.post('/api/auth/reset-password', payload);
+            await authAPI.resetPassword(payload);
             setSuccess('Password reset successfully!');
             setTimeout(() => navigate('/login'), 2000);
         } catch (err) {

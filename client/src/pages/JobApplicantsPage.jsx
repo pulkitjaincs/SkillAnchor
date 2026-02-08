@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
+import { applicationsAPI, jobsAPI } from '../services/api';
 
 
 function JobApplicantsPage() {
     const { jobId } = useParams();
-    const { token } = useAuth();
     const [applications, setApplications] = useState([]);
     const [job, setJob] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -14,10 +12,9 @@ function JobApplicantsPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const jobRes = await axios.get(`/api/jobs/${jobId}`);
+                const jobRes = await jobsAPI.getById(jobId);
                 setJob(jobRes.data);
-                const appRes = await axios.get(`/api/applications/job/${jobId}`,
-                    { headers: { Authorization: `Bearer ${token}` } });
+                const appRes = await applicationsAPI.getJobApplicants(jobId);
                 setApplications(appRes.data);
             } catch (error) {
                 console.error("Error fetching data: ", error);
@@ -26,12 +23,11 @@ function JobApplicantsPage() {
             }
         };
         fetchData();
-    }, [jobId, token]);
+    }, [jobId]);
     const handleStatusChange = async (appId, newStatus) => {
         setUpdating(appId);
         try {
-            await axios.patch(`/api/applications/${appId}/status`, { status: newStatus },
-                { headers: { Authorization: `Bearer ${token}` } });
+            await applicationsAPI.updateStatus(appId, newStatus);
             setApplications(applications.map(app =>
                 app._id === appId ? { ...app, status: newStatus } : app));
         } catch (error) {

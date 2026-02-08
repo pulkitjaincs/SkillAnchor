@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import { authAPI } from '../services/api';
 
 function SettingsPage() {
     const { user, updateUserData } = useAuth();
@@ -32,7 +32,7 @@ function SettingsPage() {
         if (passData.newPassword !== passData.confirmPassword) return alert("Passwords don't match!");
         setPassLoading(true);
         try {
-            await axios.post('/api/auth/update-password', {
+            await authAPI.updatePassword({
                 currentPassword: passData.currentPassword,
                 newPassword: passData.newPassword
             });
@@ -50,7 +50,7 @@ function SettingsPage() {
         setContactLoading(true);
         try {
             const payload = editingSection === 'email' ? { email: contactData.email } : { phone: contactData.phone };
-            await axios.post('/api/auth/send-update-otp', payload);
+            await authAPI.sendUpdateOTP(payload);
             setOtpSent(true);
         } catch (err) {
             alert(err.response?.data?.error || "Failed to send OTP");
@@ -67,8 +67,8 @@ function SettingsPage() {
                 otp: contactData.otp,
                 ...(editingSection === 'email' ? { email: contactData.email } : { phone: contactData.phone })
             };
-            const res = await axios.post('/api/auth/verify-update-otp', payload);
-            if (res.data.user) updateUserData(res.data.user);
+            const {data} = await authAPI.verifyUpdateOTP(payload);
+            if (data.user) updateUserData(data.user);
             cancelEditing();
         } catch (err) {
             alert(err.response?.data?.error || "Failed to verify");

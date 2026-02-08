@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import axios from 'axios';
+import { authAPI } from '../services/api';
+import { useForm } from '../hooks';
+import { InputField, Button } from '../components/common/FormComponents';
 import { useAuth } from '../context/AuthContext';
 
 function LoginPage() {
     const [loginMethod, setLoginMethod] = useState('phone');
-    const [emailMethod, setEmailMethod] = useState('password'); 
+    const [emailMethod, setEmailMethod] = useState('password');
     const [otpSent, setOtpSent] = useState(false);
     const [phone, setPhone] = useState('');
     const [otp, setOtp] = useState('');
@@ -46,7 +48,7 @@ function LoginPage() {
                     return;
                 }
                 if (!otpSent) {
-                    await axios.post('/api/auth/send-otp', { phone });
+                    await authAPI.sendOTP({ phone });
                     setOtpSent(true);
                     setLoading(false);
                     return;
@@ -56,9 +58,9 @@ function LoginPage() {
                     setLoading(false);
                     return;
                 }
-                const response = await axios.post('/api/auth/verify-otp', { phone, otp });
-                if (response.data.token) {
-                    login(response.data.token, response.data.user);
+                const {data} = await authAPI.verifyOTP({ phone, otp });
+                if (data.token) {
+                    login(data.token, data.user);
                     navigate(redirect);
                 }
             }
@@ -79,9 +81,9 @@ function LoginPage() {
                         setLoading(false);
                         return;
                     }
-                    const response = await axios.post('/api/auth/login', { email, password });
-                    if (response.data.token) {
-                        login(response.data.token, response.data.user);
+                    const {data} = await authAPI.login({ email, password });
+                    if (data.token) {
+                        login(data.token, data.user);
                         navigate(redirect);
                     }
                 }
@@ -89,7 +91,7 @@ function LoginPage() {
                 // Email + OTP
                 if (emailMethod === 'otp') {
                     if (!otpSent) {
-                        await axios.post('/api/auth/send-otp', { email });
+                        await authAPI.sendOTP({ email });
                         setOtpSent(true);
                         setLoading(false);
                         return;
@@ -99,9 +101,9 @@ function LoginPage() {
                         setLoading(false);
                         return;
                     }
-                    const response = await axios.post('/api/auth/verify-otp', { email, otp });
-                    if (response.data.token) {
-                        login(response.data.token, response.data.user);
+                    const {data} = await authAPI.verifyOTP({ email, otp });
+                    if (data.token) {
+                        login(data.token, data.user);
                         navigate(redirect);
                     }
                 }

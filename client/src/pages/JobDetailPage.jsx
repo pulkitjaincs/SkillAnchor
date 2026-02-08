@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { jobsAPI, applicationsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import ApplyModal from '../components/common/ApplyModal';
+import { formatDate, formatSalary, timeAgo } from '../utils/index';
 
 function JobDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -21,8 +22,8 @@ function JobDetailPage() {
         const viewedJobs = JSON.parse(localStorage.getItem('viewedJobs') || '[]');
         const hasViewed = viewedJobs.includes(id);
 
-        const res = await axios.get(`/api/jobs/${id}${hasViewed ? '?noIncrement=true' : ''}`);
-        setJob(res.data);
+        const { data } = await jobsAPI.getById(id, { noIncrement: hasViewed });
+        setJob(data);
 
         if (!hasViewed) {
           localStorage.setItem('viewedJobs', JSON.stringify([...viewedJobs, id]));
@@ -38,19 +39,17 @@ function JobDetailPage() {
 
   useEffect(() => {
     const checkIfApplied = async () => {
-      if (!user || user.role !== 'worker' || !token) return;
+      if (!user || user.role !== 'worker') return;
       try {
-        const res = await axios.get('/api/applications/my-applications', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const hasApplied = res.data.some(app => app.job._id === id);
+        const { data } = await applicationsAPI.getMyApplications();
+        const hasApplied = data.some(app => app.job._id === id);
         setApplied(hasApplied);
       } catch (err) {
-        console.log('Error checking application status');
+        // Error checking application status - silently handled
       }
     };
     if (job) checkIfApplied();
-  }, [job, user, token, id]);
+  }, [job, user, id]);
 
   const handleApply = async (coverNote) => {
     if (!user) {
@@ -59,9 +58,7 @@ function JobDetailPage() {
     }
     setApplying(true);
     try {
-      await axios.post(`/api/applications/apply/${id}`,
-        { coverNote },
-        { headers: { Authorization: `Bearer ${token}` } });
+      await applicationsAPI.apply(id, { coverNote });
       setApplied(true);
       setShowApplyModal(false);
     } catch (err) {
@@ -132,7 +129,7 @@ function JobDetailPage() {
                 </p>
                 <div className="d-flex flex-wrap gap-3" style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                   <span><i className="bi bi-geo-alt-fill me-1" style={{ color: 'var(--primary-500)' }}></i>{job.city}, {job.state}</span>
-                  <span><i className="bi bi-clock me-1" style={{ color: 'var(--primary-500)' }}></i>Posted {new Date(job.createdAt).toLocaleDateString('en-GB')}</span>
+                  <span><i className="bi bi-clock me-1" style={{ color: 'var(--primary-500)' }}></i>Posted {formatDate(job.createdAt)}</span>
                   {job.status !== 'active' && (
                     <span className="badge bg-warning text-dark">{job.status}</span>
                   )}
@@ -142,7 +139,7 @@ function JobDetailPage() {
 
             <div className="row g-3 mb-4">
               {[
-                { label: 'Salary', value: `₹${job.salaryMin?.toLocaleString()}${job.salaryMax ? `-${job.salaryMax.toLocaleString()}` : '+'}/${job.salaryType}`, icon: 'bi-cash-stack' },
+                { label: 'Salary', value: formatSalary(job.salaryMin, job.salaryMax, job.salaryType), icon: 'bi-cash-stack' },
                 { label: 'Job Type', value: job.jobType?.replace('-', ' '), icon: 'bi-briefcase-fill' },
                 { label: 'Experience', value: job.experienceMin > 0 ? `${job.experienceMin}+ Years` : 'Fresher', icon: 'bi-star-fill' },
                 { label: 'Shift', value: job.shift || 'Flexible', icon: 'bi-sun-fill' },
@@ -252,7 +249,7 @@ function JobDetailPage() {
             <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
               <p className="mb-2"><i className="bi bi-eye me-2"></i>{job.views || 0} views</p>
               <p className="mb-2"><i className="bi bi-people me-2"></i>{job.applicationsCount || 0} applicants</p>
-              <p className="mb-0"><i className="bi bi-calendar3 me-2"></i>Posted {Math.floor((Date.now() - new Date(job.createdAt)) / (1000 * 60 * 60 * 24))} days ago</p>
+              <p className="mb-0"><i className="bi bi-calendar3 me-2"></i>Posted {timeAgo(job.createdAt)}</p>
             </div>
           </div>
         </div>

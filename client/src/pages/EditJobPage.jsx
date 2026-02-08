@@ -1,17 +1,15 @@
-import React from 'react';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
+import { jobsAPI } from '../services/api';
+import { useForm } from "../hooks/index";
+import { InputField, SelectField, TextAreaField, Button } from '../components/common/FormComponents';
 
 function EditJobPage() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { token } = useAuth();
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [formData, setFormData] = useState({
+    const { values: formData, handleChange, setValues, loading: saving, setLoading: setSaving } = useForm({
         title: "",
         description: "",
         category: "",
@@ -34,9 +32,8 @@ function EditJobPage() {
     useEffect(() => {
         const fetchJob = async () => {
             try {
-                const res = await axios.get(`/api/jobs/${id}`);
-                const job = res.data;
-                setFormData({
+                const { data: job } = await jobsAPI.getById(id);
+                setValues({
                     title: job.title || '',
                     description: job.description || '',
                     category: job.category || '',
@@ -64,10 +61,7 @@ function EditJobPage() {
         };
         fetchJob();
     }, [id]);
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -82,7 +76,7 @@ function EditJobPage() {
                 experienceMin: Number(formData.experienceMin),
                 vacancies: Number(formData.vacancies)
             };
-            await axios.put(`/api/jobs/${id}`, jobData, { headers: { Authorization: `Bearer ${token}` } });
+            await jobsAPI.update(id, jobData);
             navigate('/my-jobs');
         }
         catch (err) {
@@ -138,34 +132,19 @@ function EditJobPage() {
                                         <span className="d-inline-block me-2" style={{ width: '20px', height: '2px', background: 'var(--primary-500)' }}></span>
                                         Basic Information
                                     </h6>
-                                </div>
-
-                                <div className="mb-4">
-                                    <label className="form-label fw-medium" style={{ color: 'var(--text-main)' }}>
-                                        <i className="bi bi-tag me-1" style={{ color: 'var(--primary-500)' }}></i>Job Title *
-                                    </label>
-                                    <input type="text" name="title" value={formData.title} onChange={handleChange}
-                                        className="form-control py-3 premium-input" required />
-                                </div>
-
-                                <div className="mb-4">
-                                    <label className="form-label fw-medium" style={{ color: 'var(--text-main)' }}>
-                                        <i className="bi bi-file-text me-1" style={{ color: 'var(--primary-500)' }}></i>Description *
-                                    </label>
-                                    <textarea name="description" value={formData.description} onChange={handleChange} rows={4}
-                                        className="form-control py-3 premium-input" required />
-                                </div>
-
-                                <div className="mb-4">
-                                    <label className="form-label fw-medium" style={{ color: 'var(--text-main)' }}>
-                                        <i className="bi bi-toggle-on me-1" style={{ color: 'var(--primary-500)' }}></i>Status
-                                    </label>
-                                    <select name="status" value={formData.status} onChange={handleChange}
-                                        className="form-select py-3 premium-input">
-                                        <option value="active">Active</option>
-                                        <option value="paused">Paused</option>
-                                        <option value="closed">Closed</option>
-                                    </select>
+                                    <InputField label="Job Title" name="title" value={formData.title} onChange={handleChange} required />
+                                    <TextAreaField label="Description" name="description" value={formData.description} onChange={handleChange} required />
+                                    <SelectField
+                                        label="Status"
+                                        name="status"
+                                        value={formData.status}
+                                        onChange={handleChange}
+                                        options={[
+                                            { label: 'Active', value: 'active' },
+                                            { label: 'Paused', value: 'paused' },
+                                            { label: 'Closed', value: 'closed' }
+                                        ]}
+                                    />
                                 </div>
 
                                 {/* Section: Location */}
@@ -174,29 +153,16 @@ function EditJobPage() {
                                         <span className="d-inline-block me-2" style={{ width: '20px', height: '2px', background: 'var(--primary-500)' }}></span>
                                         Location & Category
                                     </h6>
-                                </div>
-
-                                <div className="row mb-4">
-                                    <div className="col-md-4 mb-3 mb-md-0">
-                                        <label className="form-label fw-medium" style={{ color: 'var(--text-main)' }}>
-                                            <i className="bi bi-grid me-1" style={{ color: 'var(--primary-500)' }}></i>Category *
-                                        </label>
-                                        <input type="text" name="category" value={formData.category} onChange={handleChange}
-                                            className="form-control py-3 premium-input" required />
-                                    </div>
-                                    <div className="col-md-4 mb-3 mb-md-0">
-                                        <label className="form-label fw-medium" style={{ color: 'var(--text-main)' }}>
-                                            <i className="bi bi-geo-alt me-1" style={{ color: 'var(--primary-500)' }}></i>City *
-                                        </label>
-                                        <input type="text" name="city" value={formData.city} onChange={handleChange}
-                                            className="form-control py-3 premium-input" required />
-                                    </div>
-                                    <div className="col-md-4">
-                                        <label className="form-label fw-medium" style={{ color: 'var(--text-main)' }}>
-                                            <i className="bi bi-map me-1" style={{ color: 'var(--primary-500)' }}></i>State *
-                                        </label>
-                                        <input type="text" name="state" value={formData.state} onChange={handleChange}
-                                            className="form-control py-3 premium-input" required />
+                                    <div className="row g-3">
+                                        <div className="col-md-4">
+                                            <InputField label="Category" name="category" value={formData.category} onChange={handleChange} required />
+                                        </div>
+                                        <div className="col-md-4">
+                                            <InputField label="City" name="city" value={formData.city} onChange={handleChange} required />
+                                        </div>
+                                        <div className="col-md-4">
+                                            <InputField label="State" name="state" value={formData.state} onChange={handleChange} required />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -206,33 +172,20 @@ function EditJobPage() {
                                         <span className="d-inline-block me-2" style={{ width: '20px', height: '2px', background: 'var(--primary-500)' }}></span>
                                         Compensation
                                     </h6>
-                                </div>
-
-                                <div className="row mb-4">
-                                    <div className="col-md-4 mb-3 mb-md-0">
-                                        <label className="form-label fw-medium" style={{ color: 'var(--text-main)' }}>
-                                            <i className="bi bi-currency-rupee me-1" style={{ color: 'var(--primary-500)' }}></i>Min Salary *
-                                        </label>
-                                        <input type="number" name="salaryMin" value={formData.salaryMin} onChange={handleChange}
-                                            className="form-control py-3 premium-input" required />
-                                    </div>
-                                    <div className="col-md-4 mb-3 mb-md-0">
-                                        <label className="form-label fw-medium" style={{ color: 'var(--text-main)' }}>
-                                            <i className="bi bi-currency-rupee me-1" style={{ color: 'var(--text-muted)' }}></i>Max Salary
-                                        </label>
-                                        <input type="number" name="salaryMax" value={formData.salaryMax} onChange={handleChange}
-                                            className="form-control py-3 premium-input" />
-                                    </div>
-                                    <div className="col-md-4">
-                                        <label className="form-label fw-medium" style={{ color: 'var(--text-main)' }}>
-                                            <i className="bi bi-calendar3 me-1" style={{ color: 'var(--primary-500)' }}></i>Salary Type
-                                        </label>
-                                        <select name="salaryType" value={formData.salaryType} onChange={handleChange}
-                                            className="form-select py-3 premium-input">
-                                            <option value="monthly">Monthly</option>
-                                            <option value="daily">Daily</option>
-                                            <option value="hourly">Hourly</option>
-                                        </select>
+                                    <div className="row g-3">
+                                        <div className="col-md-4">
+                                            <InputField label="Min Salary" name="salaryMin" type="number" value={formData.salaryMin} onChange={handleChange} required />
+                                        </div>
+                                        <div className="col-md-4">
+                                            <InputField label="Max Salary" name="salaryMax" type="number" value={formData.salaryMax} onChange={handleChange} />
+                                        </div>
+                                        <div className="col-md-4">
+                                            <SelectField
+                                                label="Salary Type" name="salaryType" value={formData.salaryType} onChange={handleChange}
+                                                options={[{ label: 'Monthly', value: 'monthly' }, { label: 'Daily', value: 'daily' }, { label: 'Hourly', value: 'hourly' }]}
+                                                required
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -242,37 +195,23 @@ function EditJobPage() {
                                         <span className="d-inline-block me-2" style={{ width: '20px', height: '2px', background: 'var(--primary-500)' }}></span>
                                         Job Details
                                     </h6>
-                                </div>
-
-                                <div className="row mb-4">
-                                    <div className="col-md-4 mb-3 mb-md-0">
-                                        <label className="form-label fw-medium" style={{ color: 'var(--text-main)' }}>
-                                            <i className="bi bi-clock me-1" style={{ color: 'var(--primary-500)' }}></i>Job Type
-                                        </label>
-                                        <select name="jobType" value={formData.jobType} onChange={handleChange}
-                                            className="form-select py-3 premium-input">
-                                            <option value="full-time">Full Time</option>
-                                            <option value="part-time">Part Time</option>
-                                            <option value="contract">Contract</option>
-                                        </select>
-                                    </div>
-                                    <div className="col-md-4 mb-3 mb-md-0">
-                                        <label className="form-label fw-medium" style={{ color: 'var(--text-main)' }}>
-                                            <i className="bi bi-sun me-1" style={{ color: 'var(--primary-500)' }}></i>Shift
-                                        </label>
-                                        <select name="shift" value={formData.shift} onChange={handleChange}
-                                            className="form-select py-3 premium-input">
-                                            <option value="day">Day</option>
-                                            <option value="night">Night</option>
-                                            <option value="flexible">Flexible</option>
-                                        </select>
-                                    </div>
-                                    <div className="col-md-4">
-                                        <label className="form-label fw-medium" style={{ color: 'var(--text-main)' }}>
-                                            <i className="bi bi-people me-1" style={{ color: 'var(--primary-500)' }}></i>Vacancies
-                                        </label>
-                                        <input type="number" name="vacancies" value={formData.vacancies} onChange={handleChange}
-                                            className="form-control py-3 premium-input" min="1" />
+                                    <div className="row g-3">
+                                        <div className="col-md-4">
+                                            <SelectField
+                                                label="Job Type" name="jobType" value={formData.jobType} onChange={handleChange}
+                                                options={[{ label: 'Full Time', value: 'full-time' }, { label: 'Part Time', value: 'part-time' }, { label: 'Contract', value: 'contract' }]}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="col-md-4">
+                                            <SelectField
+                                                label="Shift" name="shift" value={formData.shift} onChange={handleChange}
+                                                options={[{ label: 'Day', value: 'day' }, { label: 'Night', value: 'night' }, { label: 'Flexible', value: 'flexible' }]}
+                                            />
+                                        </div>
+                                        <div className="col-md-4">
+                                            <InputField label="Vacancies" name="vacancies" type="number" value={formData.vacancies} onChange={handleChange} placeholder="1" />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -282,38 +221,23 @@ function EditJobPage() {
                                         <span className="d-inline-block me-2" style={{ width: '20px', height: '2px', background: 'var(--primary-500)' }}></span>
                                         Skills & Benefits
                                     </h6>
-                                </div>
-
-                                <div className="row mb-5">
-                                    <div className="col-md-6 mb-3 mb-md-0">
-                                        <label className="form-label fw-medium" style={{ color: 'var(--text-main)' }}>
-                                            <i className="bi bi-tools me-1" style={{ color: 'var(--primary-500)' }}></i>Skills (comma separated)
-                                        </label>
-                                        <input type="text" name="skills" value={formData.skills} onChange={handleChange}
-                                            className="form-control py-3 premium-input" />
-                                    </div>
-                                    <div className="col-md-6">
-                                        <label className="form-label fw-medium" style={{ color: 'var(--text-main)' }}>
-                                            <i className="bi bi-gift me-1" style={{ color: 'var(--primary-500)' }}></i>Benefits (comma separated)
-                                        </label>
-                                        <input type="text" name="benefits" value={formData.benefits} onChange={handleChange}
-                                            className="form-control py-3 premium-input" />
+                                    <div className="row g-3">
+                                        <div className="col-md-6">
+                                            <InputField label="Skills" name="skills" value={formData.skills} onChange={handleChange} placeholder="Cooking, Hindi (comma separated)" />
+                                        </div>
+                                        <div className="col-md-6">
+                                            <InputField label="Benefits" name="benefits" value={formData.benefits} onChange={handleChange} placeholder="Food, Accommodation (comma separated)" />
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="d-flex gap-3">
-                                    <button type="button" onClick={() => navigate('/my-jobs')} className="btn flex-grow-1 py-3 fw-bold rounded-pill btn-view-action"
-                                        style={{ background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--border-color)' }}>
-                                        <i className="bi bi-x-lg me-2"></i>Cancel
-                                    </button>
-                                    <button type="submit" className="btn flex-grow-1 py-3 fw-bold rounded-pill post-job-btn" disabled={saving}
-                                        style={{ background: 'var(--text-main)', color: 'var(--bg-body)' }}>
-                                        {saving ? (
-                                            <><span className="spinner-border spinner-border-sm me-2"></span>Saving...</>
-                                        ) : (
-                                            <><i className="bi bi-check-lg me-2"></i>Save Changes</>
-                                        )}
-                                    </button>
+                                <div className="d-flex gap-3 mt-5">
+                                    <Button variant="secondary" onClick={() => navigate('/my-jobs')} fullWidth>
+                                        Cancel
+                                    </Button>
+                                    <Button type="submit" loading={saving} fullWidth>
+                                        Save Changes
+                                    </Button>
                                 </div>
                             </form>
                         </div>

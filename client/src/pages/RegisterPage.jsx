@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import { authAPI } from '../services/api';
 import { Link, useNavigate } from 'react-router-dom';
 
 function RegisterPage() {
@@ -36,7 +36,7 @@ function RegisterPage() {
             if (!otpSent) {
                 async function sendOtp() {
                     try {
-                        const sendOtpRequest = await axios.post('/api/auth/send-otp', { phone, role });
+                        const sendOtpRequest = await authAPI.sendOTP({ phone, role });
                         setOtpSent(true);
                     } catch (error) {
                         setError(error.response?.data?.error || 'Failed to send OTP');
@@ -52,9 +52,9 @@ function RegisterPage() {
             }
             async function verifyOtp() {
                 try {
-                    const verifyOtpRequest = await axios.post('/api/auth/verify-otp', { phone, role, name, otp });
-                    if (verifyOtpRequest.data.token) {
-                        login(verifyOtpRequest.data.token, verifyOtpRequest.data.user);
+                    const {data} = await authAPI.verifyOTP({ phone, role, name, otp });
+                    if (data.token) {
+                        login(data.token, data.user);
                         navigate('/');
                     }
                 } catch (error) {
@@ -77,9 +77,9 @@ function RegisterPage() {
             }
             async function register() {
                 try {
-                    const registerRequest = await axios.post('/api/auth/register', { email, role, name, password });
-                    if (registerRequest.data.token) {
-                        login(registerRequest.data.token, registerRequest.data.user);
+                    const {data} = await authAPI.register({ email, role, name, password });
+                    if (data.token) {
+                        login(data.token, data.user);
                         navigate('/');
                     }
                 } catch (error) {
