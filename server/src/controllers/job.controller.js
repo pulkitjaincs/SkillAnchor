@@ -5,22 +5,25 @@ export const getAllJobs = async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 12;
         const cursor = req.query.cursor;
+        const searchTerm = req.query.search;
 
         let query = { status: "active" };
+        let sortOptions = { createdAt: -1 };
+        let projection = {};
 
-        if (req.query.search) {
-            query.$or = [
-                { title: { $regex: req.query.search, $options: 'i' } },
-                { description: { $regex: req.query.search, $options: 'i' } }
-            ];
+        // Use MongoDB text search for better matching
+        if (searchTerm) {
+            query.$text = { $search: searchTerm };
+            // Add text score for relevance sorting
+            projection.score = { $meta: "textScore" };
+            sortOptions = { score: { $meta: "textScore" }, createdAt: -1 };
         }
 
         if (req.query.location) {
-            const locationQuery = [
+            query.$or = [
                 { city: { $regex: req.query.location, $options: 'i' } },
                 { state: { $regex: req.query.location, $options: 'i' } }
             ];
-            query.$or = query.$or ? [...query.$or, ...locationQuery] : locationQuery;
         }
 
         if (req.query.category) query.category = req.query.category;
@@ -28,10 +31,25 @@ export const getAllJobs = async (req, res) => {
 
         if (cursor) query._id = { $lt: cursor };
 
-        const jobs = await Job.find(query)
+        let jobs = await Job.find(query, projection)
             .populate("company", "name logo")
-            .sort({ createdAt: -1 })
+            .sort(sortOptions)
             .limit(limit);
+
+        if (searchTerm && jobs.length === 0) {
+            delete query.$text;
+            query.$or = [
+                { title: { $regex: searchTerm, $options: 'i' } },
+                { description: { $regex: searchTerm, $options: 'i' } },
+                { category: { $regex: searchTerm, $options: 'i' } },
+                { skills: { $elemMatch: { $regex: searchTerm, $options: 'i' } } },
+                { city: { $regex: searchTerm, $options: 'i' } }
+            ];
+            jobs = await Job.find(query)
+                .populate("company", "name logo")
+                .sort({ createdAt: -1 })
+                .limit(limit);
+        }
 
         const hasMore = jobs.length === limit;
         res.status(200).json({ jobs, hasMore });
@@ -43,11 +61,7 @@ export const getAllJobs = async (req, res) => {
 
 export const getJobById = async (req, res) => {
     try {
-        const shouldIncrement = req.query.noIncrement !== 'true';
-        const job = shouldIncrement
-            ? await Job.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } }, { new: true })
-                .populate("company").populate("employer", "name")
-            : await Job.findById(req.params.id).populate("company").populate("employer", "name");
+        const job = await Job.findById(req.params.id).populate("company").populate("employer", "name");
         if (!job) return res.status(404).json({ message: "Job not found" });
         res.json(job);
     } catch (error) {

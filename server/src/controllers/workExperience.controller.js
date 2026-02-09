@@ -1,5 +1,6 @@
 import WorkExperience from "../models/WorkExperience.model.js";
 import WorkerProfile from "../models/WorkerProfile.model.js";
+import Application from "../models/Application.model.js";
 
 export const getWorkExperiencesByUser = async (req, res) => {
     try {
@@ -68,14 +69,44 @@ export const deleteWorkExperience = async (req, res) => {
 
 export const endEmployment = async (req, res) => {
     try {
-        const exp = await WorkExperience.findOne({ _id: req.params.id, employer: req.user._id });
-        if (!exp) return res.status(404).json({ message: "Experience not found" });
+        const exp = await WorkExperience.findOne({
+            _id: req.params.id, $or: [{ employer: req.user._id }, { worker: req.user._id, isVerified: true }]
+        });
+        if (!exp) return res.status(404).json({ message: "Experience not found or you are not authorized" });
 
         exp.endDate = new Date();
         exp.isCurrent = false;
         await exp.save();
-
+        if (exp.linkedApplication) {
+            const application = await Application.findById(exp.linkedApplication);
+            if (application) {
+                application.status = "employment-ended";
+                application.statusHistory.push({ status: "employment-ended", at: new Date() });
+                await application.save();
+            }
+        }
+        await WorkerProfile.findOneAndUpdate(
+            { user: exp.worker },
+            { $set: { currentlyEmployed: false } }
+        );
         res.json({ message: "Employment ended successfully", exp });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const toggleVisibility = async (req, res) => {
+    try {
+        const exp = await WorkExperience.findOne({ _id: req.params.id, worker: req.user._id });
+        if (!exp) return res.status(404).json({ message: "Work experience not found" });
+
+        if (exp.worker.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: "Not authorized" });
+        }
+
+        exp.isVisible = !exp.isVisible;
+        await exp.save();
+        res.json({ message: `Experience is now ${exp.isVisible ? "visible" : "hidden"}`, isVisible: exp.isVisible });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

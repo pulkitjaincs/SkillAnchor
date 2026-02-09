@@ -25,6 +25,10 @@ function JobApplicantsPage() {
         fetchData();
     }, [jobId]);
     const handleStatusChange = async (appId, newStatus) => {
+        if (newStatus === 'hired') {
+            const confirmHiring = window.confirm("Are you sure you want to hire this worker? This action is permanent and will add them to your team.");
+            if (!confirmHiring) return;
+        }
         setUpdating(appId);
         try {
             await applicationsAPI.updateStatus(appId, newStatus);
@@ -42,7 +46,8 @@ function JobApplicantsPage() {
             viewed: { bg: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', icon: 'bi-eye-fill' },
             shortlisted: { bg: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', icon: 'bi-star-fill' },
             rejected: { bg: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', icon: 'bi-x-circle-fill' },
-            hired: { bg: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', icon: 'bi-trophy-fill' }
+            hired: { bg: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', icon: 'bi-trophy-fill' },
+            "employment-ended": { bg: 'rgba(107, 114, 128, 0.1)', color: '#6b7280', icon: 'bi-slash-circle-fill' }
         };
         const s = styles[status] || styles.pending;
         return (
@@ -136,7 +141,9 @@ function JobApplicantsPage() {
                                         <select
                                             value={app.status}
                                             onChange={(e) => handleStatusChange(app._id, e.target.value)}
-                                            disabled={updating === app._id}
+                                            disabled={updating === app._id ||
+                                                app.status === 'hired' ||
+                                                app.status === 'employment-ended'}
                                             className="form-select form-select-sm rounded-3"
                                             style={{
                                                 background: 'var(--bg-surface)',
@@ -154,14 +161,16 @@ function JobApplicantsPage() {
                                 </div>
                             </div>
                             {/* Cover Note */}
-                            {app.coverNote && (
-                                <div className="mt-3 p-3 rounded-3" style={{ background: 'var(--bg-surface)' }}>
-                                    <small style={{ color: 'var(--text-muted)' }}>Cover Note:</small>
-                                    <p className="mb-0 mt-1" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
-                                        {app.coverNote}
-                                    </p>
-                                </div>
-                            )}
+                            {
+                                app.coverNote && (
+                                    <div className="mt-3 p-3 rounded-3" style={{ background: 'var(--bg-surface)' }}>
+                                        <small style={{ color: 'var(--text-muted)' }}>Cover Note:</small>
+                                        <p className="mb-0 mt-1" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
+                                            {app.coverNote}
+                                        </p>
+                                    </div>
+                                )
+                            }
                         </div>
                     ))}
                 </div>

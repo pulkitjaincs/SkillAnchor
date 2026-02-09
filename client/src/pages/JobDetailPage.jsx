@@ -19,15 +19,8 @@ function JobDetailPage() {
   useEffect(() => {
     const fetchJob = async () => {
       try {
-        const viewedJobs = JSON.parse(localStorage.getItem('viewedJobs') || '[]');
-        const hasViewed = viewedJobs.includes(id);
-
-        const { data } = await jobsAPI.getById(id, { noIncrement: hasViewed });
+        const { data } = await jobsAPI.getById(id);
         setJob(data);
-
-        if (!hasViewed) {
-          localStorage.setItem('viewedJobs', JSON.stringify([...viewedJobs, id]));
-        }
       } catch (err) {
         setError('Job not found');
       } finally {
@@ -247,7 +240,6 @@ function JobDetailPage() {
             <hr style={{ borderColor: 'var(--border-color)' }} />
 
             <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-              <p className="mb-2"><i className="bi bi-eye me-2"></i>{job.views || 0} views</p>
               <p className="mb-2"><i className="bi bi-people me-2"></i>{job.applicationsCount || 0} applicants</p>
               <p className="mb-0"><i className="bi bi-calendar3 me-2"></i>Posted {timeAgo(job.createdAt)}</p>
             </div>

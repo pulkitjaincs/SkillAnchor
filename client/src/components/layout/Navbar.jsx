@@ -10,6 +10,7 @@ const Navbar = ({ name }) => {
   const inputRef = useRef(null);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const root = document.documentElement;
@@ -39,7 +40,16 @@ const Navbar = ({ name }) => {
     else if (theme === "dark") setTheme("system");
     else setTheme("light");
   };
-
+  const handleSearch = (e) => {
+    if (e.key === 'Enter') {
+      if (searchQuery.trim()) {
+        navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
+      } else {
+        navigate('/');
+      }
+      setSearchActive(false);
+    }
+  }
   const getThemeIcon = () => {
     if (theme === "light") return "bi-sun-fill";
     if (theme === "dark") return "bi-moon-fill";
@@ -102,6 +112,9 @@ const Navbar = ({ name }) => {
               <input
                 ref={inputRef}
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearch}
                 className="form-control border-0 bg-transparent shadow-none"
                 placeholder="Search jobs..."
                 style={{

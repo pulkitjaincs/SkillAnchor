@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useForm } from '../hooks';
-import { profileAPI, workExperienceAPI } from '../services/api';
-import { formatDate } from '../utils';
+import { profileAPI } from '../services/api';
 import { InputField, SelectField, TextAreaField, Button } from '../components/common/FormComponents';
 
 function EditProfilePage() {
@@ -15,25 +14,10 @@ function EditProfilePage() {
     const [searchParams] = useSearchParams();
     const initialStep = parseInt(searchParams.get('step')) || 1;
     const [currentStep, setCurrentStep] = useState(initialStep);
-    const totalSteps = isEmployer ? 1 : 5;
+    const totalSteps = isEmployer ? 1 : 4;
     const [avatar, setAvatar] = useState(null);
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
     const fileInputRef = useRef(null);
-
-    const [newExp, setNewExp] = useState({
-        role: '',
-        companyName: '',
-        startDate: '',
-        endDate: '',
-        isCurrent: false,
-        description: ''
-    });
-    const [expStatus, setExpStatus] = useState({ type: '', message: '' });
-
-    const handleNewExpChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setNewExp(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-    };
 
 
     const {
@@ -71,14 +55,18 @@ function EditProfilePage() {
         { number: 1, title: 'Basics', icon: 'bi-person-fill', desc: 'Name & identity' },
         { number: 2, title: 'Location', icon: 'bi-geo-alt-fill', desc: 'Where you are' },
         { number: 3, title: 'Skills', icon: 'bi-stars', desc: 'What you do' },
-        { number: 4, title: 'Experience', icon: 'bi-briefcase-fill', desc: 'Work history' },
-        { number: 5, title: 'Finish', icon: 'bi-check-circle-fill', desc: 'Salary & docs' }
+        { number: 4, title: 'Finish', icon: 'bi-check-circle-fill', desc: 'Salary & docs' }
     ];
 
     useEffect(() => {
         const fetchProfile = async () => {
             try {
                 const { data: p } = await profileAPI.getMyProfile();
+                // Fetch work history separately for fresh data
+                if (!isEmployer && user?._id) {
+                    const { data: expData } = await workExperienceAPI.getByUser(user._id);
+                    setWorkHistory(expData || []);
+                }
                 setValues({
                     name: p.name || '',
                     gender: p.gender || '',
@@ -110,38 +98,6 @@ function EditProfilePage() {
         };
         fetchProfile();
     }, []);
-    const handleDeleteWorkExperience = async (id) => {
-        if (window.confirm('Delete this entry?')) {
-            await workExperienceAPI.delete(id);
-            window.location.reload();
-        }
-    };
-    const handleAddWorkExperience = async () => {
-        const { role, companyName, startDate, endDate, isCurrent, description } = newExp;
-        setExpStatus({ type: '', message: '' });
-
-        if (role && startDate) {
-            try {
-                await workExperienceAPI.create({
-                    role,
-                    companyName: companyName || undefined,
-                    startDate,
-                    endDate: isCurrent ? null : endDate,
-                    isCurrent,
-                    description
-                });
-                setExpStatus({ type: 'success', message: 'Experience added successfully!' });
-                setNewExp({ role: '', companyName: '', startDate: '', endDate: '', isCurrent: false, description: '' });
-                // Refresh and stay on the current step
-                setTimeout(() => window.location.href = `/profile/edit?step=${currentStep}`, 1500);
-            } catch (err) {
-                setExpStatus({ type: 'error', message: 'Failed to add experience. Please try again.' });
-            }
-        } else {
-            setExpStatus({ type: 'error', message: 'Please fill Role and Start Date' });
-        }
-    }
-
 
     const handleAvatarUpload = async (e) => {
         const file = e.target.files?.[0];
@@ -359,7 +315,7 @@ function EditProfilePage() {
                                 </label>
                                 <div className="d-flex align-items-center gap-2">
                                     <input type="tel" value={user?.phone || ''} readOnly
-                                        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '12px 16px', color: 'var(--text-primary)', cursor: 'not-allowed' }}
+                                        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '12px 16px', color: 'var(--text-main)', cursor: 'not-allowed' }}
                                         className="form-control" placeholder="Not set" />
                                     <button type="button" onClick={() => navigate('/profile/settings')}
                                         className="btn btn-outline-secondary" style={{ borderRadius: '12px', whiteSpace: 'nowrap', fontSize: '0.85rem', fontWeight: 500 }}>
@@ -521,185 +477,8 @@ function EditProfilePage() {
                         </div>
                     )}
 
+
                     {currentStep === 4 && (
-                        <div>
-                            <div className="d-flex justify-content-between align-items-center mb-4">
-                                <h4 className="fw-bold mb-0" style={{ color: 'var(--text-main)' }}>Work History</h4>
-                            </div>
-
-                            <p className="text-muted small mb-4">
-                                Add your past work experience to improve your profile score.
-                                <br /><span className="text-primary">Note: Verified experiences from jobs you were hired for on KaamSetu cannot be edited here.</span>
-                            </p>
-
-                            <div className="d-flex flex-column gap-3 mb-4">
-                                {user?.workHistory?.map((exp) => (
-                                    <div key={exp._id} className="p-3 rounded-3" style={{
-                                        background: 'var(--bg-surface)',
-                                        border: exp.isVerified ? '1px solid #10b981' : '1px solid var(--border-color)'
-                                    }}>
-                                        <div className="d-flex justify-content-between align-items-start">
-                                            <div className="flex-grow-1">
-                                                <div className="d-flex align-items-center gap-2 mb-1">
-                                                    <h6 className="fw-bold mb-0">{exp.role}</h6>
-                                                    {exp.isVerified && (
-                                                        <span className="badge" style={{
-                                                            background: 'linear-gradient(135deg, #10b981, #059669)',
-                                                            fontSize: '0.65rem',
-                                                            padding: '3px 8px'
-                                                        }}>
-                                                            <i className="bi bi-patch-check-fill me-1"></i>Verified
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                {(exp.companyName || exp.company?.name) && (
-                                                    <p className="small text-muted mb-1">{exp.companyName || exp.company?.name}</p>
-                                                )}
-                                                <p className="small text-muted mb-0">
-                                                    {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : 'Present'}
-                                                </p>
-                                            </div>
-                                            {!exp.isVerified && (
-                                                <div className="d-flex gap-1">
-                                                    <button
-                                                        type="button"
-                                                        className="btn btn-sm border-0"
-                                                        style={{ color: 'var(--text-muted)' }}
-                                                        onClick={() => {
-                                                            setNewExp({
-                                                                role: exp.role || '',
-                                                                companyName: exp.companyName || '',
-                                                                startDate: exp.startDate ? new Date(exp.startDate).toISOString().split('T')[0] : '',
-                                                                endDate: exp.endDate ? new Date(exp.endDate).toISOString().split('T')[0] : '',
-                                                                isCurrent: !exp.endDate,
-                                                                description: exp.description || ''
-                                                            });
-                                                            handleDeleteWorkExperience(exp._id);
-                                                            setExpStatus({ type: 'success', message: 'Editing experience - update the form below and save.' });
-                                                        }}
-                                                        title="Edit"
-                                                    >
-                                                        <i className="bi bi-pencil"></i>
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        className="btn btn-sm text-danger border-0"
-                                                        onClick={() => handleDeleteWorkExperience(exp._id)}
-                                                        title="Delete"
-                                                    >
-                                                        <i className="bi bi-trash"></i>
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="p-4 rounded-4" style={{
-                                background: 'var(--bg-card)',
-                                border: '1px solid var(--border-color)',
-                                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.06)'
-                            }}>
-                                <div className="d-flex align-items-center gap-3 mb-4">
-                                    <div className="d-flex align-items-center justify-content-center" style={{
-                                        width: '44px', height: '44px', borderRadius: '12px',
-                                        background: 'linear-gradient(135deg, var(--primary-500), #8b5cf6)'
-                                    }}>
-                                        <i className="bi bi-plus-lg text-white fs-5"></i>
-                                    </div>
-                                    <h6 className="fw-bold mb-0" style={{ color: 'var(--text-main)', fontSize: '1.1rem' }}>Add New Experience</h6>
-                                </div>
-                                <div className="row g-3">
-                                    <div className="col-md-6">
-                                        <InputField
-                                            label="Job Title / Role"
-                                            name="role"
-                                            value={newExp.role}
-                                            onChange={handleNewExpChange}
-                                            placeholder="e.g. Electrician"
-                                            sm
-                                        />
-                                    </div>
-                                    <div className="col-md-6">
-                                        <InputField
-                                            label="Company Name"
-                                            name="companyName"
-                                            value={newExp.companyName}
-                                            onChange={handleNewExpChange}
-                                            placeholder="e.g. ABC Pvt Ltd"
-                                            sm
-                                        />
-                                    </div>
-                                    <div className="col-md-6">
-                                        <InputField
-                                            label="Start Date"
-                                            name="startDate"
-                                            type="date"
-                                            value={newExp.startDate}
-                                            onChange={handleNewExpChange}
-                                            sm
-                                        />
-                                    </div>
-                                    <div className="col-md-6">
-                                        <InputField
-                                            label="End Date"
-                                            name="endDate"
-                                            type="date"
-                                            value={newExp.endDate}
-                                            onChange={handleNewExpChange}
-                                            disabled={newExp.isCurrent}
-                                            sm
-                                        />
-                                        <div className="form-check mt-1">
-                                            <input
-                                                className="form-check-input"
-                                                type="checkbox"
-                                                name="isCurrent"
-                                                id="expCurrent"
-                                                checked={newExp.isCurrent}
-                                                onChange={handleNewExpChange}
-                                            />
-                                            <label className="form-check-label small text-muted" htmlFor="expCurrent">Currently working here</label>
-                                        </div>
-                                    </div>
-                                    <div className="col-12">
-                                        <TextAreaField
-                                            label="Description (Optional)"
-                                            name="description"
-                                            value={newExp.description}
-                                            onChange={handleNewExpChange}
-                                            rows="2"
-                                            placeholder="Describe your role..."
-                                            sm
-                                        />
-                                    </div>
-                                </div>
-                                <Button
-                                    onClick={handleAddWorkExperience}
-                                    style={{
-                                        marginTop: '20px',
-                                        background: 'linear-gradient(135deg, #10b981, #059669)',
-                                        boxShadow: '0 6px 20px rgba(16, 185, 129, 0.3)',
-                                        width: '100%'
-                                    }}
-                                >
-                                    <i className="bi bi-plus-lg me-2"></i>Add Experience
-                                </Button>
-
-                                {expStatus.message && (
-                                    <div className={`alert ${expStatus.type === 'success' ? 'alert-success' : 'alert-danger'} mt-3 mb-0 d-flex align-items-center`}
-                                        style={{ borderRadius: '12px', fontSize: '0.9rem' }}>
-                                        <i className={`bi ${expStatus.type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'} me-2`}></i>
-                                        {expStatus.message}
-                                    </div>
-                                )}
-                            </div>
-
-                        </div>
-                    )}
-
-                    {currentStep === 5 && (
                         <div>
                             <h4 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>Almost done!</h4>
 

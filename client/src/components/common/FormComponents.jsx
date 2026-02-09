@@ -1,5 +1,3 @@
-
-
 export const InputField = ({
     label,
     name,
@@ -19,12 +17,12 @@ export const InputField = ({
 }) => (
     <div className={`mb-3 ${className}`}>
         {label && (
-            <label htmlFor={name} className="form-label fw-medium" style={{ color: 'var(--text-primary)', fontSize: sm ? '0.85rem' : undefined }}>
+            <label htmlFor={name} className="form-label fw-medium" style={{ color: 'var(--text-main)', fontSize: sm ? '0.85rem' : undefined }}>
                 {label} {required && <span className="text-danger">*</span>}
                 {helpText && <span className="text-muted fw-normal ms-1" style={{ fontSize: '0.8rem' }}>({helpText})</span>}
             </label>
         )}
-        <div style={{ position: 'relative' }}>
+        <div className={type === 'date' ? 'premium-date-input' : ''} style={{ position: 'relative' }}>
             {icon && (
                 <i className={`bi ${icon}`} style={{
                     position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)',
@@ -43,8 +41,8 @@ export const InputField = ({
                 maxLength={maxLength}
                 className={`form-control ${sm ? 'form-control-sm' : ''}`}
                 style={{
-                    background: 'var(--bg-input)',
-                    color: 'var(--text-primary)',
+                    background: 'var(--bg-surface)',
+                    color: 'var(--text-main)',
                     border: error ? '1px solid var(--danger)' : '1px solid var(--border-color)',
                     borderRadius: sm ? '10px' : '12px',
                     padding: sm ? '10px 14px' : '12px 16px',
@@ -74,7 +72,7 @@ export const SelectField = ({
 }) => (
     <div className={`mb-3 ${className}`}>
         {label && (
-            <label htmlFor={name} className="form-label fw-medium" style={{ color: 'var(--text-primary)' }}>
+            <label htmlFor={name} className="form-label fw-medium" style={{ color: 'var(--text-main)' }}>
                 {label} {required && <span className="text-danger">*</span>}
             </label>
         )}
@@ -87,8 +85,8 @@ export const SelectField = ({
             disabled={disabled}
             className="form-select"
             style={{
-                background: 'var(--bg-input)',
-                color: 'var(--text-primary)',
+                background: 'var(--bg-surface)',
+                color: 'var(--text-main)',
                 border: error ? '1px solid var(--danger)' : '1px solid var(--border-color)',
                 borderRadius: '12px',
                 padding: '12px 16px'
@@ -123,7 +121,7 @@ export const TextAreaField = ({
 }) => (
     <div className={`mb-3 ${className}`}>
         {label && (
-            <label htmlFor={name} className="form-label fw-medium" style={{ color: 'var(--text-primary)', fontSize: sm ? '0.85rem' : undefined }}>
+            <label htmlFor={name} className="form-label fw-medium" style={{ color: 'var(--text-main)', fontSize: sm ? '0.85rem' : undefined }}>
                 {label} {required && <span className="text-danger">*</span>}
             </label>
         )}
@@ -138,8 +136,8 @@ export const TextAreaField = ({
             disabled={disabled}
             className={`form-control ${sm ? 'form-control-sm' : ''}`}
             style={{
-                background: 'var(--bg-input)',
-                color: 'var(--text-primary)',
+                background: 'var(--bg-surface)',
+                color: 'var(--text-main)',
                 border: error ? '1px solid var(--danger)' : '1px solid var(--border-color)',
                 borderRadius: sm ? '10px' : '12px',
                 padding: sm ? '10px 14px' : '12px 16px',
@@ -163,11 +161,11 @@ export const Button = ({
     style = {}
 }) => {
     const variants = {
-        primary: { background: 'var(--primary)', color: 'white' },
-        secondary: { background: 'var(--bg-secondary)', color: 'var(--text-primary)' },
-        success: { background: 'var(--success)', color: 'white' },
-        danger: { background: 'var(--danger)', color: 'white' },
-        outline: { background: 'transparent', border: '2px solid var(--primary)', color: 'var(--primary)' }
+        primary: { background: 'var(--primary-500)', color: 'white' },
+        secondary: { background: 'var(--bg-surface)', color: 'var(--text-main)' },
+        success: { background: '#22c55e', color: 'white' },
+        danger: { background: '#ef4444', color: 'white' },
+        outline: { background: 'transparent', border: '2px solid var(--primary-500)', color: 'var(--primary-500)' }
     };
 
     return (

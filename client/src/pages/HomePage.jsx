@@ -13,6 +13,7 @@ function HomePage() {
     const [loading, setLoading] = useState(false);
     const [searchParams] = useSearchParams();
     const openJobId = searchParams.get("openJob");
+    const searchQuery = searchParams.get('search') || '';
     useEffect(() => {
         if (openJobId && jobs.length > 0) {
             const job = jobs.find(j => j._id === openJobId);
@@ -25,12 +26,39 @@ function HomePage() {
         loadJobs();
     }, []);
 
+    useEffect(() => {
+        setJobs([]);
+        setCursor(null);
+        setHasMore(true);
+        setLoading(false);
+        loadJobsForSearch();
+    }, [searchQuery]);
+
+    const loadJobsForSearch = async () => {
+        try {
+            const params = { limit: 10 };
+            if (searchQuery) params.search = searchQuery;
+
+            const { data } = await jobsAPI.getAll(params);
+            if (data.jobs && Array.isArray(data.jobs)) {
+                setJobs(data.jobs);
+                setCursor(data.jobs[data.jobs.length - 1]?._id);
+                setHasMore(data.hasMore);
+            }
+        } catch (err) {
+            console.error("Fetch error:", err);
+        }
+    };
+
     const loadJobs = async () => {
         if (loading) return;
         setLoading(true);
 
         try {
-            const { data } = await jobsAPI.getAll({ limit: 10, cursor });
+            const params = { limit: 10, cursor };
+            if (searchQuery) params.search = searchQuery;
+
+            const { data } = await jobsAPI.getAll(params);
 
             if (data.jobs && Array.isArray(data.jobs)) {
                 setJobs(prev => [...prev, ...data.jobs]);

@@ -50,7 +50,8 @@ Built for simplicity. Works on any device.
 - **Multi-step profile wizard** for easy onboarding
 - **Profile completion tracking** with visual progress
 - **WhatsApp number support** for direct communication
-- **Work Experience Management**: Add and manage past roles with a sleek inline edit flow and smart date validation
+- **Work Experience Management**: Add and manage work history via modal with visibility toggle
+- **Verified Experience Badges**: Experiences from hired jobs are auto-verified
 - **Secure phone display** (read-only in profile, updated via OTP in settings)
 
 ### For Employers
@@ -60,6 +61,7 @@ Built for simplicity. Works on any device.
 - Track application count per job in real-time
 - Update status: Pending → Viewed → Shortlisted → Hired → Rejected
 - **Premium My Team Dashboard**: Manage active hires with a high-fidelity interface, quick-call actions, and deep-link profile navigation
+- **End Employment Flow**: End employment relationships, automatically updating work history
 - **Manage all listings** from one dashboard
 
 ### Platform
@@ -72,6 +74,7 @@ Built for simplicity. Works on any device.
 - **Dark and light mode** with smooth transitions
 - **Trust Badges**: Verified phone/email markers in Settings and Profile
 - **Secure Contact Guard**: Force contact updates through OTP verification
+- **Enhanced Job Search**: MongoDB text search with relevance ranking across title, description, skills, category, city
 
 ---
 
@@ -239,7 +242,9 @@ KaamSetu/
 - [x] **Work Experience System**: Manual entry + Automatic verification on hire
 - [x] **Employer Team View**: manage active employees
 - [x] **Codebase Standardization**: Centralized API layer, custom hooks, FormComponents
-- [ ] Advanced search with location and salary filters
+- [x] **Enhanced Search**: Full-text search with multi-field matching and relevance ranking
+- [x] **Work Experience Modal**: Modal-based management with visibility toggle and employment controls
+- [ ] Location and salary filter UI
 - [ ] Shift-based job scheduling
 - [ ] In-app messaging
 - [ ] Push notifications

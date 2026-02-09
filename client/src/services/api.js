@@ -45,7 +45,7 @@ export const authAPI = {
 // Jobs API
 export const jobsAPI = {
     getAll: (params) => api.get('/jobs', { params }),
-    getById: (id, noIncrement) => api.get(`/jobs/${id}`, { params: { noIncrement } }),
+    getById: (id) => api.get(`/jobs/${id}`),
     getMyJobs: () => api.get('/jobs/my-jobs'),
     create: (data) => api.post('/jobs', data),
     update: (id, data) => api.put(`/jobs/${id}`, data),
@@ -78,7 +78,8 @@ export const workExperienceAPI = {
     create: (data) => api.post('/work-experience', data),
     update: (id, data) => api.put(`/work-experience/${id}`, data),
     delete: (id) => api.delete(`/work-experience/${id}`),
-    endEmployment: (id) => api.patch(`/work-experience/${id}/end`)
+    endEmployment: (id) => api.patch(`/work-experience/${id}/end`),
+    toggleVisibility: (id) => api.patch(`/work-experience/${id}/toggle-visibility`)
 };
 
 export default api;

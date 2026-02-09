@@ -90,7 +90,15 @@ JobSchema.index({ status: 1, category: 1, city: 1 });
 JobSchema.index({ status: 1, createdAt: -1 });
 JobSchema.index({ employer: 1, status: 1 });
 JobSchema.index({ company: 1 });
-JobSchema.index({ title: "text", description: "text" });
+JobSchema.index({
+    title: "text",
+    description: "text",
+    skills: "text",
+    category: "text",
+    subcategory: "text",
+    city: "text",
+    state: "text"
+});
 
 JobSchema.virtual("isExpired").get(function () {
     return this.expiresAt && this.expiresAt < new Date();

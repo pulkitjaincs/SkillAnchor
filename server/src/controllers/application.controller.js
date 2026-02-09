@@ -79,6 +79,7 @@ export const updateApplicationStatus = async (req, res) => {
             const workExp = await WorkExperience.create({
                 worker: application.applicant,
                 employer: req.user._id,
+                linkedApplication: application._id,
                 company: application.job.company?._id,
                 companyName: application.job.company?.name,
                 role: application.job.title,

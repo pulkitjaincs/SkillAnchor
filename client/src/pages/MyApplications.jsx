@@ -28,7 +28,7 @@ function MyApplications() {
     useEffect(() => {
         const fetchApplications = async () => {
             try {
-                const {data} = await applicationsAPI.getMyApplications();
+                const { data } = await applicationsAPI.getMyApplications();
                 setApplications(data);
             } catch (error) {
                 console.error("Error fetching applications: ", error);
@@ -44,7 +44,8 @@ function MyApplications() {
             viewed: { bg: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', icon: 'bi-eye-fill' },
             shortlisted: { bg: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', icon: 'bi-star-fill' },
             rejected: { bg: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', icon: 'bi-x-circle-fill' },
-            hired: { bg: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', icon: 'bi-trophy-fill' }
+            hired: { bg: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', icon: 'bi-trophy-fill' },
+            "employment-ended": { bg: 'rgba(107, 114, 128, 0.1)', color: '#6b7280', icon: 'bi-slash-circle-fill' }
         };
         const s = styles[status] || styles.pending;
         return (
@@ -122,23 +123,30 @@ function MyApplications() {
                                 </button>
                                 <button
                                     onClick={() => handleWithdraw(app._id)}
-                                    disabled={withdrawing === app._id || app.status === 'hired'}
+                                    disabled={withdrawing === app._id || !['pending', 'viewed'].includes(app.status)}
                                     className="d-flex align-items-center justify-content-center rounded-pill px-3 py-2 border-0"
                                     style={{
-                                        background: app.status === 'hired' ? 'var(--bg-surface)' : 'rgba(239, 68, 68, 0.15)',
-                                        color: app.status === 'hired' ? 'var(--text-muted)' : '#ef4444',
-                                        fontSize: '0.85rem', transition: 'all 0.2s ease', cursor: app.status === 'hired' ? 'not-allowed' : 'pointer'
+                                        background: ['pending', 'viewed'].includes(app.status) ? 'rgba(239, 68, 68, 0.15)' : 'var(--bg-surface)',
+                                        color: ['pending', 'viewed'].includes(app.status) ? '#ef4444' : 'var(--text-muted)',
+                                        fontSize: '0.85rem', transition: 'all 0.2s ease',
+                                        cursor: ['pending', 'viewed'].includes(app.status) ? 'pointer' : 'not-allowed'
                                     }}
                                     onMouseEnter={e => { if (!e.target.disabled) { e.target.style.transform = 'scale(1.05)'; e.target.style.background = '#ef4444'; e.target.style.color = 'white'; } }}
                                     onMouseLeave={e => {
-                                        if (app.status !== 'hired') {
+                                        if (['pending', 'viewed'].includes(app.status)) {
                                             e.target.style.transform = 'scale(1)'; e.target.style.background = 'rgba(239, 68, 68, 0.15)'; e.target.style.color = '#ef4444';
                                         }
                                     }}>
                                     {withdrawing === app._id ? (
                                         <span className="spinner-border spinner-border-sm"></span>
                                     ) : (
-                                        <><i className="bi bi-x-lg me-1"></i> {app.status === 'hired' ? 'Hired' : 'Withdraw'}</>
+                                        <><i className="bi bi-x-lg me-1"></i> {
+                                            app.status === 'hired' ? 'Hired' :
+                                                app.status === 'employment-ended' ? 'Ended' :
+                                                    app.status === 'rejected' ? 'Rejected' :
+                                                        app.status === 'shortlisted' ? 'Shortlisted' :
+                                                            'Withdraw'
+                                        }</>
                                     )}
                                 </button>
                             </div>

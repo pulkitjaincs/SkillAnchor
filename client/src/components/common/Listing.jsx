@@ -43,7 +43,7 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
     }
     setApplying(true);
     try {
-      await applicationsAPI.apply(job._id, coverNote);
+      await applicationsAPI.apply(job._id, { coverNote });
       setApplied(true);
       setShowApplyModal(false);
     } catch (error) {
