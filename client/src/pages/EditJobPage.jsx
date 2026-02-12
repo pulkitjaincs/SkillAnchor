@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { jobsAPI } from '../services/api';
 import { useForm } from "../hooks/index";
 import { InputField, SelectField, TextAreaField, Button } from '../components/common/FormComponents';
+import { CATEGORY_OPTIONS } from '../constants/jobConstants';
 
 function EditJobPage() {
     const { id } = useParams();
@@ -155,7 +156,14 @@ function EditJobPage() {
                                     </h6>
                                     <div className="row g-3">
                                         <div className="col-md-4">
-                                            <InputField label="Category" name="category" value={formData.category} onChange={handleChange} required />
+                                            <SelectField
+                                                label="Category"
+                                                name="category"
+                                                value={formData.category}
+                                                onChange={handleChange}
+                                                options={CATEGORY_OPTIONS}
+                                                required
+                                            />
                                         </div>
                                         <div className="col-md-4">
                                             <InputField label="City" name="city" value={formData.city} onChange={handleChange} required />

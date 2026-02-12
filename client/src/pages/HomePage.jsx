@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Card from "../components/common/Card";
 import Listing from "../components/common/Listing";
+import SearchHero from "../components/common/SearchHero";
 import { useSearchParams } from "react-router-dom";
 import { jobsAPI } from "../services/api";
 
@@ -11,9 +12,13 @@ function HomePage() {
     const [hasMore, setHasMore] = useState(true);
     const [cursor, setCursor] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
+
     const openJobId = searchParams.get("openJob");
     const searchQuery = searchParams.get('search') || '';
+    const locationQuery = searchParams.get('location') || '';
+    const categoryQuery = searchParams.get('category') || '';
+
     useEffect(() => {
         if (openJobId && jobs.length > 0) {
             const job = jobs.find(j => j._id === openJobId);
@@ -32,12 +37,22 @@ function HomePage() {
         setHasMore(true);
         setLoading(false);
         loadJobsForSearch();
-    }, [searchQuery]);
+    }, [searchQuery, locationQuery, categoryQuery]);
+
+    const handleHeroSearch = ({ search, location, category }) => {
+        const params = {};
+        if (search) params.search = search;
+        if (location) params.location = location;
+        if (category && category !== 'All') params.category = category;
+        setSearchParams(params);
+    };
 
     const loadJobsForSearch = async () => {
         try {
-            const params = { limit: 10 };
+            const params = { limit: 12 };
             if (searchQuery) params.search = searchQuery;
+            if (locationQuery) params.location = locationQuery;
+            if (categoryQuery) params.category = categoryQuery;
 
             const { data } = await jobsAPI.getAll(params);
             if (data.jobs && Array.isArray(data.jobs)) {
@@ -55,8 +70,10 @@ function HomePage() {
         setLoading(true);
 
         try {
-            const params = { limit: 10, cursor };
+            const params = { limit: 12, cursor };
             if (searchQuery) params.search = searchQuery;
+            if (locationQuery) params.location = locationQuery;
+            if (categoryQuery) params.category = categoryQuery;
 
             const { data } = await jobsAPI.getAll(params);
 
@@ -93,11 +110,27 @@ function HomePage() {
 
     return (
         <div className="container-fluid flex-grow-1 px-4 px-lg-5" style={{ maxWidth: "1600px" }}>
-            <div className="row g-4">
+
+            <SearchHero
+                onSearch={handleHeroSearch}
+                initialSearchQuery={searchQuery}
+                initialLocation={locationQuery}
+                initialCategory={categoryQuery}
+            />
+
+            <div className="row g-4" style={{ paddingTop: '10px' }}>
 
                 <div className={`${listColumnClass} d-flex flex-column layout-transition`}
                     style={{ paddingTop: "20px", paddingBottom: "20px" }}>
-                    <div className="d-flex align-items-center justify-content-between mb-4 px-2">
+                    <div className="d-flex align-items-center justify-content-between mb-4 px-2"
+                        style={{
+                            position: 'sticky',
+                            top: '80px',
+                            zIndex: 100,
+                            background: 'var(--bg-body)',
+                            paddingTop: '12px',
+                            paddingBottom: '12px',
+                        }}>
                         <h4 className="fw-bolder mb-0 tracking-tight" style={{ color: "var(--text-main)" }}>Recent Jobs</h4>
                         <span className="badge border shadow-sm rounded-pill px-3 py-2 fw-medium"
                             style={{ background: "var(--bg-card)", color: "var(--text-muted)", borderColor: "var(--border-color)" }}>
@@ -117,8 +150,8 @@ function HomePage() {
                     </div>
                 </div>
 
-                <div className={`${detailColumnClass} layout-transition sticky-top`}
-                    style={{ height: "calc(100vh - 40px)", overflowY: "hidden", top: "20px", borderRadius: "24px", zIndex: 100 }}>
+                <div className={`${detailColumnClass} layout-transition`}
+                    style={{ position: 'sticky', height: "calc(100vh - 100px)", overflowY: "hidden", top: "90px", borderRadius: "24px", zIndex: 100 }}>
                     {selectedJob && (
                         <Listing
                             job={selectedJob}

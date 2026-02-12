@@ -75,6 +75,9 @@ Built for simplicity. Works on any device.
 - **Trust Badges**: Verified phone/email markers in Settings and Profile
 - **Secure Contact Guard**: Force contact updates through OTP verification
 - **Enhanced Job Search**: MongoDB text search with relevance ranking across title, description, skills, category, city
+- **Flattened Search Hero**: Prominent search bar with keyword, location, and category chip filters on the homepage
+- **Scroll-Linked Navbar Search**: Search bar morphs into a compact version in the sticky navbar on scroll using IntersectionObserver
+- **Standardized Job Categories**: Centralized category system ensuring consistent categorization across posting, editing, and filtering
 
 ---
 
@@ -141,7 +144,8 @@ Frontend: `http://localhost:5173` | Backend: `http://localhost:5000`
 KaamSetu/
 ├── client/                 # React frontend
 │   └── src/
-│       ├── components/     # UI components (Navbar, Cards, FormComponents)
+│       ├── components/     # UI components (Navbar, SearchHero, Cards, FormComponents)
+│       ├── constants/      # Centralized constants (job categories)
 │       ├── pages/          # Home, Login, Jobs, Profile, Settings
 │       ├── context/        # Auth state management
 │       ├── hooks/          # Custom hooks (useForm, useFetch, useDebounce)
@@ -244,7 +248,10 @@ KaamSetu/
 - [x] **Codebase Standardization**: Centralized API layer, custom hooks, FormComponents
 - [x] **Enhanced Search**: Full-text search with multi-field matching and relevance ranking
 - [x] **Work Experience Modal**: Modal-based management with visibility toggle and employment controls
-- [ ] Location and salary filter UI
+- [x] **Flattened Search Hero**: Homepage search with category chips and location filter
+- [x] **Standardized Categories**: Centralized job category system with dropdown selectors
+- [x] **Scroll-Linked Navbar**: Sticky navbar with search bar morph transition on scroll
+- [ ] Salary range filter UI
 - [ ] Shift-based job scheduling
 - [ ] In-app messaging
 - [ ] Push notifications

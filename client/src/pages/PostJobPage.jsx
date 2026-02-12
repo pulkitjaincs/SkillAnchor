@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { jobsAPI } from '../services/api';
 import { useForm } from "../hooks/index.js";
 import { InputField, SelectField, TextAreaField, Button } from "../components/common/FormComponents.jsx";
+import { CATEGORY_OPTIONS } from '../constants/jobConstants';
 
 function PostJobPage() {
     const navigate = useNavigate();
@@ -100,7 +101,14 @@ function PostJobPage() {
                                         </h6>
                                         <div className="row g-3">
                                             <div className="col-md-4">
-                                                <InputField label="Category" name="category" value={formData.category} onChange={handleChange} placeholder="e.g. Hospitality" required />
+                                                <SelectField
+                                                    label="Category"
+                                                    name="category"
+                                                    value={formData.category}
+                                                    onChange={handleChange}
+                                                    options={CATEGORY_OPTIONS}
+                                                    required
+                                                />
                                             </div>
                                             <div className="col-md-4">
                                                 <InputField label="City" name="city" value={formData.city} onChange={handleChange} placeholder="e.g. Mumbai" required />

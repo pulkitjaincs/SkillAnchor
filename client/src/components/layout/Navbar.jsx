@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 
@@ -7,10 +7,38 @@ const Navbar = ({ name }) => {
   const [scrolled, setScrolled] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
   const [theme, setTheme] = useState("light");
+  const [heroVisible, setHeroVisible] = useState(true);
   const inputRef = useRef(null);
+  const compactSearchRef = useRef(null);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Compact search bar state (synced with URL)
+  const [compactSearch, setCompactSearch] = useState(searchParams.get('search') || '');
+  const [compactLocation, setCompactLocation] = useState(searchParams.get('location') || '');
+
+  const isHomePage = location.pathname === '/';
+
+  // Show compact search when on HomePage and hero is scrolled out of view
+  const showCompactSearch = isHomePage && !heroVisible;
+
+  // Sync compact bar values when URL params change
+  useEffect(() => {
+    setCompactSearch(searchParams.get('search') || '');
+    setCompactLocation(searchParams.get('location') || '');
+  }, [searchParams]);
+
+  // Listen for hero visibility custom event
+  useEffect(() => {
+    const handler = (e) => setHeroVisible(e.detail.visible);
+    window.addEventListener('hero-visibility', handler);
+    // Reset visibility when navigating away from home
+    if (!isHomePage) setHeroVisible(true);
+    return () => window.removeEventListener('hero-visibility', handler);
+  }, [isHomePage]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -40,6 +68,7 @@ const Navbar = ({ name }) => {
     else if (theme === "dark") setTheme("system");
     else setTheme("light");
   };
+
   const handleSearch = (e) => {
     if (e.key === 'Enter') {
       if (searchQuery.trim()) {
@@ -49,25 +78,49 @@ const Navbar = ({ name }) => {
       }
       setSearchActive(false);
     }
-  }
+  };
+
+  const handleCompactSearch = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const params = {};
+      if (compactSearch.trim()) params.search = compactSearch.trim();
+      if (compactLocation.trim()) params.location = compactLocation.trim();
+      const currentCategory = searchParams.get('category');
+      if (currentCategory) params.category = currentCategory;
+      setSearchParams(params);
+    }
+  };
+
   const getThemeIcon = () => {
     if (theme === "light") return "bi-sun-fill";
     if (theme === "dark") return "bi-moon-fill";
     return "bi-circle-half";
   };
+
   const handleLogout = () => {
     logout();
     navigate("/");
-  }
+  };
+
   return (
-    <div className="px-3 px-lg-4 py-3">
+    <div
+      className="px-3 px-lg-4 py-3"
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 1030,
+        background: scrolled ? 'var(--bg-body)' : 'transparent',
+        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+      }}
+    >
       <nav
-        className={`navbar navbar-expand-lg rounded-4 px-3 px-lg-5 transition-all duration-300 ${scrolled ? "glass-panel py-3" : "py-4"
+        className={`navbar navbar-expand-lg rounded-4 px-3 px-lg-5 transition-all duration-300 ${scrolled ? "glass-panel py-2" : "py-3"
           }`}
         style={{ transition: "all 0.5s cubic-bezier(0.16, 1, 0.3, 1)" }}
       >
         <div className="container-fluid d-flex align-items-center">
-          <Link className="navbar-brand fw-bolder fs-4 d-flex align-items-center gap-2 me-4 logo-hover" to="/">
+          <Link className="navbar-brand fw-bolder fs-4 d-flex align-items-center gap-2 me-4 logo-hover flex-shrink-0" to="/">
             <div className="d-flex align-items-center justify-content-center rounded-circle"
               style={{ width: "32px", height: "32px", background: "var(--text-main)", color: "var(--bg-body)" }}>
               <span className="fw-bold" style={{ fontSize: "16px", letterSpacing: "-0.05em" }}>K</span>
@@ -75,85 +128,179 @@ const Navbar = ({ name }) => {
             <span style={{ letterSpacing: "-0.05em", color: "var(--text-main)" }}>KaamSetu</span>
           </Link>
 
-          <div
-            className="d-none d-lg-flex align-items-center position-relative transition-all me-auto"
-            style={{
-              width: searchActive ? "340px" : "240px",
-              transition: "width 0.4s cubic-bezier(0.16, 1, 0.3, 1)"
-            }}
-          >
+          {/* --- COMPACT SEARCH BAR (appears when hero scrolls out on HomePage) --- */}
+          {isHomePage && (
             <div
-              className="d-flex align-items-center rounded-pill"
+              className="d-none d-lg-flex align-items-center me-auto"
               style={{
-                position: "absolute",
-                width: "100%",
-                height: "44px",
-                overflow: "hidden",
-                cursor: "text",
-                backgroundColor: searchActive ? "var(--bg-card)" : "var(--bg-surface)",
-                border: searchActive ? "1px solid var(--border-active)" : "1px solid var(--border-color)",
-                boxShadow: searchActive ? "var(--shadow-lg)" : "none",
-                transition: "all 0.2s ease"
-              }}
-              onClick={() => {
-                setSearchActive(true);
-                inputRef.current?.focus();
+                maxWidth: showCompactSearch ? '480px' : '0px',
+                opacity: showCompactSearch ? 1 : 0,
+                overflow: 'hidden',
+                transition: 'all 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
+                pointerEvents: showCompactSearch ? 'all' : 'none',
+                flex: showCompactSearch ? '1 1 480px' : '0 0 0px',
               }}
             >
-              <i
-                className={`bi bi-search fs-6`}
+              <div
+                className="d-flex align-items-center rounded-pill w-100"
                 style={{
-                  marginLeft: "16px",
-                  transition: "color 0.2s",
-                  color: searchActive ? "var(--text-main)" : "var(--text-muted)"
+                  height: '42px',
+                  backgroundColor: 'var(--bg-surface)',
+                  border: '1px solid var(--border-color)',
+                  transition: 'all 0.3s ease',
+                  overflow: 'hidden',
+                  minWidth: '320px',
                 }}
-              ></i>
+              >
+                <div className="d-flex align-items-center flex-grow-1 px-3">
+                  <i className="bi bi-search" style={{ fontSize: '0.85rem', color: 'var(--text-muted)', flexShrink: 0 }}></i>
+                  <input
+                    ref={compactSearchRef}
+                    type="text"
+                    value={compactSearch}
+                    onChange={(e) => setCompactSearch(e.target.value)}
+                    onKeyDown={handleCompactSearch}
+                    className="form-control border-0 bg-transparent shadow-none py-0"
+                    placeholder="Search jobs..."
+                    style={{
+                      fontSize: '0.85rem',
+                      fontWeight: '500',
+                      color: 'var(--text-main)',
+                      paddingLeft: '10px',
+                    }}
+                  />
+                </div>
 
-              <input
-                ref={inputRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleSearch}
-                className="form-control border-0 bg-transparent shadow-none"
-                placeholder="Search jobs..."
-                style={{
-                  opacity: 1,
-                  transform: "translateX(0)",
-                  fontSize: "0.9rem",
-                  paddingLeft: "12px",
-                  fontWeight: "500",
-                  color: "var(--text-main)"
-                }}
-                onFocus={() => setSearchActive(true)}
-                onBlur={() => setSearchActive(false)}
-              />
+                <div style={{ width: '1px', height: '22px', background: 'var(--border-color)', flexShrink: 0 }}></div>
+
+                <div className="d-flex align-items-center px-3" style={{ minWidth: '120px' }}>
+                  <i className="bi bi-geo-alt-fill" style={{ fontSize: '0.85rem', color: 'var(--primary-500)', flexShrink: 0 }}></i>
+                  <input
+                    type="text"
+                    value={compactLocation}
+                    onChange={(e) => setCompactLocation(e.target.value)}
+                    onKeyDown={handleCompactSearch}
+                    className="form-control border-0 bg-transparent shadow-none py-0"
+                    placeholder="Location..."
+                    style={{
+                      fontSize: '0.85rem',
+                      fontWeight: '500',
+                      color: 'var(--text-main)',
+                      paddingLeft: '10px',
+                    }}
+                  />
+                </div>
+
+                <button
+                  onClick={() => {
+                    const params = {};
+                    if (compactSearch.trim()) params.search = compactSearch.trim();
+                    if (compactLocation.trim()) params.location = compactLocation.trim();
+                    const currentCategory = searchParams.get('category');
+                    if (currentCategory) params.category = currentCategory;
+                    setSearchParams(params);
+                  }}
+                  className="btn rounded-pill px-3 py-1 fw-bold me-1 d-flex align-items-center justify-content-center flex-shrink-0"
+                  style={{
+                    background: 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
+                    color: 'white',
+                    fontSize: '0.8rem',
+                    border: 'none',
+                    height: '32px',
+                  }}
+                >
+                  <i className="bi bi-search me-1" style={{ fontSize: '0.75rem' }}></i>
+                  Go
+                </button>
+              </div>
             </div>
-          </div>
-          <button
-            className="btn d-lg-none ms-auto me-2 rounded-circle p-0 flex-shrink-0 d-flex align-items-center justify-content-center"
-            onClick={() => setSearchActive(!searchActive)}
-            style={{
-              width: "40px",
-              height: "40px",
-              background: "var(--bg-surface)",
-              border: "1px solid var(--border-color)",
-              boxShadow: "var(--shadow-sm)",
-              color: "var(--text-main)"
-            }}
-          >
-            {searchActive ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
-            )}
-          </button>
+          )}
+
+          {/* --- ORIGINAL SEARCH (for non-homepage) --- */}
+          {!isHomePage && (
+            <div
+              className="d-none d-lg-flex align-items-center position-relative transition-all me-auto"
+              style={{
+                width: searchActive ? "340px" : "240px",
+                transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)"
+              }}
+            >
+              <div
+                className="d-flex align-items-center rounded-pill"
+                style={{
+                  position: "absolute",
+                  width: "100%",
+                  height: "44px",
+                  overflow: "hidden",
+                  cursor: "text",
+                  backgroundColor: searchActive ? "var(--bg-card)" : "var(--bg-surface)",
+                  border: searchActive ? "1px solid var(--border-active)" : "1px solid var(--border-color)",
+                  boxShadow: searchActive ? "var(--shadow-lg)" : "none",
+                  transition: "all 0.2s ease"
+                }}
+                onClick={() => {
+                  setSearchActive(true);
+                  inputRef.current?.focus();
+                }}
+              >
+                <i
+                  className="bi bi-search fs-6"
+                  style={{
+                    marginLeft: "16px",
+                    transition: "color 0.2s",
+                    color: searchActive ? "var(--text-main)" : "var(--text-muted)"
+                  }}
+                ></i>
+
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearch}
+                  className="form-control border-0 bg-transparent shadow-none"
+                  placeholder="Search jobs..."
+                  style={{
+                    opacity: 1,
+                    transform: "translateX(0)",
+                    fontSize: "0.9rem",
+                    paddingLeft: "12px",
+                    fontWeight: "500",
+                    color: "var(--text-main)"
+                  }}
+                  onFocus={() => setSearchActive(true)}
+                  onBlur={() => setSearchActive(false)}
+                />
+              </div>
+            </div>
+          )}
+
+          {!isHomePage && (
+            <button
+              className="btn d-lg-none ms-auto me-2 rounded-circle p-0 flex-shrink-0 d-flex align-items-center justify-content-center"
+              onClick={() => setSearchActive(!searchActive)}
+              style={{
+                width: "40px",
+                height: "40px",
+                background: "var(--bg-surface)",
+                border: "1px solid var(--border-color)",
+                boxShadow: "var(--shadow-sm)",
+                color: "var(--text-main)"
+              }}
+            >
+              {searchActive ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              )}
+            </button>
+          )}
 
           <button
             className="btn d-lg-none border-0 shadow-none p-0 flex-shrink-0 d-flex align-items-center justify-content-center rounded-circle"
