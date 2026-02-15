@@ -34,7 +34,8 @@ export const getMyApplications = async (req, res) => {
     try {
         const applications = await Application.find({ applicant: req.user._id })
             .populate("job", "title company city state salaryMin salaryMax status")
-            .sort({ appliedAt: -1 });
+            .sort({ appliedAt: -1 })
+            .lean();
         res.json(applications);
     } catch (error) {
         console.error("Error fetching applications:", error);
@@ -52,7 +53,8 @@ export const getJobApplicants = async (req, res) => {
         }
         const applications = await Application.find({ job: jobId })
             .populate("applicant", "name phone email")
-            .sort({ appliedAt: -1 });
+            .sort({ appliedAt: -1 })
+            .lean();  
         res.json(applications);
     } catch (error) {
         console.error("Error fetching applicants:", error);

@@ -3,14 +3,19 @@ import "../models/Company.model.js"; // Required for populate
 
 export const getAllJobs = async (req, res) => {
     try {
-        const limit = parseInt(req.query.limit) || 12;
+        const limit = parseInt(req.query.limit) || 10;
         const cursor = req.query.cursor;
         const searchTerm = req.query.search;
 
         let query = { status: "active" };
         let sortOptions = { createdAt: -1 };
-        let projection = {};
-
+        let projection = {
+            title: 1, description: 1, company: 1,
+            city: 1, state: 1,
+            salaryMin: 1, salaryMax: 1, salaryType: 1,
+            jobType: 1, experienceMin: 1, skills: 1,
+            createdAt: 1
+        };
         if (searchTerm) {
             query.$text = { $search: searchTerm };
             projection.score = { $meta: "textScore" };
@@ -32,7 +37,8 @@ export const getAllJobs = async (req, res) => {
         let jobs = await Job.find(query, projection)
             .populate("company", "name logo")
             .sort(sortOptions)
-            .limit(limit);
+            .limit(limit)
+            .lean();
 
         if (searchTerm && jobs.length === 0) {
             delete query.$text;
@@ -46,7 +52,8 @@ export const getAllJobs = async (req, res) => {
             jobs = await Job.find(query)
                 .populate("company", "name logo")
                 .sort({ createdAt: -1 })
-                .limit(limit);
+                .limit(limit)
+                .lean();
         }
 
         const hasMore = jobs.length === limit;
@@ -59,7 +66,10 @@ export const getAllJobs = async (req, res) => {
 
 export const getJobById = async (req, res) => {
     try {
-        const job = await Job.findById(req.params.id).populate("company").populate("employer", "name");
+        const job = await Job.findById(req.params.id)
+            .populate("company")
+            .populate("employer", "name")
+            .lean();
         if (!job) return res.status(404).json({ message: "Job not found" });
         res.json(job);
     } catch (error) {
@@ -71,7 +81,8 @@ export const getMyJobs = async (req, res) => {
     try {
         const jobs = await Job.find({ employer: req.user._id })
             .populate("company", "name logo")
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .lean();
         res.json(jobs);
     } catch (error) {
         res.status(500).json({ error: error.message });
