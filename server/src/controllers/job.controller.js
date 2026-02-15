@@ -11,10 +11,8 @@ export const getAllJobs = async (req, res) => {
         let sortOptions = { createdAt: -1 };
         let projection = {};
 
-        // Use MongoDB text search for better matching
         if (searchTerm) {
             query.$text = { $search: searchTerm };
-            // Add text score for relevance sorting
             projection.score = { $meta: "textScore" };
             sortOptions = { score: { $meta: "textScore" }, createdAt: -1 };
         }

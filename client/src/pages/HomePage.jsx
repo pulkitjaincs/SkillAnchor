@@ -49,7 +49,7 @@ function HomePage() {
 
     const loadJobsForSearch = async () => {
         try {
-            const params = { limit: 12 };
+            const params = { limit: 10 };
             if (searchQuery) params.search = searchQuery;
             if (locationQuery) params.location = locationQuery;
             if (categoryQuery) params.category = categoryQuery;
@@ -122,14 +122,18 @@ function HomePage() {
 
                 <div className={`${listColumnClass} d-flex flex-column layout-transition`}
                     style={{ paddingTop: "20px", paddingBottom: "20px" }}>
-                    <div className="d-flex align-items-center justify-content-between mb-4 px-2"
+                    <div className="d-flex align-items-center justify-content-between mb-4"
                         style={{
                             position: 'sticky',
                             top: '80px',
                             zIndex: 100,
                             background: 'var(--bg-body)',
                             paddingTop: '12px',
-                            paddingBottom: '12px',
+                            paddingBottom: '16px',
+                            marginLeft: '-2rem',
+                            marginRight: '-2rem',
+                            paddingLeft: '2rem',
+                            paddingRight: '2rem',
                         }}>
                         <h4 className="fw-bolder mb-0 tracking-tight" style={{ color: "var(--text-main)" }}>Recent Jobs</h4>
                         <span className="badge border shadow-sm rounded-pill px-3 py-2 fw-medium"
@@ -151,7 +155,7 @@ function HomePage() {
                 </div>
 
                 <div className={`${detailColumnClass} layout-transition`}
-                    style={{ position: 'sticky', height: "calc(100vh - 100px)", overflowY: "hidden", top: "90px", borderRadius: "24px", zIndex: 100 }}>
+                    style={{ position: 'sticky', height: "calc(100vh - 106px)", overflowY: "hidden", top: "96px", borderRadius: "24px", zIndex: 1100 }}>
                     {selectedJob && (
                         <Listing
                             job={selectedJob}

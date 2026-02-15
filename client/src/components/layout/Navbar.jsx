@@ -109,7 +109,7 @@ const Navbar = ({ name }) => {
       style={{
         position: 'sticky',
         top: 0,
-        zIndex: 1030,
+        zIndex: 1200,
         background: scrolled ? 'var(--bg-body)' : 'transparent',
         transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
       }}
@@ -415,6 +415,7 @@ const Navbar = ({ name }) => {
                         boxShadow: '0 25px 80px rgba(0, 0, 0, 0.18), 0 10px 30px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255,255,255,0.1)',
                         border: '1px solid var(--border-color)',
                         marginTop: '14px',
+                        zIndex: 1500,
                         animation: 'dropdownSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
                       }}>
 

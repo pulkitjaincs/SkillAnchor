@@ -10,12 +10,10 @@ const SearchHero = ({ onSearch, initialSearchQuery = '', initialLocation = '', i
 
     const categories = [{ name: 'All', icon: 'bi-grid-fill' }, ...JOB_CATEGORIES];
 
-    // Sync local state when URL-driven props change
     useEffect(() => { setSearch(initialSearchQuery); }, [initialSearchQuery]);
     useEffect(() => { setLocation(initialLocation); }, [initialLocation]);
     useEffect(() => { setActiveCategory(initialCategory || 'All'); }, [initialCategory]);
 
-    // IntersectionObserver: emit custom event when hero scrolls in/out
     useEffect(() => {
         const el = heroRef.current;
         if (!el) return;
