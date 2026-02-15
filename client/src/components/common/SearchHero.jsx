@@ -24,7 +24,7 @@ const SearchHero = ({ onSearch, initialSearchQuery = '', initialLocation = '', i
                     detail: { visible: entry.isIntersecting }
                 }));
             },
-            { threshold: 0, rootMargin: '-80px 0px 0px 0px' }
+            { threshold: 0, rootMargin: '-60px 0px 0px 0px' }
         );
 
         observer.observe(el);

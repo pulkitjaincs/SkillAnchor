@@ -136,9 +136,10 @@ const Navbar = ({ name }) => {
                 maxWidth: showCompactSearch ? '480px' : '0px',
                 opacity: showCompactSearch ? 1 : 0,
                 overflow: 'hidden',
-                transition: 'all 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
+                transition: 'max-width 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), flex-basis 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
                 pointerEvents: showCompactSearch ? 'all' : 'none',
                 flex: showCompactSearch ? '1 1 480px' : '0 0 0px',
+                willChange: 'max-width, opacity, flex-basis',
               }}
             >
               <div
@@ -147,7 +148,7 @@ const Navbar = ({ name }) => {
                   height: '42px',
                   backgroundColor: 'var(--bg-surface)',
                   border: '1px solid var(--border-color)',
-                  transition: 'all 0.3s ease',
+                  transition: 'background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease',
                   overflow: 'hidden',
                   minWidth: '320px',
                 }}
