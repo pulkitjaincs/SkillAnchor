@@ -44,10 +44,7 @@ export const getAllJobs = async (req, res) => {
             delete query.$text;
             query.$or = [
                 { title: { $regex: searchTerm, $options: 'i' } },
-                { description: { $regex: searchTerm, $options: 'i' } },
-                { category: { $regex: searchTerm, $options: 'i' } },
-                { skills: { $elemMatch: { $regex: searchTerm, $options: 'i' } } },
-                { city: { $regex: searchTerm, $options: 'i' } }
+                { category: { $regex: searchTerm, $options: 'i' } }
             ];
             jobs = await Job.find(query)
                 .populate("company", "name logo")
