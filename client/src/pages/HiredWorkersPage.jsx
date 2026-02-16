@@ -1,36 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { profileAPI, workExperienceAPI } from '../services/api';
 import { formatDate, getInitials } from '../utils/index';
+import { useMyTeam, useEndEmployment } from '../hooks/queries/useProfile';
 
 function HiredWorkersPage() {
-    const [team, setTeam] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        fetchTeam();
-    }, []);
-
-    const fetchTeam = async () => {
-        try {
-            const { data } = await profileAPI.getMyTeam();
-            setTeam(data);
-        } catch (err) {
-            console.error("Failed to fetch team", err);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const { data: team = [], isLoading: loading } = useMyTeam();
+    const endEmploymentMutation = useEndEmployment();
 
     const endEmployment = async (id) => {
         if (!window.confirm("Are you sure you want to end this worker's employment?")) return;
         try {
-            await workExperienceAPI.endEmployment(id);
-            setTeam(team.filter(m => m._id !== id));
+            await endEmploymentMutation.mutateAsync(id);
         } catch (err) {
             alert("Failed to end employment");
         }
     };
+
 
     if (loading) {
         return (

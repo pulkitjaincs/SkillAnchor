@@ -1,39 +1,22 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { jobsAPI } from '../services/api';
 import { formatDate, formatSalary } from '../utils/index';
+import { useEmployerJobs, useDeleteJob } from '../hooks/queries/useApplications';
 
 function MyJobsPage() {
-    const [jobs, setJobs] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [deleting, setDeleting] = useState(null);
+    const { data: jobs = [], isLoading: loading } = useEmployerJobs();
+    const deleteMutation = useDeleteJob();
 
     const handleDelete = async (jobId) => {
         if (!window.confirm('Are you sure you want to delete this job? This action cannot be undone.')) {
             return;
         }
-        setDeleting(jobId);
         try {
-            await jobsAPI.delete(jobId);
-            setJobs(jobs.filter(job => job._id !== jobId));
+            await deleteMutation.mutateAsync(jobId);
         } catch (error) {
             alert('Failed to delete job');
         }
-        setDeleting(null);
     };
 
-    useEffect(() => {
-        const fetchMyJobs = async () => {
-            try {
-                const { data } = await jobsAPI.getMyJobs();
-                setJobs(data);
-            } catch (error) {
-                // Error fetching jobs - silently handled
-            }
-            setLoading(false);
-        }
-        fetchMyJobs();
-    }, []);
     if (loading) {
         return (
             <div className="container py-5 text-center">
@@ -146,11 +129,11 @@ function MyJobsPage() {
                                         </Link>
                                         <button
                                             onClick={() => handleDelete(job._id)}
-                                            disabled={deleting === job._id}
+                                            disabled={deleteMutation.isLoading && deleteMutation.variables === job._id}
                                             className="btn btn-sm rounded-3 px-2 py-2 d-flex align-items-center"
                                             style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca' }}
                                             title="Delete job">
-                                            {deleting === job._id ? (
+                                            {deleteMutation.isLoading && deleteMutation.variables === job._id ? (
                                                 <span className="spinner-border spinner-border-sm"></span>
                                             ) : (
                                                 <i className="bi bi-trash-fill"></i>

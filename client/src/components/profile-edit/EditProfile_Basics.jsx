@@ -1,4 +1,4 @@
-import { InputField, SelectField } from '../components/common/FormComponents';
+import { InputField, SelectField } from '../common/FormComponents';
 
 function EditProfile_Basics({ formData, handleChange, user, isEmployer, avatar, uploadingAvatar, handleAvatarUpload, fileInputRef, navigate }) {
     return (

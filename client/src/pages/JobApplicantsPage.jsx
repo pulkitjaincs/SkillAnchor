@@ -1,45 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { applicationsAPI, jobsAPI } from '../services/api';
+import { useJobDetails, useJobApplicants, useUpdateApplicationStatus } from '../hooks/queries/useApplications';
 
 
 function JobApplicantsPage() {
     const { jobId } = useParams();
-    const [applications, setApplications] = useState([]);
-    const [job, setJob] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [updating, setUpdating] = useState(null);
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const jobRes = await jobsAPI.getById(jobId);
-                setJob(jobRes.data);
-                const appRes = await applicationsAPI.getJobApplicants(jobId);
-                setApplications(appRes.data);
-            } catch (error) {
-                console.error("Error fetching data: ", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, [jobId]);
+
+    const { data: job, isLoading: jobLoading } = useJobDetails(jobId);
+    const { data: applications = [], isLoading: applicantsLoading } = useJobApplicants(jobId);
+    const updateStatusMutation = useUpdateApplicationStatus();
+
+    const loading = jobLoading || applicantsLoading;
+
     const handleStatusChange = async (appId, newStatus) => {
         if (newStatus === 'hired') {
             const confirmHiring = window.confirm("Are you sure you want to hire this worker? This action is permanent and will add them to your team.");
             if (!confirmHiring) return;
         }
-        setUpdating(appId);
         try {
-            await applicationsAPI.updateStatus(appId, newStatus);
-            setApplications(applications.map(app =>
-                app._id === appId ? { ...app, status: newStatus } : app));
+            await updateStatusMutation.mutateAsync({ appId, status: newStatus });
         } catch (error) {
             alert("Failed to update status");
-        } finally {
-            setUpdating(null);
         }
     };
+
     const getStatusBadge = (status) => {
         const styles = {
             pending: { bg: 'rgba(251, 191, 36, 0.1)', color: '#f59e0b', icon: 'bi-clock-fill' },
@@ -141,7 +125,7 @@ function JobApplicantsPage() {
                                         <select
                                             value={app.status}
                                             onChange={(e) => handleStatusChange(app._id, e.target.value)}
-                                            disabled={updating === app._id ||
+                                            disabled={(updateStatusMutation.isLoading && updateStatusMutation.variables?.appId === app._id) ||
                                                 app.status === 'hired' ||
                                                 app.status === 'employment-ended'}
                                             className="form-select form-select-sm rounded-3"
@@ -160,7 +144,6 @@ function JobApplicantsPage() {
                                     </div>
                                 </div>
                             </div>
-                            {/* Cover Note */}
                             {
                                 app.coverNote && (
                                     <div className="mt-3 p-3 rounded-3" style={{ background: 'var(--bg-surface)' }}>

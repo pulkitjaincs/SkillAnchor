@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 const AuthContext = createContext(null);
 
@@ -8,6 +9,8 @@ export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(null);
     const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
+
     useEffect(() => {
         const storedToken = localStorage.getItem('token');
         const storedUser = localStorage.getItem('user');
@@ -38,6 +41,7 @@ export function AuthProvider({ children }) {
         setToken(null);
         setUser(null);
         delete axios.defaults.headers.common['Authorization'];
+        queryClient.clear();
     };
     return (
         <AuthContext.Provider

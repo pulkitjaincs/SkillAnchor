@@ -1,128 +1,92 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useForm } from '../hooks';
-import { profileAPI } from '../services/api';
 import { Button } from '../components/common/FormComponents';
-import { lazy, Suspense } from 'react';
+
+import { useProfile, useUpdateProfile, useUploadAvatar } from '../hooks/queries/useProfile';
 
 const EditProfile_Basics = lazy(() => import('../components/profile-edit/EditProfile_Basics'));
 const EditProfile_Location = lazy(() => import('../components/profile-edit/EditProfile_Location'));
 const EditProfile_Skills = lazy(() => import('../components/profile-edit/EditProfile_Skills'));
 const EditProfile_Finish = lazy(() => import('../components/profile-edit/EditProfile_Finish'));
 
+const steps = [
+    { number: 1, title: 'Basics', icon: 'bi-person-badge' },
+    { number: 2, title: 'Location', icon: 'bi-geo-alt' },
+    { number: 3, title: 'Skills', icon: 'bi-gear' },
+    { number: 4, title: 'Finish', icon: 'bi-check2-circle' }
+];
+
+
 function EditProfilePage() {
     const navigate = useNavigate();
-    const { updateUserData, user } = useAuth();
-    const isEmployer = user?.role === 'employer';
-    const [loading, setLoading] = useState(false);
-    const [fetching, setFetching] = useState(true);
+    const { updateUserData, user: authUser } = useAuth();
+    const isEmployer = authUser?.role === 'employer';
     const [searchParams] = useSearchParams();
     const initialStep = parseInt(searchParams.get('step')) || 1;
     const [currentStep, setCurrentStep] = useState(initialStep);
     const totalSteps = isEmployer ? 1 : 4;
     const [avatar, setAvatar] = useState(null);
-    const [uploadingAvatar, setUploadingAvatar] = useState(false);
     const fileInputRef = useRef(null);
 
+    const { data: profile, isLoading: fetching } = useProfile();
+    const updateMutation = useUpdateProfile();
+    const uploadAvatarMutation = useUploadAvatar();
 
     const {
         values: formData,
         handleChange,
-        setValues,
-        loading: saving,
-        setLoading: setSaving
+        setValues
     } = useForm({
-        name: '',
-        gender: '',
-        dob: '',
-        phone: '',
-        whatsapp: '',
-        email: '',
-        city: '',
-        state: '',
-        pincode: '',
-        bio: '',
-        languages: '',
-        skills: '',
-        expectedSalaryMin: '',
-        expectedSalaryMax: '',
-        expectedSalaryType: 'monthly',
-        aadhaarNumber: '',
-        panNumber: '',
-        licenseNumber: '',
-        designation: '',
-        isHiringManager: false
+        name: '', gender: '', dob: '', phone: '', whatsapp: '', email: '',
+        city: '', state: '', pincode: '', bio: '', languages: '', skills: '',
+        expectedSalaryMin: '', expectedSalaryMax: '', expectedSalaryType: 'monthly',
+        aadhaarNumber: '', panNumber: '', licenseNumber: '', designation: '', isHiringManager: false
     });
 
-    const steps = isEmployer ? [
-        { number: 1, title: 'Profile', icon: 'bi-person-fill', desc: 'Your details' }
-    ] : [
-        { number: 1, title: 'Basics', icon: 'bi-person-fill', desc: 'Name & identity' },
-        { number: 2, title: 'Location', icon: 'bi-geo-alt-fill', desc: 'Where you are' },
-        { number: 3, title: 'Skills', icon: 'bi-stars', desc: 'What you do' },
-        { number: 4, title: 'Finish', icon: 'bi-check-circle-fill', desc: 'Salary & docs' }
-    ];
-
     useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                const { data: p } = await profileAPI.getMyProfile();
-                // Fetch work history separately for fresh data
-                if (!isEmployer && user?._id) {
-                    const { data: expData } = await workExperienceAPI.getByUser(user._id);
-                    setWorkHistory(expData || []);
-                }
-                setValues({
-                    name: p.name || '',
-                    gender: p.gender || '',
-                    dob: p.dob ? new Date(p.dob).toISOString().split('T')[0] : '',
-                    phone: p.phone || '',
-                    whatsapp: p.whatsapp || '',
-                    email: p.email || '',
-                    city: p.city || '',
-                    state: p.state || '',
-                    pincode: p.pincode || '',
-                    bio: p.bio || '',
-                    languages: p.languages?.join(', ') || '',
-                    skills: p.skills?.join(', ') || '',
-                    expectedSalaryMin: p.expectedSalary?.min || '',
-                    expectedSalaryMax: p.expectedSalary?.max || '',
-                    expectedSalaryType: p.expectedSalary?.type || 'monthly',
-                    aadhaarNumber: p.documents?.aadhaar?.number || '',
-                    panNumber: p.documents?.pan?.number || '',
-                    licenseNumber: p.documents?.license?.number || ''
-                });
-                if (p.avatar) setAvatar(p.avatar);
-                if (p.designation) setValues(prev => ({ ...prev, designation: p.designation }));
-                if (p.isHiringManager) setValues(prev => ({ ...prev, isHiringManager: p.isHiringManager }));
-            } catch (err) {
-                if (err.response?.status !== 404) console.error("Failed to fetch profile", err);
-            } finally {
-                setFetching(false);
-            }
-        };
-        fetchProfile();
-    }, []);
+        if (profile) {
+            setValues({
+                name: profile.name || '',
+                gender: profile.gender || '',
+                dob: profile.dob ? new Date(profile.dob).toISOString().split('T')[0] : '',
+                phone: profile.phone || '',
+                whatsapp: profile.whatsapp || '',
+                email: profile.email || '',
+                city: profile.city || '',
+                state: profile.state || '',
+                pincode: profile.pincode || '',
+                bio: profile.bio || '',
+                languages: profile.languages?.join(', ') || '',
+                skills: profile.skills?.join(', ') || '',
+                expectedSalaryMin: profile.expectedSalary?.min || '',
+                expectedSalaryMax: profile.expectedSalary?.max || '',
+                expectedSalaryType: profile.expectedSalary?.type || 'monthly',
+                aadhaarNumber: profile.documents?.aadhaar?.number || '',
+                panNumber: profile.documents?.pan?.number || '',
+                licenseNumber: profile.documents?.license?.number || '',
+                designation: profile.designation || '',
+                isHiringManager: profile.isHiringManager || false
+            });
+            if (profile.avatar) setAvatar(profile.avatar);
+        }
+    }, [profile, setValues]);
 
     const handleAvatarUpload = async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        setUploadingAvatar(true);
         try {
             const formData = new FormData();
             formData.append('avatar', file);
-            const { data } = await profileAPI.uploadAvatar(formData);
+            const { data } = await uploadAvatarMutation.mutateAsync(formData);
             setAvatar(data.avatar);
         } catch (err) {
             alert('Failed to upload photo');
-        } finally {
-            setUploadingAvatar(false);
         }
     };
 
     const handleSubmit = async () => {
-        setSaving(true);
         try {
             let payload;
             if (isEmployer) {
@@ -158,14 +122,12 @@ function EditProfilePage() {
                     }
                 };
             }
-            await profileAPI.updateMyProfile(payload);
+            await updateMutation.mutateAsync(payload);
             if (formData.name) updateUserData({ name: formData.name });
             navigate('/profile');
         } catch (err) {
             console.error("Save failed", err);
             alert(err.response?.data?.message || "Failed to save profile.");
-        } finally {
-            setSaving(false);
         }
     };
 
@@ -268,10 +230,10 @@ function EditProfilePage() {
                             <EditProfile_Basics
                                 formData={formData}
                                 handleChange={handleChange}
-                                user={user}
+                                user={authUser}
                                 isEmployer={isEmployer}
                                 avatar={avatar}
-                                uploadingAvatar={uploadingAvatar}
+                                uploadingAvatar={uploadAvatarMutation.isLoading}
                                 handleAvatarUpload={handleAvatarUpload}
                                 fileInputRef={fileInputRef}
                                 navigate={navigate}
@@ -333,7 +295,7 @@ function EditProfilePage() {
                     ) : (
                         <Button
                             onClick={handleSubmit}
-                            loading={saving}
+                            loading={updateMutation.isLoading}
                             style={{
                                 width: 'auto',
                                 padding: '14px 32px',

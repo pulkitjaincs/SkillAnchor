@@ -1,46 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { applicationsAPI } from '../services/api';
 import { formatDate, formatSalary } from '../utils/index';
 import { lazy, Suspense } from 'react';
+import { useApplications, useWithdrawApplication } from '../hooks/queries/useApplications';
 
 const ApplicationDetailModal = lazy(() => import('../components/ApplicationDetailModal'));
 
 
 function MyApplications() {
-    const [applications, setApplications] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [withdrawing, setWithdrawing] = useState(null);
     const [selectedApp, setSelectedApp] = useState(null);
+
+    const { data: applications = [], isLoading: loading } = useApplications();
+    const withdrawMutation = useWithdrawApplication();
 
     const handleWithdraw = async (appId) => {
         if (!window.confirm('Are you sure you want to withdraw this application?')) {
             return;
         }
-        setWithdrawing(appId);
         try {
-            await applicationsAPI.withdraw(appId);
-            setApplications(applications.filter(app => app._id !== appId));
+            await withdrawMutation.mutateAsync(appId);
         } catch (error) {
             alert("Failed to withdraw application");
-        } finally {
-            setWithdrawing(null);
         }
     };
 
-    useEffect(() => {
-        const fetchApplications = async () => {
-            try {
-                const { data } = await applicationsAPI.getMyApplications();
-                setApplications(data);
-            } catch (error) {
-                console.error("Error fetching applications: ", error);
-            } finally {
-                setLoading(false);
-            }
-        }
-        fetchApplications();
-    }, []);
     const getStatusBadge = (status) => {
         const styles = {
             pending: { bg: 'rgba(251, 191, 36, 0.1)', color: '#f59e0b', icon: 'bi-clock-fill' },
@@ -126,7 +109,7 @@ function MyApplications() {
                                 </button>
                                 <button
                                     onClick={() => handleWithdraw(app._id)}
-                                    disabled={withdrawing === app._id || !['pending', 'viewed'].includes(app.status)}
+                                    disabled={withdrawMutation.isLoading || !['pending', 'viewed'].includes(app.status)}
                                     className="d-flex align-items-center justify-content-center rounded-pill px-3 py-2 border-0"
                                     style={{
                                         background: ['pending', 'viewed'].includes(app.status) ? 'rgba(239, 68, 68, 0.15)' : 'var(--bg-surface)',
@@ -140,7 +123,7 @@ function MyApplications() {
                                             e.target.style.transform = 'scale(1)'; e.target.style.background = 'rgba(239, 68, 68, 0.15)'; e.target.style.color = '#ef4444';
                                         }
                                     }}>
-                                    {withdrawing === app._id ? (
+                                    {withdrawMutation.isLoading && withdrawMutation.variables === app._id ? (
                                         <span className="spinner-border spinner-border-sm"></span>
                                     ) : (
                                         <><i className="bi bi-x-lg me-1"></i> {

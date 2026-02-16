@@ -1,14 +1,15 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom';
-import { jobsAPI } from '../services/api';
 import { useForm } from "../hooks/index.js";
 import { InputField, SelectField, TextAreaField, Button } from "../components/common/FormComponents.jsx";
 import { CATEGORY_OPTIONS } from '../constants/jobConstants';
+import { useCreateJob } from '../hooks/queries/useApplications';
 
 function PostJobPage() {
     const navigate = useNavigate();
     const [error, setError] = useState('');
-    const { values: formData, handleChange, loading, setLoading } = useForm({
+    const createMutation = useCreateJob();
+    const { values: formData, handleChange } = useForm({
         title: '',
         description: '',
         category: '',
@@ -29,7 +30,6 @@ function PostJobPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setLoading(true);
         try {
             const jobData = {
                 ...formData,
@@ -40,12 +40,10 @@ function PostJobPage() {
                 experienceMin: Number(formData.experienceMin),
                 vacancies: Number(formData.vacancies)
             };
-            await jobsAPI.create(jobData);
+            await createMutation.mutateAsync(jobData);
             navigate('/');
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to post job');
-        } finally {
-            setLoading(false);
         }
     };
     return (
@@ -185,7 +183,7 @@ function PostJobPage() {
                                     </div>
 
                                     <div className="mt-5">
-                                        <Button type="submit" variant="primary" loading={loading} fullWidth>
+                                        <Button type="submit" variant="primary" loading={createMutation.isLoading} fullWidth>
                                             Post Job
                                         </Button>
                                     </div>

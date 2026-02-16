@@ -83,6 +83,7 @@ Built for simplicity. Works on any device.
 - **List Virtualization**: Efficient rendering of job listings using `react-virtuoso`, maintaining high performance with large datasets
 - **Route-Level Code Splitting**: Lazy loading of all major pages to minimize initial bundle size and speed up first paint
 - **Component-Level Lazy Loading**: Strategic use of `React.lazy()` for heavy sub-components (Job Listing, Modals, Multi-step form stages)
+- **React Query Migration**: Unified data fetching and caching layer using `@tanstack/react-query` for instant navigation and real-time state sync
 - **Backend Query Optimization**: Applied `.lean()` and field projection to all read-heavy Mongoose queries for reduced CPU/Memory overhead
 - **API Response Compression**: Enabled Gzip compression for all JSON payloads via `compression` middleware
 
@@ -174,8 +175,9 @@ KaamSetu/
 | Role | Technology |
 |-------|------------|
 | Frontend | React 19, Vite, React Router, Bootstrap 5 |
+| Data Fetching | TanStack React Query (React Query) |
 | Rendering | React Virtuoso (Virtualization) |
-| State | Custom hooks (useForm, useFetch, useDebounce) |
+| State | AuthContext, React Query, Custom hooks |
 | Backend | Node.js, Express, Mongoose, Multer, Compression |
 | Database | MongoDB |
 | Auth | JWT, bcrypt, OTP |
@@ -261,7 +263,7 @@ KaamSetu/
 - [x] **Scroll-Linked Navbar**: Sticky navbar with search bar morph transition on scroll
 - [x] **Performance Phase 1**: Backend query optimization (.lean(), projection) & Frontend list virtualization
 - [x] **Performance Phase 2**: Route-level lazy loading, Modal code splitting, and Backend Gzip compression
-- [ ] **Performance Phase 3**: Migration to React Query (TanStack Query) for advanced caching
+- [x] **Performance Phase 3**: Migration to React Query (TanStack Query) for advanced caching
 - [ ] Salary range filter UI
 - [ ] Shift-based job scheduling
 - [ ] In-app messaging

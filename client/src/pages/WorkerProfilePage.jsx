@@ -1,77 +1,52 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { profileAPI, workExperienceAPI } from '../services/api';
 import { formatDate, formatSalary, getInitials } from '../utils/index';
 import { lazy, Suspense } from 'react';
+import { useProfile } from '../hooks/queries/useProfile';
+import { useQueryClient } from '@tanstack/react-query';
 
 const WorkExperienceModal = lazy(() => import('../components/WorkExperienceModal'));
 
 function WorkerProfilePage() {
     const { userId } = useParams();
+    const queryClient = useQueryClient();
     const [searchParams] = useSearchParams();
     const fromJobId = searchParams.get('fromJob');
     const fromTeam = searchParams.get('from') === 'team';
     const isOwnProfile = !userId;
     const navigate = useNavigate();
-    const [loading, setLoading] = useState(true);
-    const [profile, setProfile] = useState(null);
-    const [workHistory, setWorkHistory] = useState([]);
-    const [completionPercent, setCompletionPercent] = useState(0);
     const [selectedExp, setSelectedExp] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
+
+    const { data: profile, isLoading: loading, isError } = useProfile(userId);
+
+    const workHistory = useMemo(() => profile?.workHistory || [], [profile]);
     const isEmployer = profile?.role === 'employer';
-    useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                const { data } = isOwnProfile ? await profileAPI.getMyProfile() : await profileAPI.getByUserId(userId);
-                setProfile(data);
-                setWorkHistory(data.workHistory || []);
-                setCompletionPercent(calculateCompletion(data));
-            } catch (err) {
-                if (err.response?.status === 404 && isOwnProfile) {
-                    navigate('/profile/edit');
-                } else {
-                    console.error("Failed to fetch profile", err);
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchProfile();
-    }, [navigate, userId, isOwnProfile]);
 
-    const calculateCompletion = (p) => {
-        if (!p) return 0;
-
-        if (p.role === 'employer') {
+    const completionPercent = useMemo(() => {
+        if (!profile) return 0;
+        if (profile.role === 'employer') {
             let score = 0;
-            if (p.name) score += 25;
-            if (p.phone) score += 25;
-            if (p.designation) score += 25;
-            if (p.company) score += 25;
+            if (profile.name) score += 25;
+            if (profile.phone) score += 25;
+            if (profile.designation) score += 25;
+            if (profile.company) score += 25;
             return Math.min(score, 100);
         }
-
         let score = 0;
-
-        if (p.name) score += 10;
-        if (p.gender) score += 10;
-        if (p.phone) score += 10;
-        if (p.city && p.state) score += 10;
-
-        if (p.skills?.length > 0) score += 15;
-        if (p.languages?.length > 0) score += 10;
-        if (p.bio) score += 10;
-        if (p.expectedSalary?.min) score += 10;
-
-        if (p.dob) score += 5;
-        if (p.documents?.aadhaar?.number) score += 5;
-        if (p.documents?.pan?.number) score += 5;
-
+        if (profile.name) score += 10;
+        if (profile.gender) score += 10;
+        if (profile.phone) score += 10;
+        if (profile.city && profile.state) score += 10;
+        if (profile.skills?.length > 0) score += 15;
+        if (profile.languages?.length > 0) score += 10;
+        if (profile.bio) score += 10;
+        if (profile.expectedSalary?.min) score += 10;
+        if (profile.dob) score += 5;
+        if (profile.documents?.aadhaar?.number) score += 5;
+        if (profile.documents?.pan?.number) score += 5;
         return Math.min(score, 100);
-    };
-
-
+    }, [profile]);
 
     const getAge = (dob) => {
         if (!dob) return 0;
@@ -83,8 +58,6 @@ function WorkerProfilePage() {
         return age;
     };
 
-    // Edit form state
-
     if (loading) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
@@ -95,9 +68,9 @@ function WorkerProfilePage() {
         );
     }
 
-    if (!profile) {
-        navigate('/profile/edit');
-        return;
+    if (isError || !profile) {
+        if (isOwnProfile) navigate('/profile/edit');
+        return null;
     }
 
     return (
@@ -512,7 +485,9 @@ function WorkerProfilePage() {
                     show={showAddModal || !!selectedExp}
                     onClose={() => { setShowAddModal(false); setSelectedExp(null); }}
                     experience={selectedExp}
-                    onSave={() => window.location.reload()}
+                    onSave={() => {
+                        queryClient.invalidateQueries({ queryKey: userId ? ['profile', userId] : ['profile'] });
+                    }}
                 />
             </Suspense>
         </div>

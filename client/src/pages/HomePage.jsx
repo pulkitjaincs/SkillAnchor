@@ -1,18 +1,14 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense, useMemo } from "react";
 import Card from "../components/common/Card";
 import SearchHero from "../components/common/SearchHero";
 import { useSearchParams } from "react-router-dom";
-import { jobsAPI } from "../services/api";
 import { Virtuoso } from "react-virtuoso";
+import { useInfiniteJobs } from "../hooks/queries/useInfiniteJobs";
 const Listing = lazy(() => import("../components/common/Listing"));
 
 function HomePage() {
-    const [jobs, setJobs] = useState([]);
     const [selectedJob, setSelectedJob] = useState(null);
     const [isSwitch, setIsSwitch] = useState(false);
-    const [hasMore, setHasMore] = useState(true);
-    const [cursor, setCursor] = useState(null);
-    const [loading, setLoading] = useState(false);
     const [searchParams, setSearchParams] = useSearchParams();
 
     const openJobId = searchParams.get("openJob");
@@ -20,57 +16,34 @@ function HomePage() {
     const locationQuery = searchParams.get('location') || '';
     const categoryQuery = searchParams.get('category') || '';
 
+    const {
+        data,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        isLoading,
+        isError
+    } = useInfiniteJobs({
+        search: searchQuery,
+        location: locationQuery,
+        category: categoryQuery
+    });
+
+    const allJobs = useMemo(() => {
+        return data?.pages.flatMap(page => page.jobs) || [];
+    }, [data]);
+
     useEffect(() => {
-        if (openJobId && jobs.length > 0) {
-            const job = jobs.find(j => j._id === openJobId);
+        if (openJobId && allJobs.length > 0) {
+            const job = allJobs.find(j => j._id === openJobId);
             if (job) {
                 setSelectedJob(job);
             }
         }
-    }, [openJobId, jobs]);
-    const fetchJobs = async (reset = false) => {
-        if (loading) return;
-        if (!reset && !hasMore) return;
-        setLoading(true);
-
-        try {
-            const currentCursor = reset ? null : cursor;
-            const params = { limit: 10, cursor: currentCursor };
-
-            if (searchQuery) params.search = searchQuery;
-            if (locationQuery) params.location = locationQuery;
-            if (categoryQuery) params.category = categoryQuery;
-
-            const { data } = await jobsAPI.getAll(params);
-
-            if (data.jobs && Array.isArray(data.jobs)) {
-                if (reset) {
-                    setJobs(data.jobs);
-                } else {
-                    setJobs(prev => {
-                        const existingIds = new Set(prev.map(j => j._id));
-                        const newJobs = data.jobs.filter(j => !existingIds.has(j._id));
-                        return [...prev, ...newJobs];
-                    });
-                }
-
-                setCursor(data.jobs[data.jobs.length - 1]?._id);
-                setHasMore(data.hasMore);
-            }
-        } catch (err) {
-            console.error("Fetch error:", err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchJobs(true);
-    }, [searchQuery, locationQuery, categoryQuery]);
-
+    }, [openJobId, allJobs]);
 
     const handleJobClick = (job, e) => {
-        if (selectedJob !== null && selectedJob.id !== job.id) {
+        if (selectedJob !== null && selectedJob._id !== job._id) {
             setIsSwitch(true);
         } else {
             setIsSwitch(false);
@@ -93,6 +66,14 @@ function HomePage() {
         if (category && category !== 'All') params.category = category;
         setSearchParams(params);
     };
+
+    if (isError) return (
+        <div className="text-center py-5 mt-5">
+            <i className="bi bi-exclamation-circle text-danger fs-1"></i>
+            <h5 className="mt-3">Failed to load jobs</h5>
+            <button className="btn btn-primary mt-2" onClick={() => window.location.reload()}>Retry</button>
+        </div>
+    );
 
     return (
         <div className="container-fluid flex-grow-1 px-4 px-lg-5" style={{ maxWidth: "1600px" }}>
@@ -126,26 +107,38 @@ function HomePage() {
                         </div>
                     )}
                     <div className="pe-3 pb-5">
-                        <Virtuoso
-                            useWindowScroll
-                            data={jobs}
-                            endReached={() => fetchJobs(false)}
-                            overscan={200}
-                            itemContent={(index, job) => (
-                                <Card
-                                    job={job}
-                                    isSelected={selectedJob?._id === job._id}
-                                    onClick={(e) => handleJobClick(job, e)}
-                                />
-                            )}
-                            components={{
-                                Footer: () => {
-                                    if (loading) return <div className="py-3 text-center text-muted">Loading more...</div>;
-                                    if (!hasMore && jobs.length > 0) return <div className="py-3 text-center text-muted small">You've reached the end of the list</div>;
-                                    return null;
-                                }
-                            }}
-                        />
+                        {isLoading ? (
+                            <div className="py-5 text-center">
+                                <div className="spinner-border text-primary" role="status"></div>
+                                <p className="mt-2 text-muted">Finding the best jobs for you...</p>
+                            </div>
+                        ) : allJobs.length === 0 ? (
+                            <div className="py-5 text-center">
+                                <i className="bi bi-search text-muted fs-1"></i>
+                                <p className="mt-3 text-muted">No jobs found matching your criteria.</p>
+                            </div>
+                        ) : (
+                            <Virtuoso
+                                useWindowScroll
+                                data={allJobs}
+                                endReached={() => hasNextPage && fetchNextPage()}
+                                overscan={200}
+                                itemContent={(index, job) => (
+                                    <Card
+                                        job={job}
+                                        isSelected={selectedJob?._id === job._id}
+                                        onClick={(e) => handleJobClick(job, e)}
+                                    />
+                                )}
+                                components={{
+                                    Footer: () => {
+                                        if (isFetchingNextPage) return <div className="py-3 text-center text-muted">Loading more...</div>;
+                                        if (!hasNextPage && allJobs.length > 0) return <div className="py-3 text-center text-muted small">You've reached the end of the list</div>;
+                                        return null;
+                                    }
+                                }}
+                            />
+                        )}
                     </div>
                 </div>
 

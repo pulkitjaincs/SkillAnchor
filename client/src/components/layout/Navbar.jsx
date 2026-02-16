@@ -1,41 +1,44 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useProfile } from "../../hooks/queries/useProfile";
 
 
 const Navbar = ({ name }) => {
+  const { user: authUser, logout } = useAuth();
+  const { data: profile } = useProfile();
+
+  const user = useMemo(() => {
+    if (!authUser) return null;
+    return { ...authUser, ...profile };
+  }, [authUser, profile]);
+
   const [scrolled, setScrolled] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
   const [theme, setTheme] = useState("light");
   const [heroVisible, setHeroVisible] = useState(true);
   const inputRef = useRef(null);
   const compactSearchRef = useRef(null);
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Compact search bar state (synced with URL)
   const [compactSearch, setCompactSearch] = useState(searchParams.get('search') || '');
   const [compactLocation, setCompactLocation] = useState(searchParams.get('location') || '');
 
   const isHomePage = location.pathname === '/';
 
-  // Show compact search when on HomePage and hero is scrolled out of view
   const showCompactSearch = isHomePage && !heroVisible;
 
-  // Sync compact bar values when URL params change
   useEffect(() => {
     setCompactSearch(searchParams.get('search') || '');
     setCompactLocation(searchParams.get('location') || '');
   }, [searchParams]);
 
-  // Listen for hero visibility custom event
   useEffect(() => {
     const handler = (e) => setHeroVisible(e.detail.visible);
     window.addEventListener('hero-visibility', handler);
-    // Reset visibility when navigating away from home
     if (!isHomePage) setHeroVisible(true);
     return () => window.removeEventListener('hero-visibility', handler);
   }, [isHomePage]);
@@ -128,7 +131,6 @@ const Navbar = ({ name }) => {
             <span style={{ letterSpacing: "-0.05em", color: "var(--text-main)" }}>KaamSetu</span>
           </Link>
 
-          {/* --- COMPACT SEARCH BAR (appears when hero scrolls out on HomePage) --- */}
           {isHomePage && (
             <div
               className="d-none d-lg-flex align-items-center me-auto"
@@ -217,7 +219,6 @@ const Navbar = ({ name }) => {
             </div>
           )}
 
-          {/* --- ORIGINAL SEARCH (for non-homepage) --- */}
           {!isHomePage && (
             <div
               className="d-none d-lg-flex align-items-center position-relative transition-all me-auto"
@@ -390,15 +391,17 @@ const Navbar = ({ name }) => {
                 <li className="nav-item dropdown">
                   <div className="d-flex align-items-center gap-3">
                     <div className="d-flex align-items-center gap-2 cursor-pointer" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                      <div className="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                      <div className="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
                         style={{
-                          width: '44px', height: '44px',
-                          background: 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
-                          color: 'white', fontSize: '1rem',
-                          boxShadow: '0 6px 20px rgba(99, 102, 241, 0.35)',
-                          border: '2px solid rgba(255,255,255,0.2)'
+                          width: '32px',
+                          height: '32px',
+                          background: user.avatar ? `url(${user.avatar}) center/cover` : 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
+                          color: 'white',
+                          fontSize: '0.8rem',
+                          boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)',
+                          transition: 'all 0.3s ease'
                         }}>
-                        {user.name?.charAt(0)?.toUpperCase()}
+                        {!user.avatar && user.name?.charAt(0)?.toUpperCase()}
                       </div>
                       <span className="fw-semibold d-none d-xl-inline" style={{ color: 'var(--text-main)', fontSize: '0.95rem' }}>
                         {user.name}
@@ -429,11 +432,11 @@ const Navbar = ({ name }) => {
                           <div className="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
                             style={{
                               width: '56px', height: '56px',
-                              background: 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
+                              background: user.avatar ? `url(${user.avatar}) center/cover` : 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
                               color: 'white', fontSize: '1.25rem',
                               boxShadow: '0 8px 24px rgba(99, 102, 241, 0.3)'
                             }}>
-                            {user.name?.charAt(0)?.toUpperCase()}
+                            {!user.avatar && user.name?.charAt(0)?.toUpperCase()}
                           </div>
                           <div className="flex-grow-1 min-width-0">
                             <h6 className="mb-1 fw-bold text-truncate" style={{ color: 'var(--text-main)', fontSize: '1rem' }}>{user.name}</h6>

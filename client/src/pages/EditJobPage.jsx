@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { jobsAPI } from '../services/api';
 import { useForm } from "../hooks/index";
 import { InputField, SelectField, TextAreaField, Button } from '../components/common/FormComponents';
 import { CATEGORY_OPTIONS } from '../constants/jobConstants';
+import { useJobDetails, useUpdateJob } from '../hooks/queries/useApplications';
 
 function EditJobPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState(true);
-    const { values: formData, handleChange, setValues, loading: saving, setLoading: setSaving } = useForm({
+
+    const { data: job, isLoading: loading } = useJobDetails(id);
+    const updateMutation = useUpdateJob();
+
+    const { values: formData, handleChange, setValues } = useForm({
         title: "",
         description: "",
         category: "",
@@ -30,43 +33,34 @@ function EditJobPage() {
         vacancies: "1",
         status: "active"
     });
+
     useEffect(() => {
-        const fetchJob = async () => {
-            try {
-                const { data: job } = await jobsAPI.getById(id);
-                setValues({
-                    title: job.title || '',
-                    description: job.description || '',
-                    category: job.category || '',
-                    city: job.city || '',
-                    state: job.state || '',
-                    salaryMin: job.salaryMin || '',
-                    salaryMax: job.salaryMax || '',
-                    salaryType: job.salaryType || 'monthly',
-                    jobType: job.jobType || 'full-time',
-                    shift: job.shift || 'day',
-                    experienceMin: job.experienceMin || 0,
-                    skills: job.skills?.join(', ') || '',
-                    gender: job.gender || 'any',
-                    benefits: job.benefits?.join(', ') || '',
-                    vacancies: job.vacancies || 1,
-                    status: job.status || 'active'
-                });
-            }
-            catch (error) {
-                setError('Failed to load job details');
-            }
-            finally {
-                setLoading(false);
-            }
-        };
-        fetchJob();
-    }, [id]);
+        if (job) {
+            setValues({
+                title: job.title || '',
+                description: job.description || '',
+                category: job.category || '',
+                city: job.city || '',
+                state: job.state || '',
+                salaryMin: job.salaryMin || '',
+                salaryMax: job.salaryMax || '',
+                salaryType: job.salaryType || 'monthly',
+                jobType: job.jobType || 'full-time',
+                shift: job.shift || 'day',
+                experienceMin: job.experienceMin || 0,
+                skills: job.skills?.join(', ') || '',
+                gender: job.gender || 'any',
+                benefits: job.benefits?.join(', ') || '',
+                vacancies: job.vacancies || 1,
+                status: job.status || 'active'
+            });
+        }
+    }, [job, setValues]);
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setSaving(true);
         try {
             const jobData = {
                 ...formData,
@@ -77,14 +71,11 @@ function EditJobPage() {
                 experienceMin: Number(formData.experienceMin),
                 vacancies: Number(formData.vacancies)
             };
-            await jobsAPI.update(id, jobData);
+            await updateMutation.mutateAsync({ id, data: jobData });
             navigate('/my-jobs');
         }
         catch (err) {
             setError(err.response?.data?.message || 'Failed to update job');
-        }
-        finally {
-            setSaving(false);
         }
     };
     if (loading) {
@@ -243,7 +234,7 @@ function EditJobPage() {
                                     <Button variant="secondary" onClick={() => navigate('/my-jobs')} fullWidth>
                                         Cancel
                                     </Button>
-                                    <Button type="submit" loading={saving} fullWidth>
+                                    <Button type="submit" loading={updateMutation.isLoading} fullWidth>
                                         Save Changes
                                     </Button>
                                 </div>

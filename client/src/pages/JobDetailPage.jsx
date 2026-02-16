@@ -1,67 +1,41 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { jobsAPI, applicationsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { lazy, Suspense } from 'react';
+import { useJobDetails } from '../hooks/queries/useApplications';
+import { useApplications, useApplyForJob } from '../hooks/queries/useApplications';
+import { formatDate, formatSalary, timeAgo } from '../utils/index';
 
 const ApplyModal = lazy(() => import('../components/common/ApplyModal'));
-import { formatDate, formatSalary, timeAgo } from '../utils/index';
 
 function JobDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [job, setJob] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [applying, setApplying] = useState(false);
-  const [applied, setApplied] = useState(false);
   const [showApplyModal, setShowApplyModal] = useState(false);
 
-  useEffect(() => {
-    const fetchJob = async () => {
-      try {
-        const { data } = await jobsAPI.getById(id);
-        setJob(data);
-      } catch (err) {
-        setError('Job not found');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchJob();
-  }, [id]);
+  const { data: job, isLoading: loading, isError } = useJobDetails(id);
+  const { data: applications = [] } = useApplications();
+  const applyMutation = useApplyForJob();
 
-  useEffect(() => {
-    const checkIfApplied = async () => {
-      if (!user || user.role !== 'worker') return;
-      try {
-        const { data } = await applicationsAPI.getMyApplications();
-        const hasApplied = data.some(app => app.job._id === id);
-        setApplied(hasApplied);
-      } catch (err) {
-        // Error checking application status - silently handled
-      }
-    };
-    if (job) checkIfApplied();
-  }, [job, user, id]);
+  const applied = useMemo(() => {
+    if (!user || user.role !== 'worker') return false;
+    return applications.some(app => app.job?._id === id);
+  }, [applications, user, id]);
 
   const handleApply = async (coverNote) => {
     if (!user) {
       navigate(`/login?redirect=/jobs/${id}`);
       return;
     }
-    setApplying(true);
     try {
-      await applicationsAPI.apply(id, { coverNote });
-      setApplied(true);
+      await applyMutation.mutateAsync({ jobId: id, data: { coverNote } });
       setShowApplyModal(false);
     } catch (err) {
       alert(err.response?.data?.message || 'Error applying for job');
-    } finally {
-      setApplying(false);
     }
   };
+
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -76,7 +50,7 @@ function JobDetailPage() {
     );
   }
 
-  if (error || !job) {
+  if (isError || !job) {
     return (
       <div className="container py-5 text-center">
         <i className="bi bi-exclamation-triangle fs-1 text-warning mb-3 d-block"></i>
