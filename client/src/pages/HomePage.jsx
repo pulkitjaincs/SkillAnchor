@@ -4,6 +4,8 @@ import Listing from "../components/common/Listing";
 import SearchHero from "../components/common/SearchHero";
 import { useSearchParams } from "react-router-dom";
 import { jobsAPI } from "../services/api";
+import { Virtuoso } from "react-virtuoso";
+
 
 function HomePage() {
     const [jobs, setJobs] = useState([]);
@@ -141,16 +143,23 @@ function HomePage() {
                             {jobs.length} found
                         </span>
                     </div>
-
                     <div className="pe-3 pb-5">
-                        {jobs.map((job, index) => (
-                            <Card
-                                key={`${job._id}-${index}`}
-                                job={job}
-                                isSelected={selectedJob?._id === job._id}
-                                onClick={(e) => handleJobClick(job, e)}
-                            />
-                        ))}
+                        <Virtuoso
+                            useWindowScroll
+                            data={jobs}
+                            endReached={loadJobs}
+                            overscan={200}
+                            itemContent={(index, job) => (
+                                <Card
+                                    job={job}
+                                    isSelected={selectedJob?._id === job._id}
+                                    onClick={(e) => handleJobClick(job, e)}
+                                />
+                            )}
+                            components={{
+                                Footer: () => loading ? <div className="py-3 text-center text-muted">Loading more...</div> : null
+                            }}
+                        />
                     </div>
                 </div>
 
