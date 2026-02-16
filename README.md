@@ -264,6 +264,7 @@ KaamSetu/
 - [x] **Performance Phase 1**: Backend query optimization (.lean(), projection) & Frontend list virtualization
 - [x] **Performance Phase 2**: Route-level lazy loading, Modal code splitting, and Backend Gzip compression
 - [x] **Performance Phase 3**: Migration to React Query (TanStack Query) for advanced caching
+- [x] **Performance Phase 4**: Step-wise Profile Save & Modal Theme Compatibility (Dark/Light mode)
 - [ ] Salary range filter UI
 - [ ] Shift-based job scheduling
 - [ ] In-app messaging

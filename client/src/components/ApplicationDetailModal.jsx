@@ -5,7 +5,7 @@ function ApplicationDetailModal({ selectedApp, onClose, getStatusBadge }) {
     if (!selectedApp) return null;
 
     return (
-        <div className="modal d-block" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={onClose}>
+        <div className="modal d-block show" style={{ zIndex: 2000, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
             <div className="modal-dialog modal-dialog-centered" onClick={e => e.stopPropagation()}>
                 <div className="modal-content position-relative" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px' }}>
                     <button onClick={onClose}

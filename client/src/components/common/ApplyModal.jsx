@@ -6,7 +6,7 @@ function ApplyModal({ show, onClose, onApply, applying }) {
         return null;
     }
     return (
-        <div className="modal d-block" style={{ background: 'rgba(0,0,0,0.5)' }}>
+        <div className="modal d-block show" style={{ zIndex: 2000, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
             <div className="modal-dialog modal-dialog-centered">
                 <div className="modal-content" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px' }}>
                     <div className="modal-header border-0">
@@ -14,7 +14,7 @@ function ApplyModal({ show, onClose, onApply, applying }) {
                             <i className="bi bi-send-fill me-2" style={{ color: 'var(--primary-500)' }}></i>
                             Apply for this Job
                         </h5>
-                        <button onClick={onClose} className="btn-close"></button>
+                        <button onClick={onClose} className="btn-close" style={{ filter: 'var(--icon-filter)' }}></button>
                     </div>
                     <div className="modal-body">
                         <label className="form-label" style={{ color: 'var(--text-main)' }}>

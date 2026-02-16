@@ -86,7 +86,7 @@ function EditProfilePage() {
         }
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (shouldNavigate = true) => {
         try {
             let payload;
             if (isEmployer) {
@@ -108,8 +108,8 @@ function EditProfilePage() {
                     state: formData.state,
                     pincode: formData.pincode,
                     bio: formData.bio,
-                    languages: formData.languages.split(',').map(s => s.trim()).filter(s => s),
-                    skills: formData.skills.split(',').map(s => s.trim()).filter(s => s),
+                    languages: typeof formData.languages === 'string' ? formData.languages.split(',').map(s => s.trim()).filter(s => s) : formData.languages,
+                    skills: typeof formData.skills === 'string' ? formData.skills.split(',').map(s => s.trim()).filter(s => s) : formData.skills,
                     expectedSalary: {
                         min: Number(formData.expectedSalaryMin) || undefined,
                         max: formData.expectedSalaryMax ? Number(formData.expectedSalaryMax) : undefined,
@@ -124,7 +124,12 @@ function EditProfilePage() {
             }
             await updateMutation.mutateAsync(payload);
             if (formData.name) updateUserData({ name: formData.name });
-            navigate('/profile');
+
+            if (shouldNavigate) {
+                navigate('/profile');
+            } else {
+                alert("Progress saved successfully!");
+            }
         } catch (err) {
             console.error("Save failed", err);
             alert(err.response?.data?.message || "Failed to save profile.");
@@ -281,17 +286,32 @@ function EditProfilePage() {
                     )}
 
                     {currentStep < totalSteps ? (
-                        <Button
-                            onClick={nextStep}
-                            style={{
-                                width: 'auto',
-                                padding: '14px 32px',
-                                background: 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
-                                boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)'
-                            }}
-                        >
-                            Continue<i className="bi bi-arrow-right ms-2"></i>
-                        </Button>
+                        <div className="d-flex gap-3">
+                            <Button
+                                onClick={() => handleSubmit(false)}
+                                loading={updateMutation.isLoading}
+                                variant="outline"
+                                style={{
+                                    width: 'auto',
+                                    padding: '14px 28px',
+                                    borderColor: 'var(--border-color)',
+                                    color: 'var(--text-main)'
+                                }}
+                            >
+                                <i className="bi bi-cloud-check me-2"></i>Save Progress
+                            </Button>
+                            <Button
+                                onClick={nextStep}
+                                style={{
+                                    width: 'auto',
+                                    padding: '14px 32px',
+                                    background: 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
+                                    boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)'
+                                }}
+                            >
+                                Continue<i className="bi bi-arrow-right ms-2"></i>
+                            </Button>
+                        </div>
                     ) : (
                         <Button
                             onClick={handleSubmit}

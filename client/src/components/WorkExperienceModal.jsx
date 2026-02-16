@@ -122,7 +122,7 @@ function WorkExperienceModal({ show, onClose, experience, onSave }) {
     const canEndEmployment = isVerified && experience?.isCurrent;
 
     return (
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={onClose}>
+        <div className="modal show d-block" style={{ zIndex: 2000, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
             <div className="modal-dialog modal-dialog-centered" onClick={e => e.stopPropagation()}>
                 <div className="modal-content" style={{
                     background: 'var(--bg-card)',

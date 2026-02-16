@@ -6,7 +6,7 @@ import { useProfile } from "../../hooks/queries/useProfile";
 
 const Navbar = ({ name }) => {
   const { user: authUser, logout } = useAuth();
-  const { data: profile } = useProfile();
+  const { data: profile } = useProfile(null, { enabled: !!authUser });
 
   const user = useMemo(() => {
     if (!authUser) return null;
