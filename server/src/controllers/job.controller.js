@@ -8,7 +8,7 @@ export const getAllJobs = async (req, res) => {
         const searchTerm = req.query.search;
 
         let query = { status: "active" };
-        let sortOptions = { createdAt: -1 };
+        let sortOptions = { _id: -1 };
         let projection = {
             title: 1, description: 1, company: 1,
             city: 1, state: 1,
@@ -37,7 +37,7 @@ export const getAllJobs = async (req, res) => {
         let jobs = await Job.find(query, projection)
             .populate("company", "name logo")
             .sort(sortOptions)
-            .limit(limit)
+            .limit(limit + 1)
             .lean();
 
         if (searchTerm && jobs.length === 0) {
@@ -51,12 +51,15 @@ export const getAllJobs = async (req, res) => {
             ];
             jobs = await Job.find(query)
                 .populate("company", "name logo")
-                .sort({ createdAt: -1 })
-                .limit(limit)
+                .sort({ _id: -1 })
+                .limit(limit + 1)
                 .lean();
         }
 
-        const hasMore = jobs.length === limit;
+        const hasMore = jobs.length > limit;
+        if (hasMore) {
+            jobs.pop(); // Remove the extra item
+        }
         res.status(200).json({ jobs, hasMore });
     } catch (error) {
         console.error("Error fetching jobs:", error);

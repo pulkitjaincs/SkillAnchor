@@ -29,50 +29,15 @@ function HomePage() {
             }
         }
     }, [openJobId, jobs]);
-    useEffect(() => {
-        loadJobs();
-    }, []);
-
-    useEffect(() => {
-        setJobs([]);
-        setCursor(null);
-        setHasMore(true);
-        setLoading(false);
-        loadJobsForSearch();
-    }, [searchQuery, locationQuery, categoryQuery]);
-
-    const handleHeroSearch = ({ search, location, category }) => {
-        const params = {};
-        if (search) params.search = search;
-        if (location) params.location = location;
-        if (category && category !== 'All') params.category = category;
-        setSearchParams(params);
-    };
-
-    const loadJobsForSearch = async () => {
-        try {
-            const params = { limit: 10 };
-            if (searchQuery) params.search = searchQuery;
-            if (locationQuery) params.location = locationQuery;
-            if (categoryQuery) params.category = categoryQuery;
-
-            const { data } = await jobsAPI.getAll(params);
-            if (data.jobs && Array.isArray(data.jobs)) {
-                setJobs(data.jobs);
-                setCursor(data.jobs[data.jobs.length - 1]?._id);
-                setHasMore(data.hasMore);
-            }
-        } catch (err) {
-            console.error("Fetch error:", err);
-        }
-    };
-
-    const loadJobs = async () => {
+    const fetchJobs = async (reset = false) => {
         if (loading) return;
+        if (!reset && !hasMore) return;
         setLoading(true);
 
         try {
-            const params = { limit: 12, cursor };
+            const currentCursor = reset ? null : cursor;
+            const params = { limit: 10, cursor: currentCursor };
+
             if (searchQuery) params.search = searchQuery;
             if (locationQuery) params.location = locationQuery;
             if (categoryQuery) params.category = categoryQuery;
@@ -80,11 +45,18 @@ function HomePage() {
             const { data } = await jobsAPI.getAll(params);
 
             if (data.jobs && Array.isArray(data.jobs)) {
-                setJobs(prev => [...prev, ...data.jobs]);
+                if (reset) {
+                    setJobs(data.jobs);
+                } else {
+                    setJobs(prev => {
+                        const existingIds = new Set(prev.map(j => j._id));
+                        const newJobs = data.jobs.filter(j => !existingIds.has(j._id));
+                        return [...prev, ...newJobs];
+                    });
+                }
+
                 setCursor(data.jobs[data.jobs.length - 1]?._id);
                 setHasMore(data.hasMore);
-            } else {
-                console.error("Invalid data format", data);
             }
         } catch (err) {
             console.error("Fetch error:", err);
@@ -92,6 +64,11 @@ function HomePage() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchJobs(true);
+    }, [searchQuery, locationQuery, categoryQuery]);
+
 
     const handleJobClick = (job, e) => {
         if (selectedJob !== null && selectedJob.id !== job.id) {
@@ -110,6 +87,14 @@ function HomePage() {
         ? "col-12 col-lg-8"
         : "d-none";
 
+    const handleHeroSearch = ({ search, location, category }) => {
+        const params = {};
+        if (search) params.search = search;
+        if (location) params.location = location;
+        if (category && category !== 'All') params.category = category;
+        setSearchParams(params);
+    };
+
     return (
         <div className="container-fluid flex-grow-1 px-4 px-lg-5" style={{ maxWidth: "1600px" }}>
 
@@ -124,30 +109,28 @@ function HomePage() {
 
                 <div className={`${listColumnClass} d-flex flex-column layout-transition`}
                     style={{ paddingTop: "20px", paddingBottom: "20px" }}>
-                    <div className="d-flex align-items-center justify-content-between mb-4"
-                        style={{
-                            position: 'sticky',
-                            top: '80px',
-                            zIndex: 100,
-                            background: 'var(--bg-body)',
-                            paddingTop: '12px',
-                            paddingBottom: '16px',
-                            marginLeft: '-2rem',
-                            marginRight: '-2rem',
-                            paddingLeft: '2rem',
-                            paddingRight: '2rem',
-                        }}>
-                        <h4 className="fw-bolder mb-0 tracking-tight" style={{ color: "var(--text-main)" }}>Recent Jobs</h4>
-                        <span className="badge border shadow-sm rounded-pill px-3 py-2 fw-medium"
-                            style={{ background: "var(--bg-card)", color: "var(--text-muted)", borderColor: "var(--border-color)" }}>
-                            {jobs.length} found
-                        </span>
-                    </div>
+                    {!(searchQuery || locationQuery || categoryQuery) && (
+                        <div className="d-flex align-items-center mb-4"
+                            style={{
+                                position: 'sticky',
+                                top: '80px',
+                                zIndex: 100,
+                                background: 'var(--bg-body)',
+                                paddingTop: '12px',
+                                paddingBottom: '16px',
+                                marginLeft: '-2rem',
+                                marginRight: '-2rem',
+                                paddingLeft: '2rem',
+                                paddingRight: '2rem',
+                            }}>
+                            <h4 className="fw-bolder mb-0 tracking-tight" style={{ color: "var(--text-main)" }}>Recent Jobs</h4>
+                        </div>
+                    )}
                     <div className="pe-3 pb-5">
                         <Virtuoso
                             useWindowScroll
                             data={jobs}
-                            endReached={loadJobs}
+                            endReached={() => fetchJobs(false)}
                             overscan={200}
                             itemContent={(index, job) => (
                                 <Card
@@ -157,7 +140,11 @@ function HomePage() {
                                 />
                             )}
                             components={{
-                                Footer: () => loading ? <div className="py-3 text-center text-muted">Loading more...</div> : null
+                                Footer: () => {
+                                    if (loading) return <div className="py-3 text-center text-muted">Loading more...</div>;
+                                    if (!hasMore && jobs.length > 0) return <div className="py-3 text-center text-muted small">You've reached the end of the list</div>;
+                                    return null;
+                                }
                             }}
                         />
                     </div>

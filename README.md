@@ -251,7 +251,7 @@ KaamSetu/
 - [x] **Flattened Search Hero**: Homepage search with category chips and location filter
 - [x] **Standardized Categories**: Centralized job category system with dropdown selectors
 - [x] **Scroll-Linked Navbar**: Sticky navbar with search bar morph transition on scroll
-- [x] **Performance**: Backend query optimization (.lean(), projection) and payload reduction
+- [x] **Performance**: Backend query optimization (.lean(), projection) & Frontend list virtualization
 - [ ] Salary range filter UI
 - [ ] Shift-based job scheduling
 - [ ] In-app messaging
