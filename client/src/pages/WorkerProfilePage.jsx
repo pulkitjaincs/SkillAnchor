@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { profileAPI, workExperienceAPI } from '../services/api';
 import { formatDate, formatSalary, getInitials } from '../utils/index';
-import WorkExperienceModal from '../components/WorkExperienceModal';
+import { lazy, Suspense } from 'react';
+
+const WorkExperienceModal = lazy(() => import('../components/WorkExperienceModal'));
 
 function WorkerProfilePage() {
     const { userId } = useParams();
@@ -505,13 +507,14 @@ function WorkerProfilePage() {
                 </div>
             </div>
 
-            {/* Work Experience Modal */}
-            <WorkExperienceModal
-                show={showAddModal || !!selectedExp}
-                onClose={() => { setShowAddModal(false); setSelectedExp(null); }}
-                experience={selectedExp}
-                onSave={() => window.location.reload()}
-            />
+            <Suspense fallback={null}>
+                <WorkExperienceModal
+                    show={showAddModal || !!selectedExp}
+                    onClose={() => { setShowAddModal(false); setSelectedExp(null); }}
+                    experience={selectedExp}
+                    onSave={() => window.location.reload()}
+                />
+            </Suspense>
         </div>
     );
 }

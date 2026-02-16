@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import Card from "../components/common/Card";
-import Listing from "../components/common/Listing";
 import SearchHero from "../components/common/SearchHero";
 import { useSearchParams } from "react-router-dom";
 import { jobsAPI } from "../services/api";
 import { Virtuoso } from "react-virtuoso";
-
+const Listing = lazy(() => import("../components/common/Listing"));
 
 function HomePage() {
     const [jobs, setJobs] = useState([]);
@@ -153,11 +152,14 @@ function HomePage() {
                 <div className={`${detailColumnClass} layout-transition`}
                     style={{ position: 'sticky', height: "calc(100vh - 106px)", overflowY: "hidden", top: "96px", borderRadius: "24px", zIndex: 1100 }}>
                     {selectedJob && (
-                        <Listing
-                            job={selectedJob}
-                            onClose={() => { setSelectedJob(null); setIsSwitch(false); }}
-                            isSwitch={isSwitch}
-                        />
+                        <Suspense fallback={<div className="h-100 d-flex align-items-center justify-content-center text-muted">Loading Details...</div>}>
+                            <Listing
+                                job={selectedJob}
+                                onClose={() => { setSelectedJob(null); setIsSwitch(false); }}
+                                isSwitch={isSwitch}
+                            />
+                        </Suspense>
+
                     )}
                 </div>
             </div>

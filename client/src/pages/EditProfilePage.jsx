@@ -3,7 +3,13 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useForm } from '../hooks';
 import { profileAPI } from '../services/api';
-import { InputField, SelectField, TextAreaField, Button } from '../components/common/FormComponents';
+import { Button } from '../components/common/FormComponents';
+import { lazy, Suspense } from 'react';
+
+const EditProfile_Basics = lazy(() => import('../components/profile-edit/EditProfile_Basics'));
+const EditProfile_Location = lazy(() => import('../components/profile-edit/EditProfile_Location'));
+const EditProfile_Skills = lazy(() => import('../components/profile-edit/EditProfile_Skills'));
+const EditProfile_Finish = lazy(() => import('../components/profile-edit/EditProfile_Finish'));
 
 function EditProfilePage() {
     const navigate = useNavigate();
@@ -257,288 +263,44 @@ function EditProfilePage() {
                     marginBottom: '24px'
                 }}>
 
-                    {currentStep === 1 && (
-                        <div>
-                            <h4 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>
-                                {isEmployer ? 'Your profile details' : "Let's start with basics"}
-                            </h4>
-
-                            <div className="mb-4 d-flex align-items-center gap-4">
-                                <div style={{ position: 'relative' }}>
-                                    <div style={{
-                                        width: '88px', height: '88px', borderRadius: '50%',
-                                        background: avatar ? `url(${avatar}) center/cover` : 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        boxShadow: '0 8px 24px rgba(99, 102, 241, 0.25)',
-                                        border: '3px solid var(--bg-card)'
-                                    }}>
-                                        {!avatar && <span style={{ color: 'white', fontSize: '2rem', fontWeight: 700 }}>{formData.name?.charAt(0)?.toUpperCase() || '?'}</span>}
-                                    </div>
-                                    <input type="file" ref={fileInputRef} onChange={handleAvatarUpload} accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} />
-                                </div>
-                                <div>
-                                    <p className="mb-2 fw-semibold" style={{ color: 'var(--text-main)' }}>Profile Photo</p>
-                                    <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploadingAvatar}
-                                        style={{
-                                            background: 'var(--bg-surface)', border: '1px solid var(--border-color)',
-                                            borderRadius: '10px', padding: '8px 16px', fontSize: '0.85rem', fontWeight: 500,
-                                            color: 'var(--text-main)', cursor: 'pointer'
-                                        }}>
-                                        {uploadingAvatar ? <><span className="spinner-border spinner-border-sm me-2"></span>Uploading...</> : <><i className="bi bi-camera me-2"></i>Upload Photo</>}
-                                    </button>
-                                </div>
-                            </div>
-
-                            <InputField
-                                label="Full Name"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                placeholder="Enter your full name"
-                                required
+                    <Suspense fallback={<div className="text-center py-5"><div className="spinner-border spinner-border-sm text-primary"></div></div>}>
+                        {currentStep === 1 && (
+                            <EditProfile_Basics
+                                formData={formData}
+                                handleChange={handleChange}
+                                user={user}
+                                isEmployer={isEmployer}
+                                avatar={avatar}
+                                uploadingAvatar={uploadingAvatar}
+                                handleAvatarUpload={handleAvatarUpload}
+                                fileInputRef={fileInputRef}
+                                navigate={navigate}
                             />
+                        )}
 
-
-                            <div className="mb-4">
-                                <label className="form-label fw-semibold mb-2" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
-                                    Phone Number
-                                    {user?.phoneVerified ? (
-                                        <span className="badge bg-success-subtle text-success ms-2 rounded-pill">
-                                            <i className="bi bi-patch-check-fill me-1"></i>Verified
-                                        </span>
-                                    ) : (
-                                        <button type="button" onClick={() => navigate('/profile/settings')}
-                                            className="btn btn-link btn-sm text-decoration-none p-0 ms-2" style={{ color: 'var(--primary-600)', fontWeight: 600 }}>
-                                            Verify Now
-                                        </button>
-                                    )}
-                                </label>
-                                <div className="d-flex align-items-center gap-2">
-                                    <input type="tel" value={user?.phone || ''} readOnly
-                                        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '12px 16px', color: 'var(--text-main)', cursor: 'not-allowed' }}
-                                        className="form-control" placeholder="Not set" />
-                                    <button type="button" onClick={() => navigate('/profile/settings')}
-                                        className="btn btn-outline-secondary" style={{ borderRadius: '12px', whiteSpace: 'nowrap', fontSize: '0.85rem', fontWeight: 500 }}>
-                                        <i className="bi bi-gear me-1"></i>Change
-                                    </button>
-                                </div>
-                                <small className="text-muted" style={{ fontSize: '0.75rem' }}>Phone can only be changed via Account Settings with OTP verification</small>
-                            </div>
-
-                            {isEmployer ? (
-                                <>
-                                    <InputField
-                                        label="WhatsApp Number"
-                                        name="whatsapp"
-                                        value={formData.whatsapp}
-                                        onChange={handleChange}
-                                        type="tel"
-                                        maxLength={10}
-                                        icon="bi-whatsapp"
-                                        placeholder="10-digit number (optional)"
-                                    />
-
-                                    <InputField
-                                        label="Designation"
-                                        name="designation"
-                                        value={formData.designation}
-                                        onChange={handleChange}
-                                        placeholder="e.g. HR Manager, Recruiter"
-                                    />
-
-
-                                    <div className="mb-4">
-                                        <div className="form-check" style={{ paddingLeft: '2rem' }}>
-                                            <input type="checkbox" className="form-check-input" id="isHiringManager"
-                                                checked={formData.isHiringManager}
-                                                onChange={(e) => setValues({ ...formData, isHiringManager: e.target.checked })}
-                                                style={{ width: '20px', height: '20px', marginRight: '12px' }} />
-                                            <label className="form-check-label fw-semibold" htmlFor="isHiringManager" style={{ color: 'var(--text-main)' }}>
-                                                I am a Hiring Manager
-                                            </label>
-                                            <p className="mb-0 small" style={{ color: 'var(--text-muted)' }}>Check if you directly handle hiring decisions</p>
-                                        </div>
-                                    </div>
-                                </>
-                            ) : (
-                                <>
-                                    <div className="row g-3 mb-4">
-                                        <div className="col-6">
-                                            <SelectField
-                                                label="Gender"
-                                                name="gender"
-                                                value={formData.gender}
-                                                onChange={handleChange}
-                                                options={[
-                                                    { label: 'Male', value: 'male' },
-                                                    { label: 'Female', value: 'female' },
-                                                    { label: 'Other', value: 'other' }
-                                                ]}
-                                            />
-                                        </div>
-                                        <div className="col-6">
-                                            <InputField
-                                                label="Date of Birth"
-                                                name="dob"
-                                                type="date"
-                                                value={formData.dob}
-                                                onChange={handleChange}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <InputField
-                                        label="WhatsApp Number"
-                                        name="whatsapp"
-                                        value={formData.whatsapp}
-                                        onChange={handleChange}
-                                        type="tel"
-                                        maxLength={10}
-                                        icon="bi-whatsapp"
-                                        placeholder="10-digit number"
-                                    />
-
-                                </>
-                            )}
-                        </div>
-                    )}
-
-                    {currentStep === 2 && (
-                        <div>
-                            <h4 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>Where are you located?</h4>
-
-                            <div className="d-flex align-items-center justify-content-between mb-4 p-3"
-                                style={{ background: 'var(--bg-surface)', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
-                                <div className="d-flex align-items-center gap-3">
-                                    <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <i className="bi bi-shield-lock-fill" style={{ color: 'var(--primary-600)' }}></i>
-                                    </div>
-                                    <div>
-                                        <p className="mb-0 fw-semibold" style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>Contact Details</p>
-                                        <p className="mb-0 small" style={{ color: 'var(--text-muted)' }}>Manage in Account Settings</p>
-                                    </div>
-                                </div>
-                                <button type="button" onClick={() => navigate('/profile/settings')}
-                                    className="btn btn-sm fw-semibold" style={{ background: 'var(--bg-card)', color: 'var(--text-main)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '8px 16px' }}>
-                                    Manage
-                                </button>
-                            </div>
-
-                            <div className="row g-3 mb-4">
-                                <div className="col-6">
-                                    <InputField label="City" name="city" value={formData.city} onChange={handleChange} placeholder="e.g. Mumbai" />
-                                </div>
-                                <div className="col-6">
-                                    <InputField label="State" name="state" value={formData.state} onChange={handleChange} placeholder="e.g. Maharashtra" />
-                                </div>
-                            </div>
-
-                            <div className="col-6">
-                                <InputField label="Pincode" name="pincode" value={formData.pincode} onChange={handleChange} maxLength={6} placeholder="e.g. 400001" />
-                            </div>
-
-                        </div>
-                    )}
-
-                    {currentStep === 3 && (
-                        <div>
-                            <h4 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>Tell us about your skills</h4>
-
-                            <TextAreaField label="Bio" name="bio" value={formData.bio} onChange={handleChange} rows="3" placeholder="Tell employers about yourself..." />
-
-                            <InputField
-                                label="Skills"
-                                name="skills"
-                                value={formData.skills}
-                                onChange={handleChange}
-                                placeholder="e.g. Driving, Cooking, Electrician"
-                                helpText="Comma separated"
+                        {currentStep === 2 && (
+                            <EditProfile_Location
+                                formData={formData}
+                                handleChange={handleChange}
+                                navigate={navigate}
                             />
-                            {formData.skills && (
-                                <div className="d-flex flex-wrap gap-2 mt-2 mb-4">
-                                    {formData.skills.split(',').filter(s => s.trim()).map((s, i) => (
-                                        <span key={i} style={{
-                                            background: 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
-                                            color: 'white', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 500
-                                        }}>{s.trim()}</span>
-                                    ))}
-                                </div>
-                            )}
+                        )}
 
-                            <InputField
-                                label="Languages"
-                                name="languages"
-                                value={formData.languages}
-                                onChange={handleChange}
-                                placeholder="e.g. Hindi, English"
-                                helpText="Comma separated"
+                        {currentStep === 3 && (
+                            <EditProfile_Skills
+                                formData={formData}
+                                handleChange={handleChange}
                             />
+                        )}
 
-                        </div>
-                    )}
-
-
-                    {currentStep === 4 && (
-                        <div>
-                            <h4 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>Almost done!</h4>
-
-                            <p className="fw-semibold mb-1" style={{ color: 'var(--text-main)', fontSize: '0.95rem' }}>Expected Salary</p>
-                            <div className="row g-2 mb-4">
-                                <div className="col-4">
-                                    <InputField name="expectedSalaryMin" value={formData.expectedSalaryMin} onChange={handleChange} type="number" placeholder="Min ₹" />
-                                </div>
-                                <div className="col-4">
-                                    <InputField name="expectedSalaryMax" value={formData.expectedSalaryMax} onChange={handleChange} type="number" placeholder="Max ₹ (optional)" />
-                                </div>
-                                <div className="col-4">
-                                    <SelectField
-                                        name="expectedSalaryType"
-                                        value={formData.expectedSalaryType}
-                                        onChange={handleChange}
-                                        options={[
-                                            { label: '/ Month', value: 'monthly' },
-                                            { label: '/ Day', value: 'daily' }
-                                        ]}
-                                    />
-                                </div>
-                            </div>
-
-                            <p className="fw-semibold mb-1" style={{ color: 'var(--text-main)', fontSize: '0.95rem' }}>
-                                Identity Documents <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(optional)</span>
-                            </p>
-                            <div className="row g-2">
-                                <div className="col-md-6">
-                                    <InputField
-                                        name="aadhaarNumber"
-                                        value={formData.aadhaarNumber}
-                                        onChange={(e) => setValues({ ...formData, aadhaarNumber: e.target.value.replace(/\D/g, '').slice(0, 12) })}
-                                        maxLength={12}
-                                        placeholder="Aadhaar (12 digits)"
-                                    />
-                                </div>
-                                <div className="col-md-6">
-                                    <InputField
-                                        name="panNumber"
-                                        value={formData.panNumber}
-                                        onChange={handleChange}
-                                        maxLength={10}
-                                        style={{ textTransform: 'uppercase' }}
-                                        placeholder="PAN Number"
-                                    />
-                                </div>
-                                <div className="col-md-6">
-                                    <InputField
-                                        name="licenseNumber"
-                                        value={formData.licenseNumber}
-                                        onChange={handleChange}
-                                        style={{ textTransform: 'uppercase' }}
-                                        placeholder="Driving License"
-                                    />
-                                </div>
-                            </div>
-
-                        </div>
-                    )}
+                        {currentStep === 4 && (
+                            <EditProfile_Finish
+                                formData={formData}
+                                handleChange={handleChange}
+                                setValues={setValues}
+                            />
+                        )}
+                    </Suspense>
                 </div>
 
                 <div className="d-flex justify-content-between align-items-center">

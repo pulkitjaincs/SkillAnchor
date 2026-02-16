@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { jobsAPI, applicationsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import ApplyModal from '../components/common/ApplyModal';
+import { lazy, Suspense } from 'react';
+
+const ApplyModal = lazy(() => import('../components/common/ApplyModal'));
 import { formatDate, formatSalary, timeAgo } from '../utils/index';
 
 function JobDetailPage() {
@@ -247,12 +249,16 @@ function JobDetailPage() {
         </div>
       </div>
 
-      <ApplyModal
-        show={showApplyModal}
-        onClose={() => setShowApplyModal(false)}
-        onApply={handleApply}
-        applying={applying}
-      />
+      {showApplyModal && (
+        <Suspense fallback={null}>
+          <ApplyModal
+            show={showApplyModal}
+            onClose={() => setShowApplyModal(false)}
+            onApply={handleApply}
+            applying={applying}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

@@ -79,6 +79,13 @@ Built for simplicity. Works on any device.
 - **Scroll-Linked Navbar Search**: Search bar morphs into a compact version in the sticky navbar on scroll using IntersectionObserver
 - **Standardized Job Categories**: Centralized category system ensuring consistent categorization across posting, editing, and filtering
 
+### Performance & Optimization
+- **List Virtualization**: Efficient rendering of job listings using `react-virtuoso`, maintaining high performance with large datasets
+- **Route-Level Code Splitting**: Lazy loading of all major pages to minimize initial bundle size and speed up first paint
+- **Component-Level Lazy Loading**: Strategic use of `React.lazy()` for heavy sub-components (Job Listing, Modals, Multi-step form stages)
+- **Backend Query Optimization**: Applied `.lean()` and field projection to all read-heavy Mongoose queries for reduced CPU/Memory overhead
+- **API Response Compression**: Enabled Gzip compression for all JSON payloads via `compression` middleware
+
 ---
 
 ## Industries
@@ -164,11 +171,12 @@ KaamSetu/
 
 ## Tech Stack
 
-| Layer | Technology |
+| Role | Technology |
 |-------|------------|
 | Frontend | React 19, Vite, React Router, Bootstrap 5 |
+| Rendering | React Virtuoso (Virtualization) |
 | State | Custom hooks (useForm, useFetch, useDebounce) |
-| Backend | Node.js, Express, Mongoose, Multer |
+| Backend | Node.js, Express, Mongoose, Multer, Compression |
 | Database | MongoDB |
 | Auth | JWT, bcrypt, OTP |
 | Storage | AWS S3 |
@@ -251,7 +259,9 @@ KaamSetu/
 - [x] **Flattened Search Hero**: Homepage search with category chips and location filter
 - [x] **Standardized Categories**: Centralized job category system with dropdown selectors
 - [x] **Scroll-Linked Navbar**: Sticky navbar with search bar morph transition on scroll
-- [x] **Performance**: Backend query optimization (.lean(), projection) & Frontend list virtualization
+- [x] **Performance Phase 1**: Backend query optimization (.lean(), projection) & Frontend list virtualization
+- [x] **Performance Phase 2**: Route-level lazy loading, Modal code splitting, and Backend Gzip compression
+- [ ] **Performance Phase 3**: Migration to React Query (TanStack Query) for advanced caching
 - [ ] Salary range filter UI
 - [ ] Shift-based job scheduling
 - [ ] In-app messaging

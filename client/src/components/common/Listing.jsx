@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useAuth } from '../../context/AuthContext';
-import ApplyModal from "./ApplyModal";
 import { applicationsAPI } from "../../services/api";
 import { useNavigate } from "react-router-dom";
 import { formatSalary, formatDate } from "../../utils/index";
+const ApplyModal = lazy(() => import("./ApplyModal"));
 
 const Listing = ({ job, onClose, isSwitch = false }) => {
   const navigate = useNavigate();
@@ -186,12 +186,16 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
         </div>
 
       </div>
-      <ApplyModal
-        show={showApplyModal}
-        onClose={() => setShowApplyModal(false)}
-        onApply={handleApply}
-        applying={applying}
-      />
+      {showApplyModal && (
+        <Suspense fallback={null}>
+          <ApplyModal
+            show={showApplyModal}
+            onClose={() => setShowApplyModal(false)}
+            onApply={handleApply}
+            applying={applying}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };

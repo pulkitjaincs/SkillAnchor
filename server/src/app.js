@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import compression from "compression";
 import jobRoutes from "./routes/job.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import applicationRoutes from "./routes/application.routes.js";
@@ -8,6 +9,7 @@ import workExperienceRoutes from "./routes/workExperience.routes.js";
 
 const app = express();
 
+app.use(compression());
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
