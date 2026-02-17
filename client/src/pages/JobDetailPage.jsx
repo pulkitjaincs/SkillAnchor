@@ -74,30 +74,30 @@ function JobDetailPage() {
             borderRadius: '24px',
             border: '1px solid var(--border-color)'
           }}>
-            <div className="d-flex align-items-start gap-4 mb-4">
+            <div className="d-flex flex-column flex-sm-row align-items-start gap-3 gap-md-4 mb-4">
               {job.company?.logo ? (
                 <img src={job.company.logo} alt={job.company.name}
-                  className="rounded-4 shadow-sm"
-                  style={{ width: '80px', height: '80px', objectFit: 'cover' }} />
+                  className="rounded-4 shadow-sm flex-shrink-0"
+                  style={{ width: '64px', height: '64px', objectFit: 'cover' }} />
               ) : (
-                <div className="rounded-4 d-flex align-items-center justify-content-center"
+                <div className="rounded-4 d-flex align-items-center justify-content-center flex-shrink-0"
                   style={{
-                    width: '80px', height: '80px',
+                    width: '64px', height: '64px',
                     background: 'var(--primary-500)', color: 'white',
-                    fontSize: '2rem', fontWeight: 'bold'
+                    fontSize: '1.5rem', fontWeight: 'bold'
                   }}>
                   {job.title?.charAt(0).toUpperCase()}
                 </div>
               )}
-              <div className="flex-grow-1">
-                <h1 className="fw-bold mb-1" style={{ color: 'var(--text-main)', fontSize: '1.75rem' }}>
+              <div className="flex-grow-1 min-w-0">
+                <h1 className="fw-bold mb-1" style={{ color: 'var(--text-main)', fontSize: '1.5rem' }}>
                   {job.title}
                 </h1>
-                <p className="mb-2" style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>
+                <p className="mb-2" style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>
                   {job.company?.name || 'Company'}
                 </p>
-                <div className="d-flex flex-wrap gap-3" style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                  <span><i className="bi bi-geo-alt-fill me-1" style={{ color: 'var(--primary-500)' }}></i>{job.city}, {job.state}</span>
+                <div className="d-flex flex-wrap gap-2 gap-md-3" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                  <span className="text-truncate"><i className="bi bi-geo-alt-fill me-1" style={{ color: 'var(--primary-500)' }}></i>{job.city}, {job.state}</span>
                   <span><i className="bi bi-clock me-1" style={{ color: 'var(--primary-500)' }}></i>Posted {formatDate(job.createdAt)}</span>
                   {job.status !== 'active' && (
                     <span className="badge bg-warning text-dark">{job.status}</span>

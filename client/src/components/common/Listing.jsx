@@ -110,15 +110,15 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
       <div className="card-body px-4 px-md-5 pt-5 pb-4 custom-scroll" style={{ overflowY: "auto", height: "calc(100% - 160px)" }}>
 
         <div className="mt-2 mb-4 d-flex justify-content-between align-items-start flex-wrap gap-3">
-          <div>
-            <h2 className="fw-bold mb-1 display-6" style={{ letterSpacing: "-0.03em", color: "var(--text-main)" }}>{job.title}</h2>
-            <h5 className="fw-medium mb-2" style={{ color: "var(--text-muted)" }}>{job.company?.name}</h5>
-            <div className="d-flex align-items-center gap-3 small" style={{ color: "var(--text-muted)" }}>
-              <span className="d-flex align-items-center gap-1"><i className="bi bi-geo-alt-fill text-primary"></i> {job.city}, {job.state}</span>
+          <div className="min-w-0 flex-grow-1">
+            <h2 className="fw-bold mb-1 fs-3" style={{ letterSpacing: "-0.03em", color: "var(--text-main)" }}>{job.title}</h2>
+            <h5 className="fw-medium mb-2 fs-6" style={{ color: "var(--text-muted)" }}>{job.company?.name}</h5>
+            <div className="d-flex align-items-center flex-wrap gap-x-3 gap-y-1 small" style={{ color: "var(--text-muted)" }}>
+              <span className="d-flex align-items-center gap-1 text-truncate"><i className="bi bi-geo-alt-fill text-primary"></i> {job.city}, {job.state}</span>
               <span className="d-flex align-items-center gap-1"><i className="bi bi-clock-fill text-primary"></i> Posted {formatDate(job.createdAt)}</span>
             </div>
           </div>
-          <div className="d-flex gap-2 flex-wrap mt-3">
+          <div className="d-flex gap-2 flex-wrap mt-0 mt-sm-3">
             <button
               onClick={() => navigate(`/jobs/${job._id}`)}
               className="btn px-4 py-2 fw-semibold rounded-pill"

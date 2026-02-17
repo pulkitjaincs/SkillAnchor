@@ -95,7 +95,7 @@ body {
     letter-spacing: -0.015em;
     background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
     background-size: 24px 24px;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    /* Theme transitions handled by View Transitions API */
 }
 
 h1,
@@ -127,6 +127,22 @@ h6 {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+}
+
+.max-w-150 {
+    max-width: 150px;
+}
+
+.max-w-200 {
+    max-width: 200px;
+}
+
+.gap-x-2 {
+    column-gap: 0.5rem;
+}
+
+.gap-y-1 {
+    row-gap: 0.25rem;
 }
 
 /* Hover effect for nav links */
@@ -383,6 +399,8 @@ h6 {
     backface-visibility: hidden;
     position: relative;
     z-index: 1;
+    will-change: transform;
+    /* Hint to browser for 120fps optimization */
 }
 
 .card-hover-effect:hover {
@@ -596,4 +614,12 @@ h6 {
 /* Dropdown open chevron rotation */
 .dropdown.show .bi-chevron-down {
     transform: rotate(180deg);
+}
+
+/* View Transitions API */
+::view-transition-old(root),
+::view-transition-new(root),
+::view-transition-group(root) {
+    animation-duration: 150ms !important;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
 }

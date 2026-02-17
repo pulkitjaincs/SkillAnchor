@@ -67,9 +67,15 @@ const Navbar = ({ name }) => {
   }, []);
 
   const toggleTheme = () => {
-    if (theme === "light") setTheme("dark");
-    else if (theme === "dark") setTheme("system");
-    else setTheme("light");
+    const nextTheme = theme === "light" ? "dark" : theme === "dark" ? "system" : "light";
+
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        setTheme(nextTheme);
+      });
+    } else {
+      setTheme(nextTheme);
+    }
   };
 
   const handleSearch = (e) => {

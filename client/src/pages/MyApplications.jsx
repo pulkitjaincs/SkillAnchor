@@ -70,25 +70,25 @@ function MyApplications() {
             ) : (
                 <div className="d-flex flex-column gap-3">
                     {applications.map(app => (
-                        <div key={app._id} className="d-flex align-items-center p-4"
+                        <div key={app._id} className="d-flex flex-column flex-md-row align-items-start align-items-md-center p-3 p-sm-4 gap-3"
                             style={{
                                 background: 'var(--bg-card)',
-                                borderRadius: '50px',
+                                borderRadius: '24px',
                                 border: '1px solid var(--border-color)'
                             }}>
-                            <div className="flex-grow-1">
-                                <div className="row align-items-center">
-                                    <div className="col-lg-6 mb-2 mb-lg-0">
-                                        <h5 className="fw-bold mb-1" style={{ color: 'var(--text-main)' }}>
+                            <div className="flex-grow-1 w-100">
+                                <div className="row align-items-center g-2">
+                                    <div className="col-md-7">
+                                        <h5 className="fw-bold mb-1 text-truncate" style={{ color: 'var(--text-main)', fontSize: '1.05rem' }}>
                                             {app.job?.title || 'Job Deleted'}
                                         </h5>
-                                        <div className="d-flex flex-wrap gap-3" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                            <span><i className="bi bi-geo-alt me-1"></i>{app.job?.city}, {app.job?.state}</span>
+                                        <div className="d-flex flex-wrap gap-x-3 gap-y-1" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                            <span className="text-truncate"><i className="bi bi-geo-alt me-1"></i>{app.job?.city}, {app.job?.state}</span>
                                             <span><i className="bi bi-currency-rupee me-1"></i>{formatSalary(app.job?.salaryMin, app.job?.salaryMax)}</span>
                                         </div>
                                     </div>
-                                    <div className="col-lg-6">
-                                        <div className="d-flex gap-3 align-items-center">
+                                    <div className="col-md-5">
+                                        <div className="d-flex gap-3 align-items-center flex-wrap">
                                             {getStatusBadge(app.status)}
                                             <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                                                 <i className="bi bi-calendar3 me-1"></i>
@@ -98,30 +98,22 @@ function MyApplications() {
                                     </div>
                                 </div>
                             </div>
-                            <div className="d-flex gap-2 ms-3">
+                            <div className="d-flex gap-2 w-100 w-md-auto justify-content-start justify-content-md-end">
                                 <button
                                     onClick={() => setSelectedApp(app)}
-                                    className="d-flex align-items-center justify-content-center rounded-pill px-3 py-2 btn-action-view"
-                                    style={{ background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--border-color)', fontSize: '0.85rem', transition: 'all 0.2s ease', cursor: 'pointer' }}
-                                    onMouseEnter={e => { e.target.style.transform = 'scale(1.05)'; e.target.style.background = 'var(--primary-500)'; e.target.style.color = 'white'; e.target.style.borderColor = 'var(--primary-500)'; }}
-                                    onMouseLeave={e => { e.target.style.transform = 'scale(1)'; e.target.style.background = 'var(--bg-surface)'; e.target.style.color = 'var(--text-main)'; e.target.style.borderColor = 'var(--border-color)'; }}>
+                                    className="d-flex align-items-center justify-content-center rounded-pill px-3 py-2 btn-action-view flex-grow-1 flex-md-grow-0"
+                                    style={{ background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--border-color)', fontSize: '0.85rem', transition: 'all 0.2s ease', cursor: 'pointer' }}>
                                     <i className="bi bi-eye-fill me-1"></i> View
                                 </button>
                                 <button
                                     onClick={() => handleWithdraw(app._id)}
                                     disabled={withdrawMutation.isLoading || !['pending', 'viewed'].includes(app.status)}
-                                    className="d-flex align-items-center justify-content-center rounded-pill px-3 py-2 border-0"
+                                    className="d-flex align-items-center justify-content-center rounded-pill px-3 py-2 border-0 flex-grow-1 flex-md-grow-0"
                                     style={{
                                         background: ['pending', 'viewed'].includes(app.status) ? 'rgba(239, 68, 68, 0.15)' : 'var(--bg-surface)',
                                         color: ['pending', 'viewed'].includes(app.status) ? '#ef4444' : 'var(--text-muted)',
                                         fontSize: '0.85rem', transition: 'all 0.2s ease',
                                         cursor: ['pending', 'viewed'].includes(app.status) ? 'pointer' : 'not-allowed'
-                                    }}
-                                    onMouseEnter={e => { if (!e.target.disabled) { e.target.style.transform = 'scale(1.05)'; e.target.style.background = '#ef4444'; e.target.style.color = 'white'; } }}
-                                    onMouseLeave={e => {
-                                        if (['pending', 'viewed'].includes(app.status)) {
-                                            e.target.style.transform = 'scale(1)'; e.target.style.background = 'rgba(239, 68, 68, 0.15)'; e.target.style.color = '#ef4444';
-                                        }
                                     }}>
                                     {withdrawMutation.isLoading && withdrawMutation.variables === app._id ? (
                                         <span className="spinner-border spinner-border-sm"></span>

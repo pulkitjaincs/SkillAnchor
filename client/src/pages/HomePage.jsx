@@ -122,18 +122,22 @@ function HomePage() {
                                 useWindowScroll
                                 data={allJobs}
                                 endReached={() => hasNextPage && fetchNextPage()}
-                                overscan={200}
+                                overscan={1500}
+                                increaseViewportBy={1000}
+                                atBottomThreshold={300}
                                 itemContent={(index, job) => (
-                                    <Card
-                                        job={job}
-                                        isSelected={selectedJob?._id === job._id}
-                                        onClick={(e) => handleJobClick(job, e)}
-                                    />
+                                    <div className="pb-3 px-1">
+                                        <Card
+                                            job={job}
+                                            isSelected={selectedJob?._id === job._id}
+                                            onClick={(e) => handleJobClick(job, e)}
+                                        />
+                                    </div>
                                 )}
                                 components={{
                                     Footer: () => {
-                                        if (isFetchingNextPage) return <div className="py-3 text-center text-muted">Loading more...</div>;
-                                        if (!hasNextPage && allJobs.length > 0) return <div className="py-3 text-center text-muted small">You've reached the end of the list</div>;
+                                        if (isFetchingNextPage) return <div className="py-4 text-center text-muted"><div className="spinner-border spinner-border-sm me-2"></div>Loading more...</div>;
+                                        if (!hasNextPage && allJobs.length > 0) return <div className="py-5 text-center text-muted small border-top mt-4">You've reached the end of the list</div>;
                                         return null;
                                     }
                                 }}
@@ -143,7 +147,7 @@ function HomePage() {
                 </div>
 
                 <div className={`${detailColumnClass} layout-transition`}
-                    style={{ position: 'sticky', height: "calc(100vh - 106px)", overflowY: "hidden", top: "96px", borderRadius: "24px", zIndex: 1100 }}>
+                    style={{ position: 'sticky', height: "calc(100vh - 120px)", overflowY: "hidden", top: "110px", borderRadius: "24px", zIndex: 1100 }}>
                     {selectedJob && (
                         <Suspense fallback={<div className="h-100 d-flex align-items-center justify-content-center text-muted">Loading Details...</div>}>
                             <Listing

@@ -62,6 +62,7 @@ const SearchHero = ({ onSearch, initialSearchQuery = '', initialLocation = '', i
                             placeholder="Search job titles or skills..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
+                            style={{ color: 'var(--text-main)' }}
                         />
                     </div>
 
@@ -75,6 +76,7 @@ const SearchHero = ({ onSearch, initialSearchQuery = '', initialLocation = '', i
                             placeholder="City or state..."
                             value={location}
                             onChange={(e) => setLocation(e.target.value)}
+                            style={{ color: 'var(--text-main)' }}
                         />
                     </div>
 
