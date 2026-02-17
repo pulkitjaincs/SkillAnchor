@@ -58,7 +58,7 @@ function LoginPage() {
                     setLoading(false);
                     return;
                 }
-                const {data} = await authAPI.verifyOTP({ phone, otp });
+                const { data } = await authAPI.verifyOTP({ phone, otp });
                 if (data.token) {
                     login(data.token, data.user);
                     navigate(redirect);
@@ -81,7 +81,7 @@ function LoginPage() {
                         setLoading(false);
                         return;
                     }
-                    const {data} = await authAPI.login({ email, password });
+                    const { data } = await authAPI.login({ email, password });
                     if (data.token) {
                         login(data.token, data.user);
                         navigate(redirect);
@@ -101,7 +101,7 @@ function LoginPage() {
                         setLoading(false);
                         return;
                     }
-                    const {data} = await authAPI.verifyOTP({ email, otp });
+                    const { data } = await authAPI.verifyOTP({ email, otp });
                     if (data.token) {
                         login(data.token, data.user);
                         navigate(redirect);
@@ -136,7 +136,7 @@ function LoginPage() {
                         <div className="text-center pt-5 pb-4 px-4" style={{ background: 'linear-gradient(135deg, var(--primary-100), var(--zinc-100))' }}>
                             <div className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
                                 style={{ width: '64px', height: '64px', background: 'var(--text-main)', color: 'var(--bg-body)' }}>
-                                <span className="fw-bold" style={{ fontSize: '28px', letterSpacing: '-0.05em' }}>K</span>
+                                <span className="fw-bold" style={{ fontSize: '28px', letterSpacing: '-0.05em' }}>S</span>
                             </div>
                             <h2 className="fw-bold mb-1" style={{ letterSpacing: '-0.03em', color: 'var(--text-main)' }}>Welcome Back</h2>
                             <p className="mb-0" style={{ color: 'var(--text-muted)' }}>Sign in to find your next opportunity</p>
@@ -292,7 +292,7 @@ function LoginPage() {
                             </div>
 
                             <p className="text-center mb-0" style={{ color: 'var(--text-muted)' }}>
-                                New to KaamSetu?{' '}
+                                New to SkillAnchor?{' '}
                                 <Link to="/register" className="fw-semibold text-decoration-none" style={{ color: 'var(--text-main)' }}>Create an account</Link>
                             </p>
                         </div>

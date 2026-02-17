@@ -1,8 +1,8 @@
-# KaamSetu
+# SkillAnchor
 
 **The job platform for hourly and skilled workers.**
 
-KaamSetu connects workers with employers hiring for hourly, part-time, and full-time roles across industries. Whether you're a student looking for weekend shifts, a skilled tradesperson seeking steady work, or an employer filling positions fast—KaamSetu makes it simple.
+SkillAnchor connects workers with employers hiring for hourly, part-time, and full-time roles across industries. Whether you're a student looking for weekend shifts, a skilled tradesperson seeking steady work, or an employer filling positions fast—SkillAnchor makes it simple.
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-20-339933?logo=node.js&logoColor=white)
@@ -17,7 +17,7 @@ Finding hourly and blue-collar work is still broken. Workers scroll through clut
 
 ## The Solution
 
-KaamSetu is a focused platform where:
+SkillAnchor is a focused platform where:
 - **Workers** find jobs that match their skills and schedule, apply instantly, and track every application
 - **Employers** post openings, review candidates, and hire—without wasting time
 
@@ -113,15 +113,15 @@ Built for simplicity. Works on any device.
 ### Installation
 
 ```bash
-git clone https://github.com/pulkitjaincs/KaamSetu.git
-cd KaamSetu
+git clone https://github.com/pulkitjaincs/SkillAnchor.git
+cd SkillAnchor
 npm run install:all
 ```
 
 Create `server/.env`:
 
 ```env
-MONGO_URI=mongodb://localhost:27017/kaamsetu
+MONGO_URI=mongodb://localhost:27017/skillanchor
 JWT_SECRET=your-secret-key
 PORT=5000
 
@@ -149,7 +149,7 @@ Frontend: `http://localhost:5173` | Backend: `http://localhost:5000`
 ## Architecture
 
 ```
-KaamSetu/
+SkillAnchor/
 ├── client/                 # React frontend
 │   └── src/
 │       ├── components/     # UI components (Navbar, SearchHero, Cards, FormComponents)
@@ -286,5 +286,5 @@ MIT © 2025-2026
 ---
 
 <p align="center">
-  <strong>KaamSetu</strong> — Work, simplified.
+  <strong>SkillAnchor</strong> — Work, simplified.
 </p>

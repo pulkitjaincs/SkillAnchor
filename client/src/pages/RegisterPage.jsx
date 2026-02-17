@@ -52,7 +52,7 @@ function RegisterPage() {
             }
             async function verifyOtp() {
                 try {
-                    const {data} = await authAPI.verifyOTP({ phone, role, name, otp });
+                    const { data } = await authAPI.verifyOTP({ phone, role, name, otp });
                     if (data.token) {
                         login(data.token, data.user);
                         navigate('/');
@@ -77,7 +77,7 @@ function RegisterPage() {
             }
             async function register() {
                 try {
-                    const {data} = await authAPI.register({ email, role, name, password });
+                    const { data } = await authAPI.register({ email, role, name, password });
                     if (data.token) {
                         login(data.token, data.user);
                         navigate('/');
@@ -102,9 +102,9 @@ function RegisterPage() {
                         <div className="text-center pt-5 pb-4 px-4" style={{ background: 'linear-gradient(135deg, var(--primary-100), var(--zinc-100))' }}>
                             <div className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
                                 style={{ width: '64px', height: '64px', background: 'var(--text-main)', color: 'var(--bg-body)' }}>
-                                <span className="fw-bold" style={{ fontSize: '28px', letterSpacing: '-0.05em' }}>K</span>
+                                <span className="fw-bold" style={{ fontSize: '28px', letterSpacing: '-0.05em' }}>S</span>
                             </div>
-                            <h2 className="fw-bold mb-1" style={{ letterSpacing: '-0.03em', color: 'var(--text-main)' }}>Join KaamSetu</h2>
+                            <h2 className="fw-bold mb-1" style={{ letterSpacing: '-0.03em', color: 'var(--text-main)' }}>Join SkillAnchor</h2>
                             <p className="mb-0" style={{ color: 'var(--text-muted)' }}>Create your account to get started</p>
                         </div>
 

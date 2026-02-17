@@ -126,9 +126,9 @@ const Navbar = ({ name }) => {
           <Link className="navbar-brand fw-bolder fs-4 d-flex align-items-center gap-2 me-4 logo-hover flex-shrink-0" to="/">
             <div className="d-flex align-items-center justify-content-center rounded-circle"
               style={{ width: "32px", height: "32px", background: "var(--text-main)", color: "var(--bg-body)" }}>
-              <span className="fw-bold" style={{ fontSize: "16px", letterSpacing: "-0.05em" }}>K</span>
+              <span className="fw-bold" style={{ fontSize: "16px", letterSpacing: "-0.05em" }}>S</span>
             </div>
-            <span style={{ letterSpacing: "-0.05em", color: "var(--text-main)" }}>KaamSetu</span>
+            <span style={{ letterSpacing: "-0.05em", color: "var(--text-main)" }}>SkillAnchor</span>
           </Link>
 
           {isHomePage && (
