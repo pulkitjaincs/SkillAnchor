@@ -22,6 +22,13 @@
 - **Request Validation**: Implemented strict schema-based input validation using **Zod**.
 - **NoSQL Injection Guard**: Added custom middleware to sanitize all incoming user data.
 
+## ⚡ Performance & UX Upgrades
+
+- **Database Optimization**: Added compound indexes for complex queries (e.g., sort by date within groups).
+- **Smooth Navigation**: Integrated **Framer Motion** for seamless page transitions.
+- **Build Efficiency**: Configured Vite manual chunks for better caching.
+- **SEO & Accessibility**: Added comprehensive meta tags and improved semantic structure.
+
 ---
 
 ## Overview

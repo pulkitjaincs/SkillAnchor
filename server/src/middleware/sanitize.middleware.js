@@ -11,8 +11,8 @@ export const sanitizeData = (obj) => {
     return obj;
 }
 export const nosqlSanitize = (req, res, next) => {
-    req.body = sanitizeData(req.body);
-    req.query = sanitizeData(req.query);
-    req.params = sanitizeData(req.params);
+    if (req.body) sanitizeData(req.body);
+    if (req.query) sanitizeData(req.query);
+    if (req.params) sanitizeData(req.params);
     next();
 }

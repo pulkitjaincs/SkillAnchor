@@ -89,6 +89,7 @@ const JobSchema = new mongoose.Schema({
 JobSchema.index({ status: 1, category: 1, city: 1 });
 JobSchema.index({ status: 1, createdAt: -1 });
 JobSchema.index({ employer: 1, status: 1 });
+JobSchema.index({ employer: 1, createdAt: -1 });
 JobSchema.index({ company: 1 });
 JobSchema.index({
     title: "text",

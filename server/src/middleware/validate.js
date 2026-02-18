@@ -30,6 +30,13 @@ export const loginSchema = z.object({
     }).refine(data => data.email || data.phone, "Email or Phone is required")
 });
 
+export const otpSchema = z.object({
+    body: z.object({
+        email: z.string().email().optional(),
+        phone: z.string().regex(/^\d{10}$/, "Invalid phone number").optional(),
+    }).refine(data => data.email || data.phone, "Email or Phone is required")
+});
+
 export const verifyOTPSchema = z.object({
     body: z.object({
         email: z.string().email().optional(),

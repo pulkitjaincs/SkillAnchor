@@ -71,6 +71,7 @@ const WorkExperienceSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 WorkExperienceSchema.index({ worker: 1, isVerified: 1 });
+WorkExperienceSchema.index({ worker: 1, isVisible: 1, startDate: -1 });
 WorkExperienceSchema.index({ company: 1 });
 WorkExperienceSchema.index({ employer: 1 });
 
