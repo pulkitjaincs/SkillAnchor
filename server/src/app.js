@@ -6,9 +6,20 @@ import authRoutes from "./routes/auth.routes.js";
 import applicationRoutes from "./routes/application.routes.js";
 import profileRoutes from "./routes/profile.routes.js";
 import workExperienceRoutes from "./routes/workExperience.routes.js";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import { nosqlSanitize } from "./middleware/sanitize.middleware.js";
 
 const app = express();
 
+app.use(helmet());
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: { error: "Too many requests, please try again later." }
+});
+app.use("/api/", limiter);
+app.use(nosqlSanitize);
 app.use(compression());
 app.use(cors());
 app.use(express.json());

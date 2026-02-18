@@ -15,6 +15,15 @@
 
 ---
 
+## 🛡️ Recent Security Enhancements
+
+- **Hardened HTTP Headers**: Integrated `helmet` middleware for protection against XSS and clickjacking.
+- **Rate Limiting**: Added `express-rate-limit` to prevent brute-force attacks on API endpoints.
+- **Request Validation**: Implemented strict schema-based input validation using **Zod**.
+- **NoSQL Injection Guard**: Added custom middleware to sanitize all incoming user data.
+
+---
+
 ## Overview
 
 SkillAnchor is a full-stack recruitment platform purpose-built for the hourly and blue-collar labor market. It connects workers—from skilled tradespeople to part-time students—with employers hiring across hospitality, retail, logistics, construction, and more.
