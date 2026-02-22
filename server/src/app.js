@@ -12,11 +12,12 @@ import { nosqlSanitize } from "./middleware/sanitize.middleware.js";
 
 const app = express();
 
+app.set('etag', 'strong');
 app.use(helmet());
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
-    message: { error: "Too many requests, please try again later." }
+    message: { success: false, error: "Too many requests, please try again later." }
 });
 app.use("/api/", limiter);
 app.use(nosqlSanitize);
@@ -38,28 +39,28 @@ app.use("/api/work-experience", workExperienceRoutes);
 app.use((err, req, res, next) => {
     // JSON parse errors
     if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-        return res.status(400).json({ error: "Invalid JSON" });
+        return res.status(400).json({ success: false, error: "Invalid JSON" });
     }
 
     // Mongoose validation errors
     if (err.name === 'ValidationError') {
         const messages = Object.values(err.errors).map(e => e.message).join(', ');
-        return res.status(400).json({ error: messages });
+        return res.status(400).json({ success: false, error: messages });
     }
 
     // Mongoose cast errors (invalid ObjectId etc.)
     if (err.name === 'CastError') {
-        return res.status(400).json({ error: `Invalid ${err.path}: ${err.value}` });
+        return res.status(400).json({ success: false, error: `Invalid ${err.path}: ${err.value}` });
     }
 
     // Duplicate key error
     if (err.code === 11000) {
-        return res.status(400).json({ error: "Duplicate value detected" });
+        return res.status(400).json({ success: false, error: "Duplicate value detected" });
     }
 
     const status = err.status || 500;
     if (status >= 500) console.error(err.stack);
-    res.status(status).json({ error: err.message || 'Internal Server Error' });
+    res.status(status).json({ success: false, error: err.message || 'Internal Server Error' });
 });
 
 export default app;

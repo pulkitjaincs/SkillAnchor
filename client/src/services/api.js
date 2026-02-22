@@ -46,7 +46,7 @@ export const authAPI = {
 export const jobsAPI = {
     getAll: (params) => api.get('/jobs', { params }),
     getById: (id) => api.get(`/jobs/${id}`),
-    getMyJobs: () => api.get('/jobs/my-jobs'),
+    getMyJobs: (params) => api.get('/jobs/my-jobs', { params }),
     create: (data) => api.post('/jobs', data),
     update: (id, data) => api.put(`/jobs/${id}`, data),
     delete: (id) => api.delete(`/jobs/${id}`)
@@ -55,8 +55,8 @@ export const jobsAPI = {
 // Applications API
 export const applicationsAPI = {
     apply: (jobId, data) => api.post(`/applications/apply/${jobId}`, data),
-    getMyApplications: () => api.get('/applications/my-applications'),
-    getJobApplicants: (jobId) => api.get(`/applications/job/${jobId}`),
+    getMyApplications: (params) => api.get('/applications/my-applications', { params }),
+    getJobApplicants: (jobId, params) => api.get(`/applications/job/${jobId}`, { params }),
     updateStatus: (id, status) => api.patch(`/applications/${id}/status`, { status }),
     withdraw: (id) => api.delete(`/applications/${id}`)
 };
@@ -66,7 +66,7 @@ export const profileAPI = {
     getMyProfile: () => api.get('/profile/my-profile'),
     updateMyProfile: (data) => api.put('/profile/my-profile', data),
     getByUserId: (userId) => api.get(`/profile/user/${userId}`),
-    getMyTeam: () => api.get('/profile/my-team'),
+    getMyTeam: (params) => api.get('/profile/my-team', { params }),
     uploadAvatar: (formData) => api.post('/profile/upload-avatar', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     })

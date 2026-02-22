@@ -3,6 +3,7 @@ import Job from "../models/Job.model.js";
 import WorkExperience from "../models/WorkExperience.model.js";
 import WorkerProfile from "../models/WorkerProfile.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { applicationEmitter } from "../events/application.events.js";
 
 export const applyToJob = asyncHandler(async (req, res) => {
     const { jobId } = req.params;
@@ -27,25 +28,48 @@ export const applyToJob = asyncHandler(async (req, res) => {
 });
 
 export const getMyApplications = asyncHandler(async (req, res) => {
-    const applications = await Application.find({ applicant: req.user._id })
+    const limit = parseInt(req.query.limit) || 10;
+    const cursor = req.query.cursor;
+
+    let query = { applicant: req.user._id };
+    if (cursor) query._id = { $lt: cursor };
+
+    const applications = await Application.find(query)
         .populate("job", "title company city state salaryMin salaryMax status")
-        .sort({ appliedAt: -1 })
+        .sort({ _id: -1 })
+        .limit(limit + 1)
         .lean();
-    res.json(applications);
+
+    const hasMore = applications.length > limit;
+    if (hasMore) applications.pop();
+
+    res.json({ applications, hasMore });
 });
 
 export const getJobApplicants = asyncHandler(async (req, res) => {
     const { jobId } = req.params;
+    const limit = parseInt(req.query.limit) || 10;
+    const cursor = req.query.cursor;
+
     const job = await Job.findById(jobId);
     if (!job) return res.status(404).json({ error: "Job not found" });
     if (job.employer.toString() !== req.user._id.toString()) {
         return res.status(403).json({ error: "Not authorized" });
     }
-    const applications = await Application.find({ job: jobId })
+
+    let query = { job: jobId };
+    if (cursor) query._id = { $lt: cursor };
+
+    const applications = await Application.find(query)
         .populate("applicant", "name phone email")
-        .sort({ appliedAt: -1 })
+        .sort({ _id: -1 })
+        .limit(limit + 1)
         .lean();
-    res.json(applications);
+
+    const hasMore = applications.length > limit;
+    if (hasMore) applications.pop();
+
+    res.json({ applications, hasMore });
 });
 
 export const updateApplicationStatus = asyncHandler(async (req, res) => {
@@ -63,26 +87,7 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
     await application.save();
 
     if (status === "hired") {
-        const workExp = await WorkExperience.create({
-            worker: application.applicant,
-            employer: req.user._id,
-            linkedApplication: application._id,
-            company: application.job.company?._id,
-            companyName: application.job.company?.name,
-            role: application.job.title,
-            startDate: new Date(),
-            isCurrent: true,
-            addedBy: "employer",
-            isVerified: true,
-        });
-
-        await WorkerProfile.findOneAndUpdate(
-            { user: application.applicant },
-            {
-                $push: { workHistory: workExp._id },
-                $set: { currentlyEmployed: true }
-            }
-        );
+        applicationEmitter.emit('hired', { application, employerId: req.user._id });
     }
 
     res.json(application);

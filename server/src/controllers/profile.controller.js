@@ -5,6 +5,7 @@ import User from "../models/User.model.js";
 import { uploadToS3 } from "../config/s3.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { assembleProfileResponse } from "../services/profile.service.js";
+import mongoose from "mongoose";
 
 export const uploadAvatar = asyncHandler(async (req, res) => {
     if (!req.file) {
@@ -25,17 +26,28 @@ export const uploadAvatar = asyncHandler(async (req, res) => {
 });
 
 export const getMyTeam = asyncHandler(async (req, res) => {
-    const team = await WorkExperience.find({
+    const limit = parseInt(req.query.limit) || 10;
+    const cursor = req.query.cursor;
+
+    let query = {
         employer: req.user._id,
         $or: [
             { endDate: { $exists: false } },
             { endDate: null }
         ]
-    }, { worker: 1, role: 1, startDate: 1, company: 1, companyName: 1, isVerified: 1 })
+    };
+    if (cursor) query._id = { $lt: cursor };
+
+    const team = await WorkExperience.find(query, { worker: 1, role: 1, startDate: 1, company: 1, companyName: 1, isVerified: 1 })
         .populate("worker", "name phone avatar email")
+        .sort({ _id: -1 })
+        .limit(limit + 1)
         .lean();
 
-    res.json(team);
+    const hasMore = team.length > limit;
+    if (hasMore) team.pop();
+
+    res.json({ team, hasMore });
 });
 
 export const getMyProfile = asyncHandler(async (req, res) => {
@@ -99,15 +111,33 @@ export const updateMyProfile = asyncHandler(async (req, res) => {
 export const getProfileByUserId = asyncHandler(async (req, res) => {
     const { userId } = req.params;
 
-    const [profile, user] = await Promise.all([
-        WorkerProfile.findOne({ user: userId })
-            .populate({ path: "workHistory", populate: { path: "company", select: "name logo" } })
-            .lean(),
-        User.findById(userId).select("-password -__v").lean()
+    const userAggr = await User.aggregate([
+        { $match: { _id: new mongoose.Types.ObjectId(userId) } },
+        { $project: { password: 0, __v: 0 } },
+        {
+            $lookup: {
+                from: "workerprofiles",
+                localField: "_id",
+                foreignField: "user",
+                as: "profile"
+            }
+        },
+        { $unwind: { path: "$profile", preserveNullAndEmptyArrays: true } }
     ]);
 
-    if (!user) {
+    if (!userAggr || userAggr.length === 0) {
         return res.status(404).json({ error: "User not found" });
+    }
+
+    let user = userAggr[0];
+    let profile = user.profile || null;
+    delete user.profile;
+
+    if (profile && profile.workHistory && profile.workHistory.length > 0) {
+        await WorkerProfile.populate(profile, {
+            path: "workHistory",
+            populate: { path: "company", select: "name logo" }
+        });
     }
 
     return res.status(200).json(assembleProfileResponse(profile, user, user.role || 'worker'));

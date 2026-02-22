@@ -26,11 +26,14 @@
 
 ## ⚡ Performance & UX
 
-- **Database Optimization**: Compound indexes, `.lean()` on all reads, field projections, `Promise.all` for parallel queries.
-- **Smooth Navigation**: **Framer Motion** for seamless page transitions.
-- **Build Efficiency**: Vite manual chunks for vendor code caching.
+- **Database Optimization**: Compound indexes, `.lean()` on all reads, field projections, **Cursor-based Pagination** on all list endpoints, and **Aggregation Pipelines** for optimized profile joins.
+- **Smooth Navigation**: **Framer Motion** for seamless page transitions with hardware-accelerated **Reduced Motion** fallbacks.
+- **Data Synchronization**: **Optimistic UI Updates** for instantaneous feedback on applications and team management.
+- **List Performance**: **React Virtuoso** implementation for 60fps scrolling on massive datasets (My Jobs, My Team, Applicants).
+- **Build Efficiency**: Vite manual chunks for vendor code caching and **Bundle Analysis** integration.
 - **SEO & Accessibility**: Comprehensive meta tags and semantic HTML.
 - **Component Memoization**: `React.memo` and `useCallback` on reusable components to prevent unnecessary re-renders.
+- **Unified Logic**: Custom hooks (`useLogin`, `useRegister`) for clean separation of UI and business logic.
 
 ---
 
@@ -102,16 +105,21 @@ The platform is engineered for **performance**, **scalability**, and a **premium
 
 | Optimization | Impact |
 | :--- | :--- |
-| **React.memo + useCallback** | Reusable components (`Card`, `Listing`, profile/settings sub-components) skip re-renders when props are unchanged |
-| **React Query** | `@tanstack/react-query` with `staleTime` tuning, `refetchOnWindowFocus: false`, and query invalidation |
+| **List Virtualization** | `react-virtuoso` renders only visible nodes, keeping DOM small on large lists (Applicants, Team, Jobs) |
+| **Cursor Pagination** | Native database-level pagination prevents loading massive arrays into server memory |
+| **Optimistic Updates** | Cache mutations provide instantaneous UI feedback for Apply, Withdraw, and Hire actions |
+| **Aggregation Pipelines** | MongoDB `$lookup` replaces dual-query bottlenecks for Profile loading |
+| **Async Event Emitter**| Heavy multi-model writes (e.g., Hiring) decoupled from main HTTP thread for faster response |
+| **Reduced Motion Opt-in**| Automatic fallback to CSS opacity/instant swaps for hardware that prefers reduced motion |
+| **Bundle Analysis** | `rollup-plugin-visualizer` generates interactive maps to track and strip dependency bloat |
+| **React Query Tuning** | Global `refetchOnWindowFocus: false` eliminates redundant background network traffic |
+| **Hook Extraction** | Monolithic page state (Login/Register) extracted into reusable custom hooks (e.g., `useLogin`) |
+| **React.memo + Callback**| Reusable components (`Card`, `Listing`, etc.) skip re-renders when props are unchanged |
+| **Backend `.lean()`** | Mongoose `.lean()` + field projection on all read queries |
 | **View Transitions API** | Native hardware-accelerated **150ms** theme transitions via `document.startViewTransition()` |
 | **Route-Level Splitting** | `React.lazy()` for all pages reduces initial bundle size |
-| **Component Lazy Loading** | Heavy sub-components (Modals) loaded on demand via `React.lazy` |
-| **Backend `.lean()`** | Mongoose `.lean()` + field projection on all read queries |
-| **Parallel Queries** | `Promise.all` for independent database lookups (e.g., profile + user) |
-| **Gzip Compression** | `compression` middleware for all API responses |
+| **Compression** | `compression` middleware for all API responses |
 | **Service Layer** | DRY business logic (OTP, profile assembly) extracted from controllers |
-| **Async Error Handling** | `asyncHandler` utility eliminates try/catch boilerplate across all controllers |
 
 ---
 
@@ -315,6 +323,13 @@ npm run dev:client    # Frontend → http://localhost:5173
 - [x] Flattened Search Hero with category chips
 - [x] Scroll-linked Navbar with search morph
 - [x] Performance: Virtualization, React Query, Lazy Loading, Gzip
+- [x] Cursor-based Pagination for all lists
+- [x] Optimistic UI Updates (Apply/Withdraw/Hire)
+- [x] Hardware-accelerated Reduced Motion support
+- [x] Decoupled Background Processing (EventEmitter)
+- [x] MongoDB Aggregation Pipelines for Profile Joins
+- [x] Bundle Analysis integration
+- [x] Monolithic Auth state extraction to Custom Hooks
 - [x] View Transitions API for hardware-accelerated theme switching
 - [x] Brand overhaul to SkillAnchor with database migration
 - [x] Backend service layer (auth, profile) with DRY business logic
@@ -322,8 +337,6 @@ npm run dev:client    # Frontend → http://localhost:5173
 - [x] Zod validation on all API routes
 - [x] Frontend component modularization (WorkerProfilePage, SettingsPage)
 - [x] React.memo + useCallback optimization on reusable components
-- [ ] Redis caching layer for API responses
-- [ ] Salary range filter UI
 - [ ] Shift-based scheduling with calendar view
 - [ ] Real-time in-app messaging (Socket.io)
 - [ ] Push notifications

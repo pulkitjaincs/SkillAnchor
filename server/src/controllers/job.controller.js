@@ -68,12 +68,23 @@ export const getJobById = asyncHandler(async (req, res) => {
 });
 
 export const getMyJobs = asyncHandler(async (req, res) => {
-    const jobs = await Job.find({ employer: req.user._id },
+    const limit = parseInt(req.query.limit) || 10;
+    const cursor = req.query.cursor;
+
+    let query = { employer: req.user._id };
+    if (cursor) query._id = { $lt: cursor };
+
+    const jobs = await Job.find(query,
         { title: 1, company: 1, city: 1, state: 1, status: 1, applicationsCount: 1, salaryMin: 1, salaryMax: 1, salaryType: 1, jobType: 1, createdAt: 1 })
         .populate("company", "name logo")
-        .sort({ createdAt: -1 })
+        .sort({ _id: -1 })
+        .limit(limit + 1)
         .lean();
-    res.json(jobs);
+
+    const hasMore = jobs.length > limit;
+    if (hasMore) jobs.pop();
+
+    res.json({ jobs, hasMore });
 });
 
 export const createJob = asyncHandler(async (req, res) => {

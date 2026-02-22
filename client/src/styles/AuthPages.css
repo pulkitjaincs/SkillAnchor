@@ -1,0 +1,151 @@
+/* AuthPages.css */
+
+.auth-page-container {
+    min-height: 100vh;
+    background-color: var(--bg-body);
+}
+
+.auth-card {
+    border-radius: 24px;
+    background: var(--bg-card);
+    overflow: hidden;
+}
+
+.auth-header {
+    background: linear-gradient(135deg, var(--primary-100), var(--zinc-100));
+}
+
+.auth-header-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--text-main);
+    color: var(--bg-body);
+    font-size: 28px;
+    letter-spacing: -0.05em;
+}
+
+.auth-header-title {
+    letter-spacing: -0.03em;
+    color: var(--text-main);
+}
+
+.auth-header-subtitle {
+    color: var(--text-muted);
+}
+
+.auth-toggle-group {
+    background: var(--bg-surface);
+}
+
+.auth-toggle-btn {
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.auth-toggle-btn.active {
+    background: var(--bg-card);
+    color: var(--text-main);
+}
+
+.auth-sub-toggle-btn {
+    background: var(--bg-surface);
+    color: var(--text-muted);
+    border: none;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+}
+
+.auth-sub-toggle-btn.active {
+    background: var(--text-main);
+    color: var(--bg-body);
+}
+
+.auth-error-box {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.auth-error-icon, .auth-error-text {
+    color: #ef4444;
+}
+
+.auth-form-label {
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+}
+
+.auth-input-group-text {
+    background: var(--bg-surface);
+    color: var(--text-muted);
+    border-radius: 12px 0 0 12px;
+}
+
+.auth-form-control {
+    background: var(--bg-surface);
+    color: var(--text-main);
+    border-radius: 12px;
+    font-size: 1rem;
+}
+
+.auth-form-control-phone {
+    border-radius: 0 12px 12px 0;
+}
+
+.auth-otp-input {
+    font-size: 1.2rem;
+    letter-spacing: 0.5em;
+    text-align: center;
+}
+
+.auth-link {
+    color: var(--primary-600);
+}
+
+.auth-submit-btn {
+    background: var(--text-main);
+    color: var(--bg-body);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.auth-hr {
+    border-color: var(--border-color);
+}
+
+.auth-text-muted {
+    color: var(--text-muted);
+}
+
+.auth-text-main {
+    color: var(--text-main);
+}
+
+.role-selector-card {
+    background: var(--bg-surface);
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.role-selector-card.active {
+    background: var(--primary-100);
+    border-color: var(--primary-600);
+}
+
+.role-icon {
+    color: var(--text-muted);
+}
+
+.role-icon.active {
+    color: var(--primary-600);
+}
+
+.role-text {
+    color: var(--text-muted);
+}
+
+.role-text.active {
+    color: var(--text-main);
+}

@@ -1,10 +1,21 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { VirtuosoGrid } from 'react-virtuoso';
 import { formatDate, getInitials } from '../utils/index';
 import { useMyTeam, useEndEmployment } from '../hooks/queries/useProfile';
 
 function HiredWorkersPage() {
-    const { data: team = [], isLoading: loading } = useMyTeam();
+    const {
+        data: teamData,
+        isLoading: loading,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage
+    } = useMyTeam();
+
+    const team = useMemo(() => {
+        return teamData?.pages.flatMap(page => page.team) || [];
+    }, [teamData]);
     const endEmploymentMutation = useEndEmployment();
 
     const endEmployment = async (id) => {
@@ -48,8 +59,8 @@ function HiredWorkersPage() {
                 </div>
 
                 {/* Team Grid */}
-                <div className="row g-4">
-                    {team.length === 0 ? (
+                {team.length === 0 ? (
+                    <div className="row g-4">
                         <div className="col-12 text-center py-5">
                             <div className="d-inline-flex align-items-center justify-content-center rounded-circle mb-4"
                                 style={{ width: '100px', height: '100px', background: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)' }}>
@@ -61,81 +72,93 @@ function HiredWorkersPage() {
                                 View Job Applicants
                             </Link>
                         </div>
-                    ) : (
-                        team.map(member => (
-                            <div className="col-lg-4 col-md-6" key={member._id}>
-                                <div className="card h-100 border-0 shadow-sm overflow-hidden"
-                                    style={{ borderRadius: '24px', background: 'var(--bg-card)' }}>
+                    </div>
+                ) : (
+                    <VirtuosoGrid
+                        useWindowScroll
+                        data={team}
+                        endReached={() => {
+                            if (hasNextPage) fetchNextPage();
+                        }}
+                        listClassName="row g-4 m-0"
+                        itemClassName="col-lg-4 col-md-6 pb-4"
+                        itemContent={(index, member) => (
+                            <div className="card h-100 border-0 shadow-sm overflow-hidden"
+                                style={{ borderRadius: '24px', background: 'var(--bg-card)' }}>
 
-                                    <div className="card-body p-4">
-                                        {/* Member Header & Info */}
-                                        <div className="d-flex align-items-center justify-content-between mb-4">
-                                            <div className="d-flex align-items-center gap-3">
-                                                <div className="position-relative">
-                                                    <div className="rounded-circle d-flex align-items-center justify-content-center"
-                                                        style={{ width: '64px', height: '64px', background: 'linear-gradient(135deg, var(--primary-100), var(--zinc-100))' }}>
-                                                        {member.worker?.avatar ? (
-                                                            <img src={member.worker.avatar} alt={member.worker.name} className="rounded-circle" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                        ) : (
-                                                            <span className="fw-bold text-primary fs-5">{getInitials(member.worker?.name)}</span>
-                                                        )}
-                                                    </div>
-                                                    <div className="position-absolute bottom-0 end-0 bg-success rounded-circle border border-white border-2"
-                                                        style={{ width: '14px', height: '14px' }} title="Active"></div>
+                                <div className="card-body p-4">
+                                    {/* Member Header & Info */}
+                                    <div className="d-flex align-items-center justify-content-between mb-4">
+                                        <div className="d-flex align-items-center gap-3">
+                                            <div className="position-relative">
+                                                <div className="rounded-circle d-flex align-items-center justify-content-center"
+                                                    style={{ width: '64px', height: '64px', background: 'linear-gradient(135deg, var(--primary-100), var(--zinc-100))' }}>
+                                                    {member.worker?.avatar ? (
+                                                        <img src={member.worker.avatar} alt={member.worker.name} className="rounded-circle" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                    ) : (
+                                                        <span className="fw-bold text-primary fs-5">{getInitials(member.worker?.name)}</span>
+                                                    )}
                                                 </div>
-                                                <div>
-                                                    <h5 className="fw-bold mb-1" style={{ color: 'var(--text-main)', letterSpacing: '-0.02em' }}>{member.worker?.name || 'Unknown Member'}</h5>
-                                                    <div className="d-inline-flex align-items-center gap-1 text-primary x-small fw-semibold px-2 py-0.5 rounded-pill" style={{ background: 'var(--primary-50)', fontSize: '0.7rem' }}>
-                                                        <i className="bi bi-briefcase-fill" style={{ fontSize: '0.65rem' }}></i>
-                                                        {member.role || 'Worker'}
-                                                    </div>
+                                                <div className="position-absolute bottom-0 end-0 bg-success rounded-circle border border-white border-2"
+                                                    style={{ width: '14px', height: '14px' }} title="Active"></div>
+                                            </div>
+                                            <div>
+                                                <h5 className="fw-bold mb-1" style={{ color: 'var(--text-main)', letterSpacing: '-0.02em' }}>{member.worker?.name || 'Unknown Member'}</h5>
+                                                <div className="d-inline-flex align-items-center gap-1 text-primary x-small fw-semibold px-2 py-0.5 rounded-pill" style={{ background: 'var(--primary-50)', fontSize: '0.7rem' }}>
+                                                    <i className="bi bi-briefcase-fill" style={{ fontSize: '0.65rem' }}></i>
+                                                    {member.role || 'Worker'}
                                                 </div>
                                             </div>
-                                            <div className="dropdown">
-                                                <button className="btn btn-link text-muted p-0 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i className="bi bi-three-dots-vertical fs-5"></i>
-                                                </button>
-                                                <ul className="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2" style={{ borderRadius: '16px' }}>
-                                                    <li>
-                                                        <Link to={`/profile/${member.worker?._id}?from=team`} className="dropdown-item d-flex align-items-center gap-2 py-2" style={{ borderRadius: '10px' }}>
-                                                            <i className="bi bi-person text-secondary"></i> View Profile
-                                                        </Link>
-                                                    </li>
-                                                    <li><hr className="dropdown-divider opacity-50" /></li>
-                                                    <li>
-                                                        <button onClick={() => endEmployment(member._id)} className="dropdown-item text-danger d-flex align-items-center gap-2 py-2" style={{ borderRadius: '10px' }}>
-                                                            <i className="bi bi-x-circle"></i> End Employment
-                                                        </button>
-                                                    </li>
-                                                </ul>
-                                            </div>
                                         </div>
+                                        <div className="dropdown">
+                                            <button className="btn btn-link text-muted p-0 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i className="bi bi-three-dots-vertical fs-5"></i>
+                                            </button>
+                                            <ul className="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2" style={{ borderRadius: '16px' }}>
+                                                <li>
+                                                    <Link to={`/profile/${member.worker?._id}?from=team`} className="dropdown-item d-flex align-items-center gap-2 py-2" style={{ borderRadius: '10px' }}>
+                                                        <i className="bi bi-person text-secondary"></i> View Profile
+                                                    </Link>
+                                                </li>
+                                                <li><hr className="dropdown-divider opacity-50" /></li>
+                                                <li>
+                                                    <button onClick={() => endEmployment(member._id)} className="dropdown-item text-danger d-flex align-items-center gap-2 py-2" style={{ borderRadius: '10px' }}>
+                                                        <i className="bi bi-x-circle"></i> End Employment
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
 
-                                        {/* Member Secondary Info */}
-                                        <div className="mb-4">
-                                            <div className="text-muted small d-flex align-items-center gap-2 opacity-75">
-                                                <i className="bi bi-calendar-check"></i>
-                                                Joined {formatDate(member.startDate)}
-                                            </div>
+                                    {/* Member Secondary Info */}
+                                    <div className="mb-4">
+                                        <div className="text-muted small d-flex align-items-center gap-2 opacity-75">
+                                            <i className="bi bi-calendar-check"></i>
+                                            Joined {formatDate(member.startDate)}
                                         </div>
+                                    </div>
 
-                                        {/* Actions */}
-                                        <div className="d-flex gap-2 pt-2">
-                                            <a href={`tel:${member.worker?.phone}`} className="btn btn-primary rounded-pill py-1.5 px-3 flex-grow-1 d-flex align-items-center justify-content-center gap-2 btn-hover-scale"
-                                                style={{ background: 'var(--primary-500)', border: 'none', fontWeight: '600', fontSize: '0.8rem' }}>
-                                                <i className="bi bi-telephone-fill" style={{ fontSize: '0.75rem' }}></i> Call Now
-                                            </a>
-                                            <Link to={`/profile/${member.worker?._id}?from=team`} className="btn rounded-pill border-0 py-2 px-3 d-flex align-items-center justify-content-center btn-hover-scale"
-                                                style={{ background: 'var(--bg-surface)', color: 'var(--text-main)' }} title="Full Profile">
-                                                <i className="bi bi-arrow-right-short fs-4"></i>
-                                            </Link>
-                                        </div>
+                                    {/* Actions */}
+                                    <div className="d-flex gap-2 pt-2">
+                                        <a href={`tel:${member.worker?.phone}`} className="btn btn-primary rounded-pill py-1.5 px-3 flex-grow-1 d-flex align-items-center justify-content-center gap-2 btn-hover-scale"
+                                            style={{ background: 'var(--primary-500)', border: 'none', fontWeight: '600', fontSize: '0.8rem' }}>
+                                            <i className="bi bi-telephone-fill" style={{ fontSize: '0.75rem' }}></i> Call Now
+                                        </a>
+                                        <Link to={`/profile/${member.worker?._id}?from=team`} className="btn rounded-pill border-0 py-2 px-3 d-flex align-items-center justify-content-center btn-hover-scale"
+                                            style={{ background: 'var(--bg-surface)', color: 'var(--text-main)' }} title="Full Profile">
+                                            <i className="bi bi-arrow-right-short fs-4"></i>
+                                        </Link>
                                     </div>
                                 </div>
                             </div>
-                        ))
-                    )}
-                </div>
+                        )}
+                        components={{
+                            Footer: () => isFetchingNextPage ? (
+                                <div className="text-center py-3 text-muted w-100">Loading more...</div>
+                            ) : null
+                        }}
+                    />
+                )}
             </div>
         </div>
     );
