@@ -83,3 +83,61 @@ export const createJobSchema = z.object({
         vacancies: z.number().optional(),
     })
 });
+
+export const applyJobSchema = z.object({
+    params: z.object({
+        jobId: z.string().min(1, "Job ID is required"),
+    }),
+    body: z.object({
+        coverNote: z.string().max(500).optional(),
+    })
+});
+
+export const updateStatusSchema = z.object({
+    params: z.object({
+        id: z.string().min(1, "Application ID is required"),
+    }),
+    body: z.object({
+        status: z.enum(["pending", "viewed", "shortlisted", "rejected", "hired", "employment-ended"],
+            { errorMap: () => ({ message: "Invalid status value" }) }),
+    })
+});
+
+export const updateProfileSchema = z.object({
+    body: z.object({
+        name: z.string().min(2).optional(),
+        gender: z.enum(["male", "female", "other"]).optional(),
+        dob: z.string().optional(),
+        whatsapp: z.string().optional(),
+        email: z.string().email().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        pincode: z.string().optional(),
+        bio: z.string().max(500).optional(),
+        skills: z.array(z.string()).optional(),
+        languages: z.array(z.string()).optional(),
+        designation: z.string().optional(),
+        isHiringManager: z.boolean().optional(),
+        expectedSalary: z.object({
+            min: z.number().optional(),
+            max: z.number().optional(),
+            type: z.enum(["monthly", "daily"]).optional(),
+        }).optional(),
+        documents: z.record(z.any()).optional(),
+    })
+});
+
+export const workExperienceSchema = z.object({
+    body: z.object({
+        role: z.string().min(1, "Role is required"),
+        startDate: z.string().min(1, "Start date is required"),
+        endDate: z.string().optional(),
+        companyName: z.string().optional(),
+        company: z.string().optional(),
+        department: z.string().optional(),
+        description: z.string().max(1000).optional(),
+        skills: z.array(z.string()).optional(),
+        isCurrent: z.boolean().optional(),
+    })
+});
+

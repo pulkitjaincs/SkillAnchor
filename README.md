@@ -9,25 +9,28 @@
   <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React" />
   <img src="https://img.shields.io/badge/Node.js-20.x-339933?logo=node.js&logoColor=white" alt="Node.js" />
   <img src="https://img.shields.io/badge/MongoDB-8.0-47A248?logo=mongodb&logoColor=white" alt="MongoDB" />
-  <img src="https://img.shields.io/badge/Vite-6.x-646CFF?logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/Vite-7.x-646CFF?logo=vite&logoColor=white" alt="Vite" />
   <img src="https://img.shields.io/badge/AWS_S3-Storage-FF9900?logo=amazonaws&logoColor=white" alt="AWS S3" />
 </p>
 
 ---
 
-## 🛡️ Recent Security Enhancements
+## 🛡️ Security
 
-- **Hardened HTTP Headers**: Integrated `helmet` middleware for protection against XSS and clickjacking.
-- **Rate Limiting**: Added `express-rate-limit` to prevent brute-force attacks on API endpoints.
-- **Request Validation**: Implemented strict schema-based input validation using **Zod**.
-- **NoSQL Injection Guard**: Added custom middleware to sanitize all incoming user data.
+- **Hardened HTTP Headers**: `helmet` middleware for XSS and clickjacking protection.
+- **Rate Limiting**: `express-rate-limit` to prevent brute-force attacks.
+- **Request Validation**: **Zod** schema validation on **all** API routes (auth, jobs, applications, profile, work experience).
+- **NoSQL Injection Guard**: Custom sanitization middleware on all incoming data.
+- **Centralized Error Handling**: Global error middleware catches Mongoose, Zod, and application errors with consistent responses.
+- **Async Safety**: `asyncHandler` utility wraps all controllers to prevent unhandled promise rejections.
 
-## ⚡ Performance & UX Upgrades
+## ⚡ Performance & UX
 
-- **Database Optimization**: Added compound indexes for complex queries (e.g., sort by date within groups).
-- **Smooth Navigation**: Integrated **Framer Motion** for seamless page transitions.
-- **Build Efficiency**: Configured Vite manual chunks for better caching.
-- **SEO & Accessibility**: Added comprehensive meta tags and improved semantic structure.
+- **Database Optimization**: Compound indexes, `.lean()` on all reads, field projections, `Promise.all` for parallel queries.
+- **Smooth Navigation**: **Framer Motion** for seamless page transitions.
+- **Build Efficiency**: Vite manual chunks for vendor code caching.
+- **SEO & Accessibility**: Comprehensive meta tags and semantic HTML.
+- **Component Memoization**: `React.memo` and `useCallback` on reusable components to prevent unnecessary re-renders.
 
 ---
 
@@ -99,14 +102,16 @@ The platform is engineered for **performance**, **scalability**, and a **premium
 
 | Optimization | Impact |
 | :--- | :--- |
-| **List Virtualization** | `react-virtuoso` renders only visible DOM nodes. Supports **10,000+ listings at 120fps** |
-| **React Query** | `@tanstack/react-query` provides aggressive caching, background refetching, and optimistic updates |
+| **React.memo + useCallback** | Reusable components (`Card`, `Listing`, profile/settings sub-components) skip re-renders when props are unchanged |
+| **React Query** | `@tanstack/react-query` with `staleTime` tuning, `refetchOnWindowFocus: false`, and query invalidation |
 | **View Transitions API** | Native hardware-accelerated **150ms** theme transitions via `document.startViewTransition()` |
-| **Route-Level Splitting** | `React.lazy()` for all pages reduces initial bundle size by ~40% |
-| **Component Lazy Loading** | Heavy sub-components (Modals, Listing, Forms) loaded on demand |
-| **Backend `.lean()`** | Mongoose `.lean()` + field projection on all read-heavy queries |
-| **Gzip Compression** | `compression` middleware for all JSON API responses |
-| **GPU Hints** | `will-change: transform` and `backface-visibility: hidden` for smooth card animations |
+| **Route-Level Splitting** | `React.lazy()` for all pages reduces initial bundle size |
+| **Component Lazy Loading** | Heavy sub-components (Modals) loaded on demand via `React.lazy` |
+| **Backend `.lean()`** | Mongoose `.lean()` + field projection on all read queries |
+| **Parallel Queries** | `Promise.all` for independent database lookups (e.g., profile + user) |
+| **Gzip Compression** | `compression` middleware for all API responses |
+| **Service Layer** | DRY business logic (OTP, profile assembly) extracted from controllers |
+| **Async Error Handling** | `asyncHandler` utility eliminates try/catch boilerplate across all controllers |
 
 ---
 
@@ -114,14 +119,15 @@ The platform is engineered for **performance**, **scalability**, and a **premium
 
 | Layer | Technology | Role |
 | :--- | :--- | :--- |
-| **Frontend** | React 19, Vite 6 | UI framework and build tool |
+| **Frontend** | React 19, Vite 7 | UI framework and build tool |
 | **Routing** | React Router v7 | Client-side navigation |
 | **State** | TanStack React Query | Server state, caching, background sync |
 | **Auth State** | Context API | Client-side auth context |
 | **Styling** | Bootstrap 5, Custom CSS Variables | Responsive design system with theming |
 | **Rendering** | React Virtuoso | Windowed list virtualization |
-| **Backend** | Node.js 20, Express | RESTful API server |
-| **Database** | MongoDB 8.0, Mongoose | Document storage and ODM |
+| **Backend** | Node.js 20, Express 5 | RESTful API server |
+| **Database** | MongoDB 8.0, Mongoose 9 | Document storage and ODM |
+| **Validation** | Zod 4 | Schema-based request validation on all routes |
 | **Auth** | JWT, bcrypt, OTP | Stateless authentication |
 | **Storage** | AWS S3 | Profile photo storage |
 | **Compression** | `compression` middleware | Gzip response encoding |
@@ -135,7 +141,10 @@ SkillAnchor/
 ├── client/                     # React SPA (Vite)
 │   └── src/
 │       ├── components/
-│       │   ├── common/         # Reusable UI (Card, SearchHero, ApplyModal)
+│       │   ├── common/         # Reusable UI (Card, Listing, SearchHero, ApplyModal)
+│       │   ├── profile/        # ProfileHeader, SkillsSection, WorkHistory, Sidebar
+│       │   ├── settings/       # PasswordCard, ContactDetailsCard
+│       │   ├── profile-edit/   # Edit profile form components
 │       │   ├── layout/         # Navbar, Footer
 │       │   └── form/           # FormInput, FormSelect, FormTextarea
 │       ├── constants/          # Centralized constants (job categories)
@@ -150,10 +159,12 @@ SkillAnchor/
 │
 └── server/                     # Express API
     └── src/
-        ├── controllers/        # Business logic (auth, jobs, profile)
-        ├── models/             # Mongoose schemas
-        ├── routes/             # API endpoints
-        ├── middleware/         # Auth guards, error handling, uploads
+        ├── controllers/        # Route handlers (thin, wrapped with asyncHandler)
+        ├── services/           # Business logic (auth, profile services)
+        ├── models/             # Mongoose schemas with compound indexes
+        ├── routes/             # API endpoints with Zod validation
+        ├── middleware/         # Auth guards, validation, uploads
+        ├── utils/              # asyncHandler, generateToken
         └── config/             # Database, S3, environment config
 ```
 
@@ -306,6 +317,12 @@ npm run dev:client    # Frontend → http://localhost:5173
 - [x] Performance: Virtualization, React Query, Lazy Loading, Gzip
 - [x] View Transitions API for hardware-accelerated theme switching
 - [x] Brand overhaul to SkillAnchor with database migration
+- [x] Backend service layer (auth, profile) with DRY business logic
+- [x] Centralized async error handling across all controllers
+- [x] Zod validation on all API routes
+- [x] Frontend component modularization (WorkerProfilePage, SettingsPage)
+- [x] React.memo + useCallback optimization on reusable components
+- [ ] Redis caching layer for API responses
 - [ ] Salary range filter UI
 - [ ] Shift-based scheduling with calendar view
 - [ ] Real-time in-app messaging (Socket.io)

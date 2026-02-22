@@ -1,18 +1,25 @@
-const Card = ({ job, isSelected, onClick }) => {
+import { memo } from 'react';
+
+const logoStyle = { width: "56px", height: "56px", background: "var(--zinc-100)" };
+const fallbackLogoBase = {
+  width: "56px", height: "56px", flexShrink: 0,
+  background: "linear-gradient(135deg, var(--primary-500), var(--primary-700))",
+  color: "white", fontSize: "1.25rem"
+};
+
+const Card = memo(({ job, isSelected, onClick }) => {
+  const cardStyle = {
+    cursor: "pointer", borderRadius: "16px",
+    backgroundColor: isSelected ? "var(--bg-surface)" : "var(--bg-card)",
+    border: isSelected ? "1px solid var(--border-active)" : "1px solid transparent",
+    boxShadow: isSelected ? "var(--shadow-md)" : "var(--shadow-sm)",
+    transform: isSelected ? "scale(1.02)" : undefined
+  };
   return (
     <div
       className={`card shadow-sm card-hover-effect ${isSelected ? "selected" : ""}`}
       onClick={onClick}
-      style={{
-        cursor: "pointer",
-        borderRadius: "16px",
-        backgroundColor: isSelected ? "var(--bg-surface)" : "var(--bg-card)",
-
-        border: isSelected ? "1px solid var(--border-active)" : "1px solid transparent",
-        boxShadow: isSelected ? "var(--shadow-md)" : "var(--shadow-sm)",
-
-        transform: isSelected ? "scale(1.02)" : undefined
-      }}
+      style={cardStyle}
     >
       <div className="card-body p-3 p-sm-4">
         <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-3">
@@ -22,21 +29,14 @@ const Card = ({ job, isSelected, onClick }) => {
                 src={job.company.logo}
                 className="rounded-4 object-cover"
                 alt={job.title}
-                style={{ width: "56px", height: "56px", background: "var(--zinc-100)" }}
+                loading="lazy"
+                style={logoStyle}
                 onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
               />
             ) : null}
             <div
               className="rounded-4 d-flex align-items-center justify-content-center fw-bold"
-              style={{
-                width: "56px",
-                height: "56px",
-                flexShrink: 0,
-                background: "linear-gradient(135deg, var(--primary-500), var(--primary-700))",
-                color: "white",
-                fontSize: "1.25rem",
-                display: job.company?.logo ? "none" : "flex"
-              }}
+              style={{ ...fallbackLogoBase, display: job.company?.logo ? "none" : "flex" }}
             >
               {job.company?.name?.charAt(0)?.toUpperCase() || "?"}
             </div>
@@ -66,6 +66,6 @@ const Card = ({ job, isSelected, onClick }) => {
       </div>
     </div>
   );
-};
+});
 
 export default Card;

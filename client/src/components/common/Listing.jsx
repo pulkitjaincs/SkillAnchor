@@ -1,11 +1,17 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense, memo } from "react";
 import { useAuth } from '../../context/AuthContext';
 import { applicationsAPI } from "../../services/api";
 import { useNavigate } from "react-router-dom";
 import { formatSalary, formatDate } from "../../utils/index";
 const ApplyModal = lazy(() => import("./ApplyModal"));
 
-const Listing = ({ job, onClose, isSwitch = false }) => {
+const listingCardBase = { borderRadius: "24px", background: "var(--bg-card)", color: "var(--text-main)" };
+const bannerStyle = { height: "160px", background: "linear-gradient(135deg, var(--primary-100), var(--zinc-100))" };
+const closeBtnStyle = { width: "40px", height: "40px", zIndex: 10, background: "var(--bg-card)", border: "1px solid var(--border-color)", color: "var(--text-main)" };
+const logoImgStyle = { width: "100px", height: "100px", objectFit: "cover" };
+const bodyStyle = { overflowY: "auto", height: "calc(100% - 160px)" };
+
+const Listing = memo(({ job, onClose, isSwitch = false }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [applying, setApplying] = useState(false);
@@ -30,12 +36,12 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
     };
     checkIfApplied();
   }, [job._id, user]);
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsClosing(true);
     setTimeout(() => {
       onClose();
     }, 350);
-  };
+  }, [onClose]);
   const handleApply = async (coverNote) => {
     if (!user) {
       navigate(`/login?redirect=/?openJob=${job._id}`);
@@ -72,23 +78,12 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
 
   return (
     <div key={job.id} className={`card h-100 border-0 custom-scroll overflow-hidden ${getAnimationClass()}`}
-      style={{
-        borderRadius: "24px",
-        background: "var(--bg-card)",
-        color: "var(--text-main)"
-      }}>
-      <div className="position-relative" style={{ height: "160px", background: "linear-gradient(135deg, var(--primary-100), var(--zinc-100))" }}>
+      style={listingCardBase}>
+      <div className="position-relative" style={bannerStyle}>
         <button
           onClick={handleClose}
           className="position-absolute top-0 start-0 m-3 btn rounded-circle shadow-sm p-0 d-flex align-items-center justify-content-center hover-scale"
-          style={{
-            width: "40px",
-            height: "40px",
-            zIndex: 10,
-            background: "var(--bg-card)",
-            border: "1px solid var(--border-color)",
-            color: "var(--text-main)"
-          }}
+          style={closeBtnStyle}
           aria-label="Back"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -102,12 +97,13 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
             src={job.company?.logo}
             alt={job.company?.name}
             className="rounded-4 shadow-lg border border-4 border-white"
-            style={{ width: "100px", height: "100px", objectFit: "cover" }}
+            loading="lazy"
+            style={logoImgStyle}
           />
         </div>
       </div>
 
-      <div className="card-body px-4 px-md-5 pt-5 pb-4 custom-scroll" style={{ overflowY: "auto", height: "calc(100% - 160px)" }}>
+      <div className="card-body px-4 px-md-5 pt-5 pb-4 custom-scroll" style={bodyStyle}>
 
         <div className="mt-2 mb-4 d-flex justify-content-between align-items-start flex-wrap gap-3">
           <div className="min-w-0 flex-grow-1">
@@ -198,6 +194,6 @@ const Listing = ({ job, onClose, isSwitch = false }) => {
       )}
     </div>
   );
-};
+});
 
 export default Listing;

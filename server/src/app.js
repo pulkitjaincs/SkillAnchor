@@ -36,11 +36,30 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/work-experience", workExperienceRoutes);
 
 app.use((err, req, res, next) => {
+    // JSON parse errors
     if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
         return res.status(400).json({ error: "Invalid JSON" });
     }
-    console.error(err.stack);
-    res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
+
+    // Mongoose validation errors
+    if (err.name === 'ValidationError') {
+        const messages = Object.values(err.errors).map(e => e.message).join(', ');
+        return res.status(400).json({ error: messages });
+    }
+
+    // Mongoose cast errors (invalid ObjectId etc.)
+    if (err.name === 'CastError') {
+        return res.status(400).json({ error: `Invalid ${err.path}: ${err.value}` });
+    }
+
+    // Duplicate key error
+    if (err.code === 11000) {
+        return res.status(400).json({ error: "Duplicate value detected" });
+    }
+
+    const status = err.status || 500;
+    if (status >= 500) console.error(err.stack);
+    res.status(status).json({ error: err.message || 'Internal Server Error' });
 });
 
 export default app;

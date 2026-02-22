@@ -1,284 +1,168 @@
 import User from "../models/User.model.js";
-import OTP from "../models/OTP.model.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/generateToken.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import {
+    generateAndStoreOTP,
+    verifyAndConsumeOTP,
+    buildConditions,
+    checkContactUniqueness
+} from "../services/auth.service.js";
 
-export const sendOTP = async (req, res) => {
-    try {
-        const { phone, email } = req.body;
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const conditions = [];
-        if (email) conditions.push({ email });
-        if (phone) conditions.push({ phone });
-        if (conditions.length === 0) {
-            return res.status(400).json({ error: "Email or Phone required" });
-        }
-        await OTP.findOneAndUpdate({ $or: conditions }, { otp, expiresAt: Date.now() + 10 * 60 * 1000, isUsed: false }, { upsert: true });
-        console.log(`OTP for ${phone ? phone : email}: ${otp}`);
-        res.status(200).json({ message: "OTP Sent" });
-    } catch (err) {
-        console.error("Send OTP Error: ", err);
-        res.status(500).json({ error: "Send OTP failed" });
-    }
-};
+export const sendOTP = asyncHandler(async (req, res) => {
+    const { phone, email } = req.body;
+    const conditions = buildConditions({ email, phone });
+    await generateAndStoreOTP(conditions);
+    res.status(200).json({ message: "OTP Sent" });
+});
 
-export const verifyOTP = async (req, res) => {
-    try {
-        const { phone, name, otp, role, email } = req.body;
-        const conditions = [];
-        if (email) conditions.push({ email });
-        if (phone) conditions.push({ phone });
-        if (conditions.length === 0) {
-            return res.status(400).json({ error: "Email or Phone required" });
-        }
-        const record = await OTP.findOne({ $or: conditions, otp });
-        if (!record || record.expiresAt < Date.now()) {
-            return res.status(400).json({ error: "Invalid or expired OTP" });
-        }
-        await OTP.deleteOne({ _id: record._id });
-        let user = await User.findOne({ phone });
-        if (!user) {
-            user = await User.create({ phone, name, authType: "phone", role, phoneVerified: true });
-        } else {
-            user.phoneVerified = true;
-        }
+export const verifyOTP = asyncHandler(async (req, res) => {
+    const { phone, name, otp, role, email } = req.body;
+    const conditions = buildConditions({ email, phone });
+    await verifyAndConsumeOTP(conditions, otp);
+
+    let user = await User.findOne({ phone });
+    if (!user) {
+        user = await User.create({ phone, name, authType: "phone", role, phoneVerified: true });
+    } else {
+        user.phoneVerified = true;
         await user.save();
-        const safeUser = user.toObject();
-        delete safeUser.password;
-        delete safeUser.__v;
-        res.json({ token: generateToken(user._id), user: safeUser });
-    } catch (err) {
-        console.error("Verify OTP error: ", err);
-        res.status(500).json({ error: "Verify OTP failed" });
     }
-};
 
-export const register = async (req, res) => {
-    try {
-        const { email, password, role, name } = req.body;
-        const exists = await User.findOne({ email });
-        if (exists) {
-            return res.status(400).json({ error: "Email already exists!" });
-        }
-        if (password.length < 8) {
-            return res.status(400).json({ error: "Password must be at least 8 characters long" });
-        }
-        const hashedPassword = await bcrypt.hash(password, 12);
-        const user = await User.create({
-            email,
-            password: hashedPassword,
-            authType: "email",
-            role,
-            name,
-            emailVerified: true
-        });
-        const safeUser = user.toObject();
-        delete safeUser.password;
-        delete safeUser.__v;
-        res.status(201).json({ token: generateToken(user._id), user: safeUser });
-    } catch (err) {
-        console.error("Register error: ", err);
-        res.status(500).json({ error: "Register failed" });
+    const safeUser = await User.findById(user._id).select("-password -__v").lean();
+    res.json({ token: generateToken(user._id), user: safeUser });
+});
+
+export const register = asyncHandler(async (req, res) => {
+    const { email, password, role, name } = req.body;
+    const exists = await User.findOne({ email });
+    if (exists) {
+        const err = new Error("Email already exists!");
+        err.status = 400;
+        throw err;
     }
-};
 
-export const login = async (req, res) => {
-    try {
-        const { email, phone, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const user = await User.create({
+        email, password: hashedPassword, authType: "email", role, name, emailVerified: true
+    });
 
-        const conditions = [];
-        if (email) conditions.push({ email });
-        if (phone) conditions.push({ phone });
+    const safeUser = await User.findById(user._id).select("-password -__v").lean();
+    res.status(201).json({ token: generateToken(user._id), user: safeUser });
+});
 
-        if (conditions.length === 0) {
-            return res.status(400).json({ error: "Email or phone required" });
-        }
+export const login = asyncHandler(async (req, res) => {
+    const { email, phone, password } = req.body;
+    const conditions = buildConditions({ email, phone });
+    const user = await User.findOne({ $or: conditions });
 
-        const user = await User.findOne({ $or: conditions });
-
-
-        if (!user) {
-            return res.status(400).json({ error: "Invalid Credentials" });
-        }
-
-        if (!user.password) {
-            return res.status(400).json({ error: "Please login with OTP" });
-        }
-
-        const match = await bcrypt.compare(password, user.password);
-
-        if (!match) {
-            return res.status(400).json({ error: "Invalid Credentials" });
-        }
-
-        const safeUser = user.toObject();
-        delete safeUser.password;
-        delete safeUser.__v;
-        res.json({ token: generateToken(user._id), user: safeUser });
-    } catch (error) {
-        console.error("Login error:", error);
-        res.status(500).json({ error: "Login failed" });
+    if (!user) {
+        const err = new Error("Invalid Credentials");
+        err.status = 400;
+        throw err;
     }
-};
-
-export const forgotPassword = async (req, res) => {
-    try {
-        const { email, phone } = req.body;
-        const conditions = [];
-        if (email) { conditions.push({ email }) };
-        if (phone) { conditions.push({ phone }) };
-        if (conditions.length === 0) {
-            return res.status(400).json({ error: "Email or Phone required" });
-        }
-
-        const user = await User.findOne({ $or: conditions });
-        if (!user) {
-            return res.status(400).json({ error: "User not exist" });
-        }
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        await OTP.findOneAndUpdate({ $or: conditions }, { otp, expiresAt: Date.now() + 10 * 60 * 1000, isUsed: false }, { upsert: true });
-        console.log(`OTP for ${phone ? phone : email}: ${otp}`);
-        res.status(200).json({ message: "OTP Sent" });
-    } catch (err) {
-        console.error("Send OTP Error: ", err);
-        res.status(500).json({ error: "Send OTP failed" });
+    if (!user.password) {
+        const err = new Error("Please login with OTP");
+        err.status = 400;
+        throw err;
     }
-}
-export const resetPassword = async (req, res) => {
-    try {
-        const { email, phone, otp, newPassword } = req.body;
-        const conditions = [];
-        if (email) { conditions.push({ email }) };
-        if (phone) { conditions.push({ phone }) };
-        if (conditions.length === 0) {
-            return res.status(400).json({ error: "Email or Phone required" });
-        }
-        const record = await OTP.findOne({ $or: conditions, otp });
-        if (!record || record.expiresAt < Date.now()) {
-            return res.status(400).json({ error: "Invalid or expired OTP" });
-        }
-        await OTP.deleteOne({ _id: record._id });
-        const user = await User.findOne({ $or: conditions });
-        if (!user) {
-            return res.status(400).json({ error: "User not exist" });
-        }
-        if (!newPassword || newPassword.length < 8) {
-            return res.status(400).json({ error: "Password must be at least 8 characters long" });
-        }
-        const hashedPassword = await bcrypt.hash(newPassword, 12);
-        user.password = hashedPassword;
-        await user.save();
-        res.status(200).json({ message: "Password reset successfully" });
-    } catch (error) {
-        console.error("Reset Password Error: ", error);
-        res.status(500).json({ error: "Reset Password failed" });
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+        const err = new Error("Invalid Credentials");
+        err.status = 400;
+        throw err;
     }
-}
 
-export const logout = async (req, res) => {
-    try {
-        res.clearCookie("token");
-        res.json({ message: "Logout successfully" });
-    } catch (error) {
-        console.error("Logout Error: ", error);
-        res.status(500).json({ error: "Logout failed" });
+    const safeUser = await User.findById(user._id).select("-password -__v").lean();
+    res.json({ token: generateToken(user._id), user: safeUser });
+});
+
+export const forgotPassword = asyncHandler(async (req, res) => {
+    const { email, phone } = req.body;
+    const conditions = buildConditions({ email, phone });
+
+    const user = await User.findOne({ $or: conditions });
+    if (!user) {
+        const err = new Error("User not exist");
+        err.status = 400;
+        throw err;
     }
-}
 
-export const updatePassword = async (req, res) => {
-    try {
-        const { currentPassword, newPassword } = req.body;
-        const user = await User.findById(req.user._id);
+    await generateAndStoreOTP(conditions);
+    res.status(200).json({ message: "OTP Sent" });
+});
 
-        if (!user.password) {
-            return res.status(400).json({ error: "You are logged in via OTP. Set a password via Forgot Password flow if needed." }); // Or allow setting it without current?
-        }
+export const resetPassword = asyncHandler(async (req, res) => {
+    const { email, phone, otp, newPassword } = req.body;
+    const conditions = buildConditions({ email, phone });
+    await verifyAndConsumeOTP(conditions, otp);
 
-        const match = await bcrypt.compare(currentPassword, user.password);
-        if (!match) {
-            return res.status(400).json({ error: "Incorrect current password" });
-        }
-
-        if (newPassword.length < 8) {
-            return res.status(400).json({ error: "New password must be at least 8 characters" });
-        }
-
-        user.password = await bcrypt.hash(newPassword, 12);
-        await user.save();
-
-        res.json({ message: "Password updated successfully" });
-    } catch (error) {
-        console.error("Update Password Error:", error);
-        res.status(500).json({ error: "Failed to update password" });
+    const user = await User.findOne({ $or: conditions });
+    if (!user) {
+        const err = new Error("User not exist");
+        err.status = 400;
+        throw err;
     }
-};
-export const sendUpdateOTP = async (req, res) => {
-    try {
-        const { email, phone } = req.body;
-        const conditions = [];
 
-        if (email) {
-            const exists = await User.findOne({ email, _id: { $ne: req.user._id } });
-            if (exists) return res.status(400).json({ error: "Email already in use" });
-            conditions.push({ email });
-        }
-        if (phone) {
-            const exists = await User.findOne({ phone, _id: { $ne: req.user._id } });
-            if (exists) return res.status(400).json({ error: "Phone number already in use" });
-            conditions.push({ phone });
-        }
+    user.password = await bcrypt.hash(newPassword, 12);
+    await user.save();
+    res.status(200).json({ message: "Password reset successfully" });
+});
 
-        if (conditions.length === 0) {
-            return res.status(400).json({ error: "Email or Phone required" });
-        }
+export const logout = asyncHandler(async (req, res) => {
+    res.clearCookie("token");
+    res.json({ message: "Logout successfully" });
+});
 
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        await OTP.findOneAndUpdate({ $or: conditions }, { otp, expiresAt: Date.now() + 10 * 60 * 1000, isUsed: false }, { upsert: true });
+export const updatePassword = asyncHandler(async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user._id);
 
-        console.log(`Update OTP for ${phone || email}: ${otp}`);
-        res.status(200).json({ message: "OTP Sent" });
-
-    } catch (error) {
-        console.error("Send Update OTP Error:", error);
-        res.status(500).json({ error: "Failed to send OTP" });
+    if (!user.password) {
+        const err = new Error("You are logged in via OTP. Set a password via Forgot Password flow if needed.");
+        err.status = 400;
+        throw err;
     }
-};
 
-export const verifyUpdateOTP = async (req, res) => {
-    try {
-        const { email, phone, otp } = req.body;
-        const conditions = [];
-
-        if (email) conditions.push({ email });
-        if (phone) conditions.push({ phone });
-
-        if (conditions.length === 0) return res.status(400).json({ error: "Email or Phone required" });
-
-        const record = await OTP.findOne({ $or: conditions, otp });
-        if (!record || record.expiresAt < Date.now()) {
-            return res.status(400).json({ error: "Invalid or expired OTP" });
-        }
-
-        await OTP.deleteOne({ _id: record._id });
-
-        const updates = {};
-        if (email) updates.email = email;
-        if (phone) updates.phone = phone;
-
-        const user = await User.findByIdAndUpdate(
-            req.user._id,
-            {
-                $set: updates,
-                ...(email ? { emailVerified: true } : {}),
-                ...(phone ? { phoneVerified: true } : {})
-            },
-            { new: true }
-        ).select("-password");
-        res.json({ message: "Account updated successfully", user });
-
-    } catch (error) {
-        console.error("Verify Update OTP Error:", error);
-        res.status(500).json({ error: "Failed to verify OTP" });
+    const match = await bcrypt.compare(currentPassword, user.password);
+    if (!match) {
+        const err = new Error("Incorrect current password");
+        err.status = 400;
+        throw err;
     }
-};
 
+    user.password = await bcrypt.hash(newPassword, 12);
+    await user.save();
+    res.json({ message: "Password updated successfully" });
+});
+
+export const sendUpdateOTP = asyncHandler(async (req, res) => {
+    const { email, phone } = req.body;
+    const conditions = buildConditions({ email, phone });
+    await checkContactUniqueness({ email, phone }, req.user._id);
+    await generateAndStoreOTP(conditions);
+    res.status(200).json({ message: "OTP Sent" });
+});
+
+export const verifyUpdateOTP = asyncHandler(async (req, res) => {
+    const { email, phone, otp } = req.body;
+    const conditions = buildConditions({ email, phone });
+    await verifyAndConsumeOTP(conditions, otp);
+
+    const updates = {};
+    if (email) updates.email = email;
+    if (phone) updates.phone = phone;
+
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: updates,
+            ...(email ? { emailVerified: true } : {}),
+            ...(phone ? { phoneVerified: true } : {})
+        },
+        { new: true }
+    ).select("-password -__v");
+
+    res.json({ message: "Account updated successfully", user });
+});
