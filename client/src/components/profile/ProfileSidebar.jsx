@@ -5,7 +5,7 @@ const cardStyle = { borderRadius: '20px', background: 'var(--bg-card)' };
 const iconContainerStyle = { width: '40px', height: '40px', background: 'var(--bg-surface)' };
 const badgeStyle = { background: 'var(--bg-surface)', color: 'var(--text-main)' };
 
-const ProfileSidebar = memo(({ profile, isEmployer }) => (
+const ProfileSidebar = memo(({ profile, isEmployer, isOwnProfile }) => (
     <>
         {/* Contact Card */}
         <div className="card border-0 shadow-sm mb-4" style={cardStyle}>
@@ -84,7 +84,7 @@ const ProfileSidebar = memo(({ profile, isEmployer }) => (
                 </div>
 
                 {/* Documents */}
-                <DocumentsCard profile={profile} isOwnProfile={false} />
+                <DocumentsCard profile={profile} isOwnProfile={isOwnProfile} />
             </>
         )}
     </>

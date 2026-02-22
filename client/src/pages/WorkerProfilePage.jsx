@@ -8,7 +8,7 @@ import ProfileHeader from '../components/profile/ProfileHeader';
 import SkillsSection from '../components/profile/SkillsSection';
 import WorkHistorySection from '../components/profile/WorkHistorySection';
 import EmployerQuickActions from '../components/profile/EmployerQuickActions';
-import ProfileSidebar, { DocumentsCard } from '../components/profile/ProfileSidebar';
+import ProfileSidebar from '../components/profile/ProfileSidebar';
 
 const WorkExperienceModal = lazy(() => import('../components/WorkExperienceModal'));
 
@@ -127,8 +127,7 @@ function WorkerProfilePage() {
                 </div>
 
                 <div className="col-lg-4">
-                    <ProfileSidebar profile={profile} isEmployer={isEmployer} />
-                    {!isEmployer && isOwnProfile && <DocumentsCard profile={profile} isOwnProfile={isOwnProfile} />}
+                    <ProfileSidebar profile={profile} isEmployer={isEmployer} isOwnProfile={isOwnProfile} />
                 </div>
             </div>
 

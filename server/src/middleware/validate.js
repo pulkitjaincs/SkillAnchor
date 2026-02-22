@@ -2,14 +2,19 @@ import { z } from "zod";
 
 export const validate = (schema) => (req, res, next) => {
     try {
-        schema.parse({
+        const result = schema.safeParse({
             body: req.body,
             query: req.query,
             params: req.params,
         });
+        if (!result.success) {
+            const messages = (result.error?.issues || result.error?.errors || []).map(err => err.message).join(", ");
+            return res.status(400).json({ error: messages || "Validation failed" });
+        }
         next();
     } catch (e) {
-        return res.status(400).json({ error: e.errors.map(err => err.message).join(", ") });
+        console.error(`Validation error on ${req.method} ${req.originalUrl}:`, e.message);
+        return res.status(400).json({ error: "Validation failed" });
     }
 };
 
@@ -123,7 +128,7 @@ export const updateProfileSchema = z.object({
             max: z.number().optional(),
             type: z.enum(["monthly", "daily"]).optional(),
         }).optional(),
-        documents: z.record(z.any()).optional(),
+        documents: z.record(z.string(), z.unknown()).optional(),
     })
 });
 

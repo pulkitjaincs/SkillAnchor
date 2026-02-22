@@ -92,7 +92,6 @@ const WorkerProfileSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 WorkerProfileSchema.index({ city: 1, skills: 1 });
-WorkerProfileSchema.index({ user: 1 });
 
 const WorkerProfile = mongoose.model("WorkerProfile", WorkerProfileSchema);
 export default WorkerProfile;

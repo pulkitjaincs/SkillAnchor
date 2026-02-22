@@ -29,7 +29,6 @@ const EmployerProfileSchema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
-EmployerProfileSchema.index({ user: 1 });
 EmployerProfileSchema.index({ company: 1 });
 
 const EmployerProfile = mongoose.model("EmployerProfile", EmployerProfileSchema);
