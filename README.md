@@ -21,6 +21,7 @@
 - **Rate Limiting**: `express-rate-limit` to prevent brute-force attacks.
 - **Request Validation**: **Zod** schema validation on **all** API routes (auth, jobs, applications, profile, work experience).
 - **NoSQL Injection Guard**: Custom sanitization middleware on all incoming data.
+- **Secure OTP Generation**: Native `crypto.randomInt` for cryptographically strong verification codes.
 - **Centralized Error Handling**: Global error middleware catches Mongoose, Zod, and application errors with consistent responses.
 - **Async Safety**: `asyncHandler` utility wraps all controllers to prevent unhandled promise rejections.
 

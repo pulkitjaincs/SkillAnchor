@@ -1,4 +1,6 @@
+import crypto from "crypto";
 import OTP from "../models/OTP.model.js";
+
 import User from "../models/User.model.js";
 
 /**
@@ -7,7 +9,8 @@ import User from "../models/User.model.js";
  * @returns {string} The generated OTP
  */
 export const generateAndStoreOTP = async (conditions) => {
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = crypto.randomInt(100000, 1000000).toString();
+
     await OTP.findOneAndUpdate(
         { $or: conditions },
         { otp, expiresAt: Date.now() + 10 * 60 * 1000, isUsed: false },
