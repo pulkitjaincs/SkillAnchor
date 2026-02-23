@@ -35,13 +35,7 @@ export const verifyOTP = asyncHandler(async (req, res) => {
 
 export const register = asyncHandler(async (req, res) => {
     const { email, password, role, name } = req.body;
-    const exists = await User.findOne({ email });
-    if (exists) {
-        const err = new Error("Email already exists!");
-        err.status = 400;
-        throw err;
-    }
-
+    await checkContactUniqueness({ email });
     const hashedPassword = await bcrypt.hash(password, 12);
     const user = await User.create({
         email, password: hashedPassword, authType: "email", role, name, emailVerified: true
