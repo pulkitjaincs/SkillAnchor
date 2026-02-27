@@ -7,12 +7,29 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+.pnp
+.pnp.*
+.yarn/*
+
+# Build and Output
 dist
 dist-ssr
-*.local
+/build
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
 
-# Editor directories and files
+# Env and Secrets
+*.local
+.env
+.env*
+.vercel
+*.pem
+
+# Editor/OS Files
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -22,6 +39,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.env
 
+# Project Specific
 prompt.md
+MIGRATION_BLUEPRINT.md
+migrate.md
+build.log
+bundle-analysis.html
