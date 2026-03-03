@@ -6,26 +6,26 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 function NavbarContent({ name }: { name?: string }) {
   const { user: authUser, logout } = useAuth();
-  
-  const profile = null; 
+
+  const profile = null;
 
   const user = useMemo(() => {
     if (!authUser) return null;
-    return { ...authUser, ...profile };
+    return { ...authUser, ...(profile || {}) };
   }, [authUser, profile]);
 
   const [scrolled, setScrolled] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
   const [theme, setTheme] = useState("light");
   const [heroVisible, setHeroVisible] = useState(true);
-  
+
   const inputRef = useRef<HTMLInputElement>(null);
   const compactSearchRef = useRef<HTMLInputElement>(null);
-  
+
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [compactSearch, setCompactSearch] = useState(searchParams.get('search') || '');
   const [compactLocation, setCompactLocation] = useState(searchParams.get('location') || '');
@@ -70,7 +70,7 @@ function NavbarContent({ name }: { name?: string }) {
 
   const toggleTheme = () => {
     const nextTheme = theme === "light" ? "dark" : theme === "dark" ? "system" : "light";
-    
+
     if (document.startViewTransition) {
       document.startViewTransition(() => {
         setTheme(nextTheme);
@@ -97,7 +97,7 @@ function NavbarContent({ name }: { name?: string }) {
     if (compactLocation.trim()) params.set('location', compactLocation.trim());
     const currentCategory = searchParams.get('category');
     if (currentCategory) params.set('category', currentCategory);
-    
+
     router.push(`/?${params.toString()}`);
   };
 
@@ -377,7 +377,7 @@ function NavbarContent({ name }: { name?: string }) {
           <div className="d-flex align-items-center rounded-pill px-3 py-2 mt-3" style={{ background: "var(--bg-surface)", border: "1px solid var(--border-active)", boxShadow: "var(--shadow-md)" }}>
             <i className="bi bi-search text-muted"></i>
             <input
-              ref={(el) => searchActive && el?.focus()}
+              ref={(el) => { if (searchActive) el?.focus(); }}
               type="text"
               className="form-control border-0 bg-transparent shadow-none"
               placeholder="Search jobs..."
@@ -391,10 +391,10 @@ function NavbarContent({ name }: { name?: string }) {
 }
 
 export default function Navbar({ name }: { name?: string }) {
-    return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <NavbarContent name={name} />
-        </Suspense>
-    )
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <NavbarContent name={name} />
+    </Suspense>
+  )
 }
 
