@@ -61,10 +61,11 @@ interface SelectOption {
     value?: string;
 }
 
-interface SelectFieldProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+interface SelectFieldProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'options'> {
     label?: string;
     options?: (SelectOption | string)[];
     error?: string;
+    placeholder?: string;
 }
 
 export const SelectField = ({
