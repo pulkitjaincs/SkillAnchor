@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import Image from 'next/image';
+import type { Job } from '@/types';
 
 const logoStyle = { width: "56px", height: "56px", background: "var(--zinc-100)" };
 const fallbackLogoBase = {
@@ -7,21 +8,6 @@ const fallbackLogoBase = {
     background: "linear-gradient(135deg, var(--primary-500), var(--primary-700))",
     color: "white", fontSize: "1.25rem"
 };
-
-// Assuming Job type from API payload based on Listing.jsx usage
-interface Job {
-    _id: string; // or id depending on Listing backend
-    title: string;
-    city: string;
-    state: string;
-    salaryMin: number;
-    salaryMax?: number;
-    createdAt: string;
-    company?: {
-        name: string;
-        logo?: string;
-    };
-}
 
 interface CardProps {
     job: Job;
@@ -55,13 +41,6 @@ const Card = memo(({ job, isSelected, onClick }: CardProps) => {
                                     fill
                                     sizes="56px"
                                     style={{ objectFit: 'cover' }}
-                                    // @ts-ignore
-                                    onError={(e: any) => {
-                                        e.target.style.display = 'none';
-                                        if (e.target.parentElement?.nextSibling) {
-                                            (e.target.parentElement.nextSibling as HTMLElement).style.display = 'flex';
-                                        }
-                                    }}
                                 />
                             </div>
                         ) : null}

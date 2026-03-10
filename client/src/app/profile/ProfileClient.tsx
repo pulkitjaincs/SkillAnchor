@@ -13,7 +13,7 @@ import WorkHistorySection from '@/components/profile/WorkHistorySection';
 import EmployerQuickActions from '@/components/profile/EmployerQuickActions';
 import ProfileSidebar from '@/components/profile/ProfileSidebar';
 
-const WorkExperienceModal = lazy(() => import('@/components/WorkExperienceModal'));
+const WorkExperienceModal = lazy(() => import('@/components/modals/WorkExperienceModal'));
 
 export default function ProfileClient() {
     const params = useParams();

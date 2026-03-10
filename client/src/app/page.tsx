@@ -2,28 +2,22 @@
 
 import { useState, useEffect, Suspense, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Virtuoso } from "react-virtuoso";
 import { useInfiniteJobs } from "@/hooks/queries/useInfiniteJobs";
-import { Card } from "@/components/common/FormComponents"; // We shouldn't use this, Card is from components/common/Card
 import SearchHero from "@/components/common/SearchHero";
 import PageTransitions from "@/components/common/PageTransitions";
-
-// Fix import for the Job Card, not the FormComponent wrapper Card
 import JobCard from "@/components/common/Card";
 
 const Listing = dynamic(() => import("@/components/common/Listing"), {
   loading: () => <p>Loading...</p>,
-  ssr: false, // Don't SSR the modal list
+  ssr: false,
 });
 
 function HomePageContent() {
+  const router = useRouter();
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [isSwitch, setIsSwitch] = useState(false);
-
-  // In Next router, searchParams is read-only.
-  // We would need useRouter to programmatically change them, 
-  // but we'll use window.history.pushState or Next Link depending on use map.
   const searchParams = useSearchParams();
 
   const openJobId = searchParams.get("openJob");
@@ -79,14 +73,7 @@ function HomePageContent() {
     if (search) params.set('search', search);
     if (location) params.set('location', location);
     if (category && category !== 'All') params.set('category', category);
-
-    // Use NextJS window history state to update without a full reload or we can use next/router.
-    window.history.pushState(null, '', `/?${params.toString()}`);
-
-    // The component won't re-render automatically just from pushState with Next.js App Router 
-    // if we are solely relying on useSearchParams. 
-    // We'll need a better strategy if we want client-side soft navigation down the road, 
-    // but for now this matches the structure.
+    router.push(`/?${params.toString()}`);
   };
 
   if (isError) return (

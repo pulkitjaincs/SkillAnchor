@@ -194,7 +194,7 @@ export const Button = ({
     );
 };
 
-export const Card = ({ children, className = '', style = {} }: React.HTMLAttributes<HTMLDivElement>) => (
+export const Panel = ({ children, className = '', style = {} }: React.HTMLAttributes<HTMLDivElement>) => (
     <div
         className={className}
         style={{

@@ -7,7 +7,7 @@ import { formatDate, formatSalary } from '@/utils/index';
 
 import { useApplications, useWithdrawApplication } from '@/hooks/queries/useApplications';
 
-const ApplicationDetailModal = lazy(() => import('@/components/ApplicationDetailModal'));
+const ApplicationDetailModal = lazy(() => import('@/components/modals/ApplicationDetailModal'));
 
 export default function MyApplicationsPage() {
     const [selectedApp, setSelectedApp] = useState<any>(null);

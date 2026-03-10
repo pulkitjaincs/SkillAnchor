@@ -6,34 +6,17 @@ import Image from "next/image";
 import { useAuth } from '@/context/AuthContext';
 import { applicationsAPI } from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { formatSalary, formatDate } from "@/utils/index";
+import { formatDate, formatSalary, timeAgo } from "@/utils/index";
+import type { Job } from '@/types';
 
-const ApplyModal = dynamic(() => import("./ApplyModal"), { ssr: false });
+const ApplyModal = dynamic(() => import("@/components/common/ApplyModal"), { ssr: false });
 
-const listingCardBase = { borderRadius: "24px", background: "var(--bg-card)", color: "var(--text-main)" };
-const bannerStyle = { height: "160px", background: "linear-gradient(135deg, var(--primary-100), var(--zinc-100))" };
-const closeBtnStyle = { width: "40px", height: "40px", zIndex: 10, background: "var(--bg-card)", border: "1px solid var(--border-color)", color: "var(--text-main)" };
+const listingCardBase = { borderRadius: "24px", background: "var(--bg-card)", boxShadow: "0 20px 60px -15px rgba(0,0,0,0.15)" };
+const bannerStyle = { height: "160px", background: "linear-gradient(135deg, var(--primary-500), var(--primary-700))", borderRadius: "24px 24px 0 0" };
+const closeBtnStyle = { width: "40px", height: "40px", background: "rgba(255,255,255,0.95)", border: "none", zIndex: 10 };
+const xIconStyle = { fontSize: "1.2rem", color: "var(--text-main)" };
 const logoImgStyle = { width: "100px", height: "100px", objectFit: "cover" as const };
 const bodyStyle = { overflowY: "auto" as const, height: "calc(100% - 160px)" };
-
-interface Job {
-    _id: string;
-    title: string;
-    description?: string;
-    city: string;
-    state: string;
-    jobType?: string;
-    experienceMin?: number;
-    salaryMin: number;
-    salaryMax?: number;
-    salaryType?: string;
-    createdAt: string;
-    skills?: string[];
-    company?: {
-        name: string;
-        logo?: string;
-    };
-}
 
 interface ListingProps {
     job: Job | null;
