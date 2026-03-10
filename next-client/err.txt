@@ -1,0 +1,3 @@
+src/app/jobs/[id]/JobDetailClient.tsx(24,29): error TS2339: Property 'some' does not exist on type 'never[] | InfiniteData<any, unknown>'.
+  Property 'some' does not exist on type 'InfiniteData<any, unknown>'.
+src/app/jobs/[id]/page.tsx(10,35): error TS2339: Property 'getJob' does not exist on type '{ getAll: (params?: any) => Promise<AxiosResponse<any, any, {}>>; getById: (id: string) => Promise<AxiosResponse<any, any, {}>>; getMyJobs: (params?: any) => Promise<...>; create: (data: any) => Promise<...>; update: (id: string, data: any) => Promise<...>; delete: (id: string) => Promise<...>; }'.

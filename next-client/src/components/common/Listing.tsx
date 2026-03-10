@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense, memo } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { useAuth } from '@/context/AuthContext';
 import { applicationsAPI } from "@/lib/api";
 import { useRouter } from "next/navigation";
@@ -16,7 +17,7 @@ const logoImgStyle = { width: "100px", height: "100px", objectFit: "cover" as co
 const bodyStyle = { overflowY: "auto" as const, height: "calc(100% - 160px)" };
 
 interface Job {
-    _id: string; 
+    _id: string;
     title: string;
     description?: string;
     city: string;
@@ -128,13 +129,15 @@ const Listing = memo(({ job, onClose, isSwitch = false }: ListingProps) => {
 
                 <div className="position-absolute bottom-0 start-0 p-4 translate-y-50 d-flex align-items-end gap-3" style={{ transform: "translateY(40%)" }}>
                     {job.company?.logo && (
-                        <img
-                            src={job.company.logo}
-                            alt={job.company.name}
-                            className="rounded-4 shadow-lg border border-4 border-white"
-                            loading="lazy"
-                            style={logoImgStyle}
-                        />
+                        <div className="position-relative shadow-lg border border-4 border-white rounded-4 overflow-hidden" style={logoImgStyle}>
+                            <Image
+                                src={job.company.logo}
+                                alt={job.company.name}
+                                fill
+                                sizes="100px"
+                                style={{ objectFit: 'cover' }}
+                            />
+                        </div>
                     )}
                 </div>
             </div>

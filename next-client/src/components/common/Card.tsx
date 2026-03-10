@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import Image from 'next/image';
 
 const logoStyle = { width: "56px", height: "56px", background: "var(--zinc-100)" };
 const fallbackLogoBase = {
@@ -47,20 +48,22 @@ const Card = memo(({ job, isSelected, onClick }: CardProps) => {
                 <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-3">
                     <div className="d-flex flex-shrink-0">
                         {job.company?.logo ? (
-                            <img
-                                src={job.company.logo}
-                                className="rounded-4 object-cover"
-                                alt={job.title}
-                                loading="lazy"
-                                style={logoStyle}
-                                // @ts-ignore - keeping original behavior but using proper React type for event
-                                onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-                                    (e.target as HTMLImageElement).style.display = 'none';
-                                    if ((e.target as HTMLImageElement).nextSibling) {
-                                        ((e.target as HTMLImageElement).nextSibling as HTMLElement).style.display = 'flex';
-                                    }
-                                }}
-                            />
+                            <div className="position-relative overflow-hidden rounded-4" style={logoStyle}>
+                                <Image
+                                    src={job.company.logo}
+                                    alt={job.title}
+                                    fill
+                                    sizes="56px"
+                                    style={{ objectFit: 'cover' }}
+                                    // @ts-ignore
+                                    onError={(e: any) => {
+                                        e.target.style.display = 'none';
+                                        if (e.target.parentElement?.nextSibling) {
+                                            (e.target.parentElement.nextSibling as HTMLElement).style.display = 'flex';
+                                        }
+                                    }}
+                                />
+                            </div>
                         ) : null}
                         <div
                             className="rounded-4 d-flex align-items-center justify-content-center fw-bold"
