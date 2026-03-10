@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect, Suspense, useMemo } from "react";
+import { useState, useEffect, useRef, Suspense, useMemo, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Virtuoso } from "react-virtuoso";
 import { useInfiniteJobs } from "@/hooks/queries/useInfiniteJobs";
 import SearchHero from "@/components/common/SearchHero";
 import PageTransitions from "@/components/common/PageTransitions";
@@ -19,6 +18,7 @@ function HomePageContent() {
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [isSwitch, setIsSwitch] = useState(false);
   const searchParams = useSearchParams();
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const openJobId = searchParams.get("openJob");
   const searchQuery = searchParams.get('search') || '';
@@ -42,6 +42,24 @@ function HomePageContent() {
     return data?.pages.flatMap((page: any) => page.jobs) || [];
   }, [data]);
 
+  // IntersectionObserver-based infinite scroll
+  useEffect(() => {
+    const sentinel = loadMoreRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { rootMargin: '400px' }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
   useEffect(() => {
     if (openJobId && allJobs.length > 0) {
       const job = allJobs.find((j: any) => j._id === openJobId);
@@ -51,14 +69,14 @@ function HomePageContent() {
     }
   }, [openJobId, allJobs]);
 
-  const handleJobClick = (job: any) => {
+  const handleJobClick = useCallback((job: any) => {
     if (selectedJob !== null && selectedJob._id !== job._id) {
       setIsSwitch(true);
     } else {
       setIsSwitch(false);
     }
     setSelectedJob(job);
-  };
+  }, [selectedJob]);
 
   const listColumnClass = selectedJob
     ? "d-none d-lg-flex col-lg-4"
@@ -128,30 +146,31 @@ function HomePageContent() {
                   <p className="mt-3 text-muted">No jobs found matching your criteria.</p>
                 </div>
               ) : (
-                <Virtuoso
-                  useWindowScroll
-                  data={allJobs}
-                  endReached={() => hasNextPage && fetchNextPage()}
-                  overscan={1500}
-                  increaseViewportBy={1000}
-                  atBottomThreshold={300}
-                  itemContent={(index, job) => (
-                    <div className="pb-3 px-1">
+                <>
+                  {allJobs.map((job: any) => (
+                    <div key={job._id} className="pb-3 px-1">
                       <JobCard
                         job={job}
                         isSelected={selectedJob?._id === job._id}
                         onClick={() => handleJobClick(job)}
                       />
                     </div>
+                  ))}
+
+                  {/* Sentinel element — triggers fetchNextPage when scrolled into view */}
+                  <div ref={loadMoreRef} style={{ height: '1px' }} />
+
+                  {isFetchingNextPage && (
+                    <div className="py-4 text-center text-muted">
+                      <div className="spinner-border spinner-border-sm me-2"></div>Loading more...
+                    </div>
                   )}
-                  components={{
-                    Footer: () => {
-                      if (isFetchingNextPage) return <div className="py-4 text-center text-muted"><div className="spinner-border spinner-border-sm me-2"></div>Loading more...</div>;
-                      if (!hasNextPage && allJobs.length > 0) return <div className="py-5 text-center text-muted small border-top mt-4">You've reached the end of the list</div>;
-                      return null;
-                    }
-                  }}
-                />
+                  {!hasNextPage && allJobs.length > 0 && (
+                    <div className="py-5 text-center text-muted small border-top mt-4">
+                      You&apos;ve reached the end of the list
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -166,7 +185,6 @@ function HomePageContent() {
                   isSwitch={isSwitch}
                 />
               </Suspense>
-
             )}
           </div>
         </div>

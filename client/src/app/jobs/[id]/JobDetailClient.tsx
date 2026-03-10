@@ -17,7 +17,7 @@ export default function JobDetailClient({ id }: { id: string }) {
     const [showApplyModal, setShowApplyModal] = useState(false);
 
     const { data: job, isLoading: loading, isError } = useJobDetails(id);
-    const { data: applications } = useApplications();
+    const { data: applications } = useApplications(!!user && user.role === 'worker');
     const applyMutation = useApplyForJob();
 
     const applied = useMemo(() => {

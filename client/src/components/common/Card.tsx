@@ -41,15 +41,17 @@ const Card = memo(({ job, isSelected, onClick }: CardProps) => {
                                     fill
                                     sizes="56px"
                                     style={{ objectFit: 'cover' }}
+                                    unoptimized
                                 />
                             </div>
-                        ) : null}
-                        <div
-                            className="rounded-4 d-flex align-items-center justify-content-center fw-bold"
-                            style={{ ...fallbackLogoBase, display: job.company?.logo ? "none" : "flex" }}
-                        >
-                            {job.company?.name?.charAt(0)?.toUpperCase() || "?"}
-                        </div>
+                        ) : (
+                            <div
+                                className="rounded-4 d-flex align-items-center justify-content-center fw-bold"
+                                style={fallbackLogoBase}
+                            >
+                                {job.company?.name?.charAt(0)?.toUpperCase() || "?"}
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex-grow-1 min-w-0 w-100">

@@ -44,7 +44,7 @@ const Listing = memo(({ job, onClose, isSwitch = false }: ListingProps) => {
                     const hasApplied = res.data.some((app: any) => app.job._id === job._id);
                     setApplied(hasApplied);
                 } catch (error) {
-                    console.log('Error checking application status');
+                    // silently ignore
                 }
             }
         };
@@ -86,10 +86,10 @@ const Listing = memo(({ job, onClose, isSwitch = false }: ListingProps) => {
     if (!job) {
         return (
             <div className="h-100 d-flex flex-column align-items-center justify-content-center text-muted">
-                <div className="bg-white p-5 rounded-circle shadow-sm mb-4">
+                <div className="p-5 rounded-circle shadow-sm mb-4" style={{ background: 'var(--bg-card)' }}>
                     <i className="bi bi-briefcase fs-1 text-primary alert-primary p-4 rounded-circle"></i>
                 </div>
-                <h4 className="fw-bold text-secondary">Select a job to view details</h4>
+                <h4 className="fw-bold" style={{ color: 'var(--text-muted)' }}>Select a job to view details</h4>
             </div>
         );
     }

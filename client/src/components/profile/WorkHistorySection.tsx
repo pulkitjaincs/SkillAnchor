@@ -48,13 +48,13 @@ const WorkHistorySection = memo(({ workHistory, isOwnProfile, onAddClick, onExpC
                                             )}
                                         </div>
                                         {(exp.companyName || exp.company?.name) && (
-                                            <p className="small text-muted mb-1">{exp.companyName || exp.company?.name}</p>
+                                            <p className="small mb-1" style={{ color: 'var(--text-muted)' }}>{exp.companyName || exp.company?.name}</p>
                                         )}
-                                        <p className="small text-muted mb-0">
+                                        <p className="small mb-0" style={{ color: 'var(--text-muted)' }}>
                                             {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : 'Present'}
                                         </p>
                                         {exp.description && (
-                                            <p className="small text-muted mb-0 mt-2" style={{ whiteSpace: 'pre-line' }}>{exp.description}</p>
+                                            <p className="small mb-0 mt-2" style={{ whiteSpace: 'pre-line', color: 'var(--text-muted)' }}>{exp.description}</p>
                                         )}
                                     </div>
                                     {isOwnProfile && (

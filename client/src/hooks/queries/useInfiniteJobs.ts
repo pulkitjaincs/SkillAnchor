@@ -5,11 +5,12 @@ export const useInfiniteJobs = (filters: Record<string, any> = {}) => {
     return useInfiniteQuery({
         queryKey: ['jobs', filters],
         queryFn: async ({ pageParam = null }: { pageParam?: unknown }) => {
-            const params = {
-                ...filters,
-                cursor: pageParam,
-                limit: 10
-            };
+            const params: Record<string, any> = { limit: 20 };
+            // Only include non-empty filter values
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value) params[key] = value;
+            });
+            if (pageParam) params.cursor = pageParam;
             const { data } = await jobsAPI.getAll(params);
             return data;
         },

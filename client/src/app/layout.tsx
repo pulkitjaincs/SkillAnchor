@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
-import "./globals.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
+import "./globals.css";
 import Providers from "@/providers/Providers";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";

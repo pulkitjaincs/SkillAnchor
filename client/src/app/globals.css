@@ -107,3 +107,116 @@ body {
         transform: translateY(0) scale(1);
     }
 }
+
+/* ── Dark Mode: Override Bootstrap's hardcoded colors ── */
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .text-dark {
+    color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .text-secondary {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .bg-white {
+    background-color: var(--bg-card) !important;
+}
+
+[data-theme="dark"] .bg-light {
+    background-color: var(--bg-surface) !important;
+}
+
+[data-theme="dark"] .border-white {
+    border-color: var(--border-color) !important;
+}
+
+/* Bootstrap .card uses white bg — override for dark mode */
+[data-theme="dark"] .card {
+    background-color: var(--bg-card);
+    color: var(--text-main);
+    border-color: var(--border-color);
+}
+
+/* Forms */
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+    background-color: var(--bg-surface);
+    color: var(--text-main);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .form-control::placeholder {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+    background-color: var(--bg-surface);
+    color: var(--text-main);
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.15);
+}
+
+/* Dropdowns */
+[data-theme="dark"] .dropdown-menu {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .dropdown-item:hover,
+[data-theme="dark"] .dropdown-item:focus {
+    background-color: var(--bg-surface);
+    color: var(--text-main);
+}
+
+/* Modals */
+[data-theme="dark"] .modal-content {
+    background-color: var(--bg-card);
+    color: var(--text-main);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-header {
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-footer {
+    border-color: var(--border-color);
+}
+
+/* Alerts */
+[data-theme="dark"] .alert-danger {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+[data-theme="dark"] .alert-primary {
+    background-color: rgba(99, 102, 241, 0.1);
+    color: #a5b4fc;
+    border-color: rgba(99, 102, 241, 0.2);
+}
+
+/* Outline buttons */
+[data-theme="dark"] .btn-outline-primary {
+    color: var(--primary-500);
+    border-color: var(--primary-500);
+}
+
+[data-theme="dark"] .btn-outline-primary:hover {
+    background-color: var(--primary-500);
+    color: white;
+}
+
+/* Horizontal rules */
+[data-theme="dark"] hr {
+    border-color: var(--border-color);
+    opacity: 0.3;
+}

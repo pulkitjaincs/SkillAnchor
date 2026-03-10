@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { applicationsAPI, jobsAPI } from '@/lib/api';
 
-export const useApplications = () => {
+export const useApplications = (enabled = true) => {
     return useInfiniteQuery({
         queryKey: ['applications'],
         queryFn: async ({ pageParam = null }: { pageParam?: unknown }) => {
@@ -16,7 +16,8 @@ export const useApplications = () => {
             return undefined;
         },
         staleTime: 1000 * 60 * 5,
-        initialPageParam: null
+        initialPageParam: null,
+        enabled,
     });
 };
 

@@ -18,9 +18,11 @@ function NavbarContent({ name }: { name?: string }) {
   const [searchActive, setSearchActive] = useState(false);
   const [theme, setTheme] = useState("light");
   const [heroVisible, setHeroVisible] = useState(true);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const compactSearchRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -66,6 +68,16 @@ function NavbarContent({ name }: { name?: string }) {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const toggleTheme = () => {
@@ -292,8 +304,8 @@ function NavbarContent({ name }: { name?: string }) {
               </li>
               {user ? (
                 <li className="nav-item dropdown">
-                  <div className="d-flex align-items-center gap-3">
-                    <div className="d-flex align-items-center gap-2 cursor-pointer" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <div ref={dropdownRef} className="d-flex align-items-center gap-3 position-relative">
+                    <div className="d-flex align-items-center gap-2 cursor-pointer" role="button" onClick={() => setDropdownOpen(!dropdownOpen)}>
                       <div className="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
                         style={{
                           width: '32px', height: '32px',
@@ -308,12 +320,13 @@ function NavbarContent({ name }: { name?: string }) {
                       <i className="bi bi-chevron-down" style={{ fontSize: '0.65rem', color: 'var(--text-muted)', transition: 'transform 0.2s' }}></i>
                     </div>
 
-                    <ul className="dropdown-menu dropdown-menu-end border-0"
+                    <ul className={`dropdown-menu dropdown-menu-end border-0 ${dropdownOpen ? 'show' : ''}`}
                       style={{
+                        position: 'absolute', top: '100%', right: 0,
                         borderRadius: '24px', minWidth: '280px', padding: '12px', background: 'var(--bg-card)',
                         backdropFilter: 'blur(24px)', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.18), 0 10px 30px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255,255,255,0.1)',
                         border: '1px solid var(--border-color)', marginTop: '14px', zIndex: 1500,
-                        animation: 'dropdownSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                        animation: dropdownOpen ? 'dropdownSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1)' : 'none'
                       }}>
                       <li style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.04))', borderRadius: '16px', padding: '16px', marginBottom: '8px' }}>
                         <div className="d-flex align-items-center gap-3">
@@ -333,7 +346,7 @@ function NavbarContent({ name }: { name?: string }) {
                         </div>
                       </li>
                       <li>
-                        <Link className="dropdown-item rounded-3 d-flex align-items-center gap-3" href="/profile" style={{ color: 'var(--text-main)', transition: 'all 0.15s ease', padding: '12px 14px', fontWeight: 500 }}>
+                        <Link className="dropdown-item rounded-3 d-flex align-items-center gap-3" href="/profile" onClick={() => setDropdownOpen(false)} style={{ color: 'var(--text-main)', transition: 'all 0.15s ease', padding: '12px 14px', fontWeight: 500 }}>
                           <div className="d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px', borderRadius: '12px', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(99, 102, 241, 0.05))' }}>
                             <i className="bi bi-person-fill" style={{ color: 'var(--primary-600)', fontSize: '1rem' }}></i>
                           </div>
@@ -341,7 +354,7 @@ function NavbarContent({ name }: { name?: string }) {
                         </Link>
                       </li>
                       <li>
-                        <Link className="dropdown-item rounded-3 d-flex align-items-center gap-3" href="/profile/settings" style={{ color: 'var(--text-main)', transition: 'all 0.15s ease', padding: '12px 14px', fontWeight: 500 }}>
+                        <Link className="dropdown-item rounded-3 d-flex align-items-center gap-3" href="/profile/settings" onClick={() => setDropdownOpen(false)} style={{ color: 'var(--text-main)', transition: 'all 0.15s ease', padding: '12px 14px', fontWeight: 500 }}>
                           <div className="d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px', borderRadius: '12px', background: 'linear-gradient(135deg, rgba(107, 114, 128, 0.12), rgba(107, 114, 128, 0.04))' }}>
                             <i className="bi bi-gear-fill" style={{ color: 'var(--text-muted)', fontSize: '1rem' }}></i>
                           </div>
@@ -352,7 +365,7 @@ function NavbarContent({ name }: { name?: string }) {
                         <hr style={{ margin: 0, borderColor: 'var(--border-color)', opacity: 0.5 }} />
                       </li>
                       <li>
-                        <button onClick={handleLogout} className="dropdown-item rounded-3 d-flex align-items-center gap-3 w-100" style={{ color: '#ef4444', transition: 'all 0.15s ease', padding: '12px 14px', fontWeight: 500 }}>
+                        <button onClick={() => { handleLogout(); setDropdownOpen(false); }} className="dropdown-item rounded-3 d-flex align-items-center gap-3 w-100" style={{ color: '#ef4444', transition: 'all 0.15s ease', padding: '12px 14px', fontWeight: 500 }}>
                           <div className="d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)' }}>
                             <i className="bi bi-box-arrow-right" style={{ fontSize: '1rem' }}></i>
                           </div>
