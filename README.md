@@ -161,7 +161,7 @@ SkillAnchor/
 │       ├── types/               # Shared TypeScript interfaces (Job, User, Company)
 │       └── utils/               # formatDate, formatSalary, timeAgo helpers
 │
-├── server/                      # Express API
+└── server/                      # Express API
      └── src/
         ├── controllers/         # Route handlers (thin, wrapped with asyncHandler)
         ├── services/            # Business logic (auth, profile services)
