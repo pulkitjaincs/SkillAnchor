@@ -162,17 +162,15 @@ SkillAnchor/
 │       └── utils/               # formatDate, formatSalary, timeAgo helpers
 │
 ├── server/                      # Express API
-│   └── src/
-│       ├── controllers/         # Route handlers (thin, wrapped with asyncHandler)
-│       ├── services/            # Business logic (auth, profile services)
-│       ├── models/              # Mongoose schemas with compound indexes
-│       ├── routes/              # API endpoints with Zod validation
-│       ├── middleware/          # Auth guards, validation, uploads
-│       ├── utils/               # asyncHandler, generateToken
-│       └── config/              # Database, S3, environment config
-│
-├── MIGRATION_BLUEPRINT.md       # Architectural decisions & rendering strategies
-└── MIGRATION_TRACKER.md         # Migration progress tracking
+     └── src/
+        ├── controllers/         # Route handlers (thin, wrapped with asyncHandler)
+        ├── services/            # Business logic (auth, profile services)
+        ├── models/              # Mongoose schemas with compound indexes
+        ├── routes/              # API endpoints with Zod validation
+        ├── middleware/          # Auth guards, validation, uploads
+        ├── utils/               # asyncHandler, generateToken
+        └── config/              # Database, S3, environment config
+
 ```
 
 ---

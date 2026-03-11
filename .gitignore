@@ -42,9 +42,5 @@ next-env.d.ts
 
 # Project Specific
 prompt.md
-MIGRATION_BLUEPRINT.md
-migrate.md
 build.log
 bundle-analysis.html
-MIGRATION_TRACKER.md
-NextJS_MIGRATION_GUIDE.md
