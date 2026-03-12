@@ -120,7 +120,7 @@ export default function MyApplicationsPage() {
                                     <button
                                         onClick={() => setSelectedApp(app)}
                                         className="d-flex align-items-center justify-content-center rounded-pill px-3 py-2 btn-action-view flex-grow-1 flex-md-grow-0"
-                                        style={{ background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--border-color)', fontSize: '0.85rem', transition: 'all 0.2s ease', cursor: 'pointer' }}>
+                                        style={{ background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--border-color)', fontSize: '0.85rem', transition: 'background-color 0.2s ease, color 0.2s ease', cursor: 'pointer' }}>
                                         <i className="bi bi-eye-fill me-1"></i> View
                                     </button>
                                     <button
@@ -130,7 +130,7 @@ export default function MyApplicationsPage() {
                                         style={{
                                             background: ['pending', 'viewed'].includes(app.status) ? 'rgba(239, 68, 68, 0.15)' : 'var(--bg-surface)',
                                             color: ['pending', 'viewed'].includes(app.status) ? '#ef4444' : 'var(--text-muted)',
-                                            fontSize: '0.85rem', transition: 'all 0.2s ease',
+                                            fontSize: '0.85rem', transition: 'background-color 0.2s ease, color 0.2s ease',
                                             cursor: ['pending', 'viewed'].includes(app.status) ? 'pointer' : 'not-allowed'
                                         }}>
                                         {withdrawMutation.isPending && withdrawMutation.variables === app._id ? (

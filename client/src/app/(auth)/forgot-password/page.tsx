@@ -109,15 +109,13 @@ export default function ForgotPasswordPage() {
                         <div className="card-body p-4 p-md-5">
 
                             {step === 1 && (
-                                <div className="d-flex gap-2 mb-4 p-1 rounded-pill" style={{ background: 'var(--bg-surface)' }}>
+                                <div className="d-flex gap-2 mb-4 p-1 rounded-pill auth-toggle-group">
                                     <button type="button" onClick={() => setMethod('phone')}
-                                        className={`btn flex-grow-1 rounded-pill py-2 fw-medium ${method === 'phone' ? 'shadow-sm' : ''}`}
-                                        style={{ background: method === 'phone' ? 'var(--bg-card)' : 'transparent', color: method === 'phone' ? 'var(--text-main)' : 'var(--text-muted)', border: 'none', transition: 'all 0.3s ease' }}>
+                                        className={`btn flex-grow-1 rounded-pill py-2 fw-medium auth-toggle-btn ${method === 'phone' ? 'active shadow-sm' : ''}`}>
                                         <i className="bi bi-phone me-2"></i>Phone
                                     </button>
                                     <button type="button" onClick={() => setMethod('email')}
-                                        className={`btn flex-grow-1 rounded-pill py-2 fw-medium ${method === 'email' ? 'shadow-sm' : ''}`}
-                                        style={{ background: method === 'email' ? 'var(--bg-card)' : 'transparent', color: method === 'email' ? 'var(--text-main)' : 'var(--text-muted)', border: 'none', transition: 'all 0.3s ease' }}>
+                                        className={`btn flex-grow-1 rounded-pill py-2 fw-medium auth-toggle-btn ${method === 'email' ? 'active shadow-sm' : ''}`}>
                                         <i className="bi bi-envelope me-2"></i>Email
                                     </button>
                                 </div>
@@ -167,7 +165,7 @@ export default function ForgotPasswordPage() {
                                     )}
 
                                     <button type="submit" className="btn w-100 py-3 fw-bold rounded-pill shadow-lg" disabled={loading}
-                                        style={{ background: 'var(--text-main)', color: 'var(--bg-body)', fontSize: '1rem', transition: 'all 0.3s ease' }}>
+                                        style={{ background: 'var(--text-main)', color: 'var(--bg-card)', fontSize: '1rem', transition: 'opacity 0.25s ease, transform 0.25s ease' }}>
                                         {loading ? 'Sending...' : 'Send OTP'}
                                     </button>
                                 </form>
@@ -215,7 +213,7 @@ export default function ForgotPasswordPage() {
                                     </div>
 
                                     <button type="submit" className="btn w-100 py-3 fw-bold rounded-pill shadow-lg" disabled={loading}
-                                        style={{ background: 'var(--text-main)', color: 'var(--bg-body)', fontSize: '1rem', transition: 'all 0.3s ease' }}>
+                                        style={{ background: 'var(--text-main)', color: 'var(--bg-card)', fontSize: '1rem', transition: 'opacity 0.25s ease, transform 0.25s ease' }}>
                                         {loading ? 'Resetting...' : 'Reset Password'}
                                     </button>
                                 </form>

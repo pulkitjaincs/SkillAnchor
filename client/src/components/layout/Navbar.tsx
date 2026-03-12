@@ -133,17 +133,17 @@ function NavbarContent({ name }: { name?: string }) {
         top: 0,
         zIndex: 1200,
         background: scrolled ? 'var(--bg-body)' : 'transparent',
-        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+        transition: 'background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
       }}
     >
       <nav
         className={`navbar navbar-expand-lg rounded-4 px-3 px-lg-5 transition-all duration-300 ${scrolled ? "glass-panel py-2" : "py-3"}`}
-        style={{ transition: "all 0.5s cubic-bezier(0.16, 1, 0.3, 1)" }}
+        style={{ transition: "background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.4s cubic-bezier(0.16, 1, 0.3, 1)" }}
       >
         <div className="container-fluid d-flex align-items-center">
           <Link className="navbar-brand fw-bolder fs-4 d-flex align-items-center gap-2 me-4 logo-hover flex-shrink-0" href="/">
             <div className="d-flex align-items-center justify-content-center rounded-circle"
-              style={{ width: "32px", height: "32px", background: "var(--text-main)", color: "var(--bg-body)" }}>
+              style={{ width: "32px", height: "32px", background: "var(--text-main)", color: "var(--bg-card)" }}>
               <span className="fw-bold" style={{ fontSize: "16px", letterSpacing: "-0.05em" }}>S</span>
             </div>
             <span style={{ letterSpacing: "-0.05em", color: "var(--text-main)" }}>SkillAnchor</span>
@@ -310,7 +310,7 @@ function NavbarContent({ name }: { name?: string }) {
                         style={{
                           width: '32px', height: '32px',
                           background: user.avatar ? `url(${user.avatar}) center/cover` : 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
-                          color: 'white', fontSize: '0.8rem', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)', transition: 'all 0.3s ease'
+                          color: 'white', fontSize: '0.8rem', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)', transition: 'box-shadow 0.3s ease'
                         }}>
                         {!user.avatar && user.name?.charAt(0)?.toUpperCase()}
                       </div>
@@ -346,7 +346,7 @@ function NavbarContent({ name }: { name?: string }) {
                         </div>
                       </li>
                       <li>
-                        <Link className="dropdown-item rounded-3 d-flex align-items-center gap-3" href="/profile" onClick={() => setDropdownOpen(false)} style={{ color: 'var(--text-main)', transition: 'all 0.15s ease', padding: '12px 14px', fontWeight: 500 }}>
+                        <Link className="dropdown-item rounded-3 d-flex align-items-center gap-3" href="/profile" onClick={() => setDropdownOpen(false)} style={{ color: 'var(--text-main)', transition: 'background-color 0.15s ease, color 0.15s ease', padding: '12px 14px', fontWeight: 500 }}>
                           <div className="d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px', borderRadius: '12px', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(99, 102, 241, 0.05))' }}>
                             <i className="bi bi-person-fill" style={{ color: 'var(--primary-600)', fontSize: '1rem' }}></i>
                           </div>
@@ -354,7 +354,7 @@ function NavbarContent({ name }: { name?: string }) {
                         </Link>
                       </li>
                       <li>
-                        <Link className="dropdown-item rounded-3 d-flex align-items-center gap-3" href="/profile/settings" onClick={() => setDropdownOpen(false)} style={{ color: 'var(--text-main)', transition: 'all 0.15s ease', padding: '12px 14px', fontWeight: 500 }}>
+                        <Link className="dropdown-item rounded-3 d-flex align-items-center gap-3" href="/profile/settings" onClick={() => setDropdownOpen(false)} style={{ color: 'var(--text-main)', transition: 'background-color 0.15s ease, color 0.15s ease', padding: '12px 14px', fontWeight: 500 }}>
                           <div className="d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px', borderRadius: '12px', background: 'linear-gradient(135deg, rgba(107, 114, 128, 0.12), rgba(107, 114, 128, 0.04))' }}>
                             <i className="bi bi-gear-fill" style={{ color: 'var(--text-muted)', fontSize: '1rem' }}></i>
                           </div>
@@ -365,7 +365,7 @@ function NavbarContent({ name }: { name?: string }) {
                         <hr style={{ margin: 0, borderColor: 'var(--border-color)', opacity: 0.5 }} />
                       </li>
                       <li>
-                        <button onClick={() => { handleLogout(); setDropdownOpen(false); }} className="dropdown-item rounded-3 d-flex align-items-center gap-3 w-100" style={{ color: '#ef4444', transition: 'all 0.15s ease', padding: '12px 14px', fontWeight: 500 }}>
+                        <button onClick={() => { handleLogout(); setDropdownOpen(false); }} className="dropdown-item rounded-3 d-flex align-items-center gap-3 w-100" style={{ color: '#ef4444', transition: 'background-color 0.15s ease', padding: '12px 14px', fontWeight: 500 }}>
                           <div className="d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)' }}>
                             <i className="bi bi-box-arrow-right" style={{ fontSize: '1rem' }}></i>
                           </div>
@@ -377,7 +377,7 @@ function NavbarContent({ name }: { name?: string }) {
                 </li>
               ) : (
                 <li className="nav-item">
-                  <Link href="/login" className="btn rounded-pill px-4 py-2 fw-semibold shadow-sm" style={{ background: "var(--text-main)", color: "var(--bg-body)", fontSize: "0.95rem", border: "none" }}>
+                  <Link href="/login" className="btn rounded-pill px-4 py-2 fw-semibold shadow-sm" style={{ background: "var(--text-main)", color: "var(--bg-card)", fontSize: "0.95rem", border: "none" }}>
                     Sign In
                   </Link>
                 </li>

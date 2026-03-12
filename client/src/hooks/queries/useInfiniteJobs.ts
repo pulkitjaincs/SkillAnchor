@@ -5,7 +5,7 @@ export const useInfiniteJobs = (filters: Record<string, any> = {}) => {
     return useInfiniteQuery({
         queryKey: ['jobs', filters],
         queryFn: async ({ pageParam = null }: { pageParam?: unknown }) => {
-            const params: Record<string, any> = { limit: 20 };
+            const params: Record<string, any> = { limit: 10 };
             // Only include non-empty filter values
             Object.entries(filters).forEach(([key, value]) => {
                 if (value) params[key] = value;

@@ -142,9 +142,9 @@ export default function RegisterPage() {
 
                     <p className="text-center mt-4 small auth-text-muted">
                         By continuing, you agree to our{' '}
-                        <Link href="/terms" className="text-decoration-none auth-text-main">Terms</Link>
+                        <Link href="/terms" className="text-decoration-none auth-text-main fw-semibold">Terms</Link>
                         {' '}and{' '}
-                        <Link href="/privacy" className="text-decoration-none auth-text-main">Privacy Policy</Link>
+                        <Link href="/privacy" className="text-decoration-none auth-text-main fw-semibold">Privacy Policy</Link>
                     </p>
                 </div>
             </div>

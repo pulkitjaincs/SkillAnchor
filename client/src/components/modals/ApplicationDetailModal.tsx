@@ -49,7 +49,7 @@ export default function ApplicationDetailModal({ selectedApp, onClose, getStatus
                     </div>
                     <div className="modal-footer border-0 pt-0">
                         <Link href={`/jobs/${selectedApp.job?._id}`} className="btn rounded-pill px-4 w-100"
-                            style={{ background: 'var(--primary-500)', color: 'white', textDecoration: 'none', transition: 'all 0.2s ease' }}
+                            style={{ background: 'var(--primary-500)', color: 'white', textDecoration: 'none', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
                             onMouseEnter={e => { (e.target as any).style.transform = 'scale(1.02)'; (e.target as any).style.boxShadow = '0 4px 15px rgba(99, 102, 241, 0.4)'; }}
                             onMouseLeave={e => { (e.target as any).style.transform = 'scale(1)'; (e.target as any).style.boxShadow = 'none'; }}>
                             <i className="bi bi-box-arrow-up-right me-1"></i> View Full Job

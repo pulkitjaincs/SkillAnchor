@@ -28,13 +28,13 @@
 ## ⚡ Performance & UX
 
 - **Hybrid Rendering**: Server Components by default, `"use client"` only for interactive leaves — drastically minimizes the JavaScript bundle.
-- **Image Optimization**: `next/image` for automatic WebP/AVIF compression, lazy-loading, and CLS prevention.
-- **Font Optimization**: `next/font/google` inlines Inter and Plus Jakarta Sans at build time — zero external requests, instant text rendering.
-- **Database Optimization**: Compound indexes, `.lean()` on all reads, field projections, **Cursor-based Pagination** on all list endpoints, and **Aggregation Pipelines** for optimized profile joins.
-- **Data Synchronization**: **Optimistic UI Updates** via React Query for instantaneous feedback on applications and team management.
-- **List Performance**: **React Virtuoso** for 60fps scrolling on massive datasets (My Jobs, My Team, Applicants).
-- **Component Memoization**: `React.memo` and `useCallback` on reusable components to prevent unnecessary re-renders.
-- **Route-Level Boundaries**: `loading.tsx`, `error.tsx`, and `not-found.tsx` for graceful suspense, errors, and 404 states.
+- **Fluid UI (120fps Experience)**: System-wide optimization of CSS transitions to use exclusively compositor-friendly properties (`transform`, `opacity`), eliminating layout jank and reflows for a buttery-smooth feel.
+- **Hardware Acceleration**: GPU-promoted layers via `will-change` and `translateZ(0)` on high-interaction components like cards and listings.
+- **Optimized Transitions**: Page transitions tuned to 300ms with custom cubic-bezier curves for a snappier, responsive interface.
+- **List Performance**: **React Virtuoso** for 60fps scrolling on massive datasets with zero jitter during dynamic layout shifts.
+- **Image Optimization**: `next/image` for automatic WebP/AVIF compression and CLS prevention.
+- **Font Optimization**: `next/font/google` inlines Inter and Plus Jakarta Sans at build time.
+- **Route-Level Boundaries**: `loading.tsx`, `error.tsx`, and `not-found.tsx` for graceful suspense and error handling.
 
 ---
 

@@ -2,6 +2,13 @@
 .auth-page-container {
     min-height: 100vh;
     background-color: var(--bg-body);
+    --auth-btn-bg: var(--zinc-900);
+    --auth-btn-text: var(--bg-card);
+}
+
+[data-theme="dark"] .auth-page-container {
+    --auth-btn-bg: var(--zinc-50);
+    --auth-btn-text: var(--bg-card);
 }
 
 .auth-card {
@@ -17,8 +24,8 @@
 .auth-header-icon {
     width: 64px;
     height: 64px;
-    background: var(--text-main);
-    color: var(--bg-body);
+    background: var(--auth-btn-bg);
+    color: var(--auth-btn-text);
     font-size: 28px;
     letter-spacing: -0.05em;
 }
@@ -40,25 +47,29 @@
     color: var(--text-muted);
     background: transparent;
     border: none;
-    transition: all 0.3s ease;
+    transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 .auth-toggle-btn.active {
-    background: var(--bg-card);
-    color: var(--text-main);
+    background: var(--auth-btn-bg) !important;
+    color: var(--auth-btn-text) !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
 
+/* Sub-toggle (Password/OTP) */
 .auth-sub-toggle-btn {
     background: var(--bg-surface);
     color: var(--text-muted);
-    border: none;
+    border: 1px solid var(--border-color) !important;
     font-size: 0.85rem;
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
 }
 
 .auth-sub-toggle-btn.active {
-    background: var(--text-main);
-    color: var(--bg-body);
+    background: var(--auth-btn-bg) !important;
+    color: var(--auth-btn-text) !important;
+    border-color: var(--auth-btn-bg) !important;
 }
 
 .auth-error-box {
@@ -77,16 +88,24 @@
 }
 
 .auth-input-group-text {
-    background: var(--bg-surface);
-    color: var(--text-muted);
+    background: var(--bg-surface) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-color) !important;
+    border-right: none !important;
     border-radius: 12px 0 0 12px;
 }
 
 .auth-form-control {
-    background: var(--bg-surface);
-    color: var(--text-main);
+    background: var(--bg-surface) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-color) !important;
     border-radius: 12px;
     font-size: 1rem;
+}
+
+.auth-form-control:focus {
+    background: var(--bg-surface) !important;
+    border-color: var(--primary-500) !important;
 }
 
 .auth-form-control-phone {
@@ -104,10 +123,23 @@
 }
 
 .auth-submit-btn {
-    background: var(--text-main);
-    color: var(--bg-body);
+    background: var(--auth-btn-bg) !important;
+    color: var(--auth-btn-text) !important; 
     font-size: 1rem;
-    transition: all 0.3s ease;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+    transition: all 0.25s ease;
+    border: none !important;
+}
+
+.auth-submit-btn:hover:not(:disabled) {
+    opacity: 0.85 !important;
+    transform: translateY(-1px) !important;
+}
+
+.auth-submit-btn:disabled {
+    background: var(--zinc-400) !important;
+    opacity: 0.7;
 }
 
 .auth-hr {
@@ -126,7 +158,7 @@
     background: var(--bg-surface);
     border: 2px solid transparent;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background-color 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
 }
 
 .role-selector-card.active {
@@ -147,5 +179,14 @@
 }
 
 .role-text.active {
-    color: var(--text-main);
+    color: var(--primary-700);
+}
+
+[data-theme="dark"] .role-selector-card.active {
+    background: rgba(0, 0, 0);
+    border-color: var(--primary-500);
+}
+
+[data-theme="dark"] .role-text.active {
+    color: var(--primary-300);
 }

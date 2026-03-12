@@ -7,12 +7,12 @@ const inputStyle = {
     padding: '14px 16px',
     fontSize: '0.95rem',
     color: 'var(--text-main)',
-    transition: 'all 0.2s ease'
+    transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
 };
 
 const submitBtnBase = {
     width: '100%', border: 'none', borderRadius: '14px', padding: '14px',
-    fontWeight: 600, fontSize: '0.95rem', transition: 'all 0.2s ease'
+    fontWeight: 600, fontSize: '0.95rem', transition: 'background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease'
 };
 
 const PasswordCard = memo(({ onSubmit }: { onSubmit: (data: any) => Promise<void> }) => {

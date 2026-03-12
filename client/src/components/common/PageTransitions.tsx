@@ -13,7 +13,7 @@ const PageTransitions = ({ children }: PageTransitionsProps) => {
             initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -10 }}
-            transition={{ duration: shouldReduceMotion ? 0 : 0.5, ease: "easeOut" }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.3, ease: [0.16, 1, 0.3, 1] }}
         >
             {children}
         </motion.div>

@@ -6,14 +6,16 @@ import Image from "next/image";
 import { useAuth } from '@/context/AuthContext';
 import { applicationsAPI } from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { formatDate, formatSalary, timeAgo } from "@/utils/index";
+import { formatDate, formatSalary } from "@/utils/index";
+import { motion, AnimatePresence } from "framer-motion";
+import type { Variants } from "framer-motion";
 import type { Job } from '@/types';
 
 const ApplyModal = dynamic(() => import("@/components/common/ApplyModal"), { ssr: false });
 
 const listingCardBase = { borderRadius: "24px", background: "var(--bg-card)", boxShadow: "0 20px 60px -15px rgba(0,0,0,0.15)" };
 const bannerStyle = { height: "160px", background: "linear-gradient(135deg, var(--primary-500), var(--primary-700))", borderRadius: "24px 24px 0 0" };
-const closeBtnStyle = { width: "40px", height: "40px", background: "rgba(255,255,255,0.95)", border: "none", zIndex: 10 };
+const closeBtnStyle = { width: "40px", height: "40px", background: "var(--bg-card)", border: "none", zIndex: 10, color: "var(--text-main)" };
 const xIconStyle = { fontSize: "1.2rem", color: "var(--text-main)" };
 const logoImgStyle = { width: "100px", height: "100px", objectFit: "cover" as const };
 const bodyStyle = { overflowY: "auto" as const, height: "calc(100% - 160px)" };
@@ -55,7 +57,7 @@ const Listing = memo(({ job, onClose, isSwitch = false }: ListingProps) => {
         setIsClosing(true);
         setTimeout(() => {
             onClose();
-        }, 350);
+        }, 150);
     }, [onClose]);
 
     const handleApply = async (coverNote: string) => {
@@ -77,10 +79,20 @@ const Listing = memo(({ job, onClose, isSwitch = false }: ListingProps) => {
         }
     }
 
-    const getAnimationClass = () => {
-        if (isClosing) return 'animate-exit-listing';
-        if (isSwitch) return 'animate-switch-listing';
-        return 'animate-entry-listing';
+    const variants: Variants = {
+        hidden: { opacity: 0, y: 20, scale: 0.98 },
+        enter: { 
+            opacity: 1, y: 0, scale: 1, 
+            transition: { type: "spring", stiffness: 400, damping: 30, mass: 0.8 } 
+        },
+        switch: { 
+            opacity: 1, scale: 1, y: 0,
+            transition: { duration: 0.2, ease: "easeOut" } 
+        },
+        exit: { 
+            opacity: 0, y: 15, scale: 0.98,
+            transition: { duration: 0.15, ease: "easeIn" } 
+        }
     };
 
     if (!job) {
@@ -95,9 +107,18 @@ const Listing = memo(({ job, onClose, isSwitch = false }: ListingProps) => {
     }
 
     return (
-        <div key={job._id} className={`card h-100 border-0 custom-scroll overflow-hidden ${getAnimationClass()}`}
-            style={listingCardBase}>
-            <div className="position-relative" style={bannerStyle}>
+        <AnimatePresence mode="wait">
+            {!isClosing && (
+                <motion.div 
+                    key={job._id}
+                    initial="hidden"
+                    animate={isSwitch ? "switch" : "enter"}
+                    exit="exit"
+                    variants={variants}
+                    style={{ ...listingCardBase, willChange: "transform, opacity", transform: "translateZ(0)" }}
+                    className="card h-100 border-0 custom-scroll overflow-hidden"
+                >
+                    <div className="position-relative" style={bannerStyle}>
                 <button
                     onClick={handleClose}
                     className="position-absolute top-0 start-0 m-3 btn rounded-circle shadow-sm p-0 d-flex align-items-center justify-content-center hover-scale"
@@ -197,7 +218,11 @@ const Listing = memo(({ job, onClose, isSwitch = false }: ListingProps) => {
                         <div className="d-flex gap-2 flex-wrap">
                             {job.skills.map((skill, index) => (
                                 <span key={index} className="badge rounded-pill border px-3 py-2 fw-medium shadow-sm"
-                                    style={{ background: "var(--bg-card)", borderColor: "var(--border-color)", color: "var(--text-muted)" }}>
+                                    style={{ 
+                                        background: "var(--primary-50)", 
+                                        borderColor: "var(--primary-100)", 
+                                        color: "var(--primary-600)" 
+                                    }}>
                                     {skill}
                                 </span>
                             ))}
@@ -216,7 +241,9 @@ const Listing = memo(({ job, onClose, isSwitch = false }: ListingProps) => {
                     />
                 </Suspense>
             )}
-        </div>
+            </motion.div>
+            )}
+        </AnimatePresence>
     );
 });
 

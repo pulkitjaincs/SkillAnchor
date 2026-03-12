@@ -2,7 +2,7 @@ import { memo } from 'react';
 import Link from 'next/link';
 
 const cardStyle = { borderRadius: '20px', background: 'var(--bg-card)' };
-const actionBgStyle = { background: 'var(--bg-surface)', transition: 'all 0.2s' };
+const actionBgStyle = { background: 'var(--bg-surface)', transition: 'background-color 0.2s ease, transform 0.2s ease' };
 
 const actions = [
     { href: '/post-job', iconBg: 'rgba(99, 102, 241, 0.1)', iconColor: 'var(--primary-600)', icon: 'bi-plus-lg', title: 'Post a New Job', subtitle: 'Find workers for your business' },

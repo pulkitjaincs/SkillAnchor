@@ -7,6 +7,8 @@ import { useInfiniteJobs } from "@/hooks/queries/useInfiniteJobs";
 import SearchHero from "@/components/common/SearchHero";
 import PageTransitions from "@/components/common/PageTransitions";
 import JobCard from "@/components/common/Card";
+import JobSkeleton from "@/components/common/JobSkeleton";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Listing = dynamic(() => import("@/components/common/Listing"), {
   loading: () => <p>Loading...</p>,
@@ -130,48 +132,72 @@ function HomePageContent() {
                   marginRight: '-2rem',
                   paddingLeft: '2rem',
                   paddingRight: '2rem',
+                  boxShadow: '0 4px 0 0 var(--bg-body)',
                 }}>
                 <h4 className="fw-bolder mb-0 tracking-tight" style={{ color: "var(--text-main)" }}>Recent Jobs</h4>
               </div>
             )}
             <div className="pe-3 pb-5">
-              {isLoading ? (
-                <div className="py-5 text-center">
-                  <div className="spinner-border text-primary" role="status"></div>
-                  <p className="mt-2 text-muted">Finding the best jobs for you...</p>
-                </div>
-              ) : allJobs.length === 0 ? (
-                <div className="py-5 text-center">
-                  <i className="bi bi-search text-muted fs-1"></i>
-                  <p className="mt-3 text-muted">No jobs found matching your criteria.</p>
-                </div>
-              ) : (
-                <>
-                  {allJobs.map((job: any) => (
-                    <div key={job._id} className="pb-3 px-1">
-                      <JobCard
-                        job={job}
-                        isSelected={selectedJob?._id === job._id}
-                        onClick={() => handleJobClick(job)}
-                      />
+              <AnimatePresence mode="popLayout">
+                {isLoading ? (
+                  <motion.div 
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  >
+                    {[...Array(5)].map((_, i) => (
+                      <JobSkeleton key={`skeleton-${i}`} />
+                    ))}
+                  </motion.div>
+                ) : allJobs.length === 0 ? (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                    className="py-5 text-center d-flex flex-column align-items-center"
+                  >
+                    <div className="p-4 rounded-circle mb-3 mb-4" style={{ background: "var(--bg-surface)" }}>
+                        <i className="bi bi-search fs-1" style={{ color: "var(--text-muted)" }}></i>
                     </div>
-                  ))}
+                    <h5 className="fw-bold mb-2">No jobs found</h5>
+                    <p className="text-muted" style={{ maxWidth: "300px" }}>Try adjusting your search filters or exploring a different category.</p>
+                  </motion.div>
+                ) : (
+                  <>
+                    <motion.div
+                      initial="hidden"
+                      animate="visible"
+                      variants={{
+                          hidden: { opacity: 0 },
+                          visible: {
+                              opacity: 1,
+                              transition: { staggerChildren: 0.1 }
+                          }
+                      }}
+                    >
+                      {allJobs.map((job: any) => (
+                        <div key={job._id} className="pb-3 px-1">
+                          <JobCard
+                            job={job}
+                            isSelected={selectedJob?._id === job._id}
+                            onClick={() => handleJobClick(job)}
+                          />
+                        </div>
+                      ))}
+                    </motion.div>
 
-                  {/* Sentinel element — triggers fetchNextPage when scrolled into view */}
-                  <div ref={loadMoreRef} style={{ height: '1px' }} />
+                    {/* Sentinel element — triggers fetchNextPage when scrolled into view */}
+                    <div ref={loadMoreRef} style={{ height: '1px' }} />
 
-                  {isFetchingNextPage && (
-                    <div className="py-4 text-center text-muted">
-                      <div className="spinner-border spinner-border-sm me-2"></div>Loading more...
-                    </div>
-                  )}
-                  {!hasNextPage && allJobs.length > 0 && (
-                    <div className="py-5 text-center text-muted small border-top mt-4">
-                      You&apos;ve reached the end of the list
-                    </div>
-                  )}
-                </>
-              )}
+                    {isFetchingNextPage && (
+                      <div className="py-2">
+                          <JobSkeleton />
+                      </div>
+                    )}
+                    {!hasNextPage && allJobs.length > 0 && (
+                      <div className="py-4 text-center border-top mt-3" style={{ borderColor: "var(--border-color)", opacity: 0.7 }}>
+                        <span className="small fw-medium" style={{ color: "var(--text-muted)" }}>You&apos;ve reached the end of the list</span>
+                      </div>
+                    )}
+                  </>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 

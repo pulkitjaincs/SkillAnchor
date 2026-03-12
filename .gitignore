@@ -44,3 +44,6 @@ next-env.d.ts
 prompt.md
 build.log
 bundle-analysis.html
+project_interview_guide.md
+IMPLEMENTATION_PLAN.md
+.agent/instructions.md

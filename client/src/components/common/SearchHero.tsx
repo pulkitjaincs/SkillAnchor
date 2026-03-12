@@ -11,11 +11,11 @@ interface SearchHeroProps {
     initialCategory?: string;
 }
 
-const SearchHero = ({ 
-    onSearch, 
-    initialSearchQuery = '', 
-    initialLocation = '', 
-    initialCategory = 'All' 
+const SearchHero = ({
+    onSearch,
+    initialSearchQuery = '',
+    initialLocation = '',
+    initialCategory = 'All'
 }: SearchHeroProps) => {
     const [search, setSearch] = useState(initialSearchQuery);
     const [location, setLocation] = useState(initialLocation);
@@ -94,7 +94,7 @@ const SearchHero = ({
                         />
                     </div>
 
-                    <button type="submit" className="btn btn-primary-gradient rounded-pill px-4 py-2 fw-bold shadow-sm h-100 ms-2">
+                    <button type="submit" className="btn btn-primary-gradient rounded-pill px-4 py-2 fw-bold shadow-sm h-100 ms-2 text-white">
                         Search
                     </button>
                 </form>

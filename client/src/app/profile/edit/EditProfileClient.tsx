@@ -197,7 +197,7 @@ export default function EditProfileClient() {
                                     background: currentStep === step.number ? 'var(--bg-card)' : 'transparent',
                                     border: currentStep === step.number ? '1px solid var(--border-color)' : '1px solid transparent',
                                     boxShadow: currentStep === step.number ? '0 4px 20px rgba(0,0,0,0.08)' : 'none',
-                                    transition: 'all 0.3s ease',
+                                    transition: 'background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease',
                                     minWidth: '90px'
                                 }}>
                                 <div style={{
@@ -207,7 +207,7 @@ export default function EditProfileClient() {
                                         : 'var(--bg-surface)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     marginBottom: '8px',
-                                    transition: 'all 0.3s ease'
+                                    transition: 'background-color 0.25s ease'
                                 }}>
                                     <i className={`bi ${step.icon}`} style={{
                                         color: currentStep >= step.number ? 'white' : 'var(--text-muted)',
