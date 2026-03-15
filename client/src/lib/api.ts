@@ -11,7 +11,7 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
     if (typeof window !== 'undefined') {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("skillanchor_token");
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -22,7 +22,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use((response) => response,
     (error) => {
         if (typeof window !== 'undefined' && error.response?.status === 401) {
-            localStorage.removeItem('token');
+            localStorage.removeItem('skillanchor_token');
             window.dispatchEvent(new Event('auth:unauthorized'));
         }
         return Promise.reject(error);

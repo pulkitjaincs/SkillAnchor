@@ -29,8 +29,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const queryClient = useQueryClient();
 
     useEffect(() => {
-        const storedToken = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
+        const storedToken = localStorage.getItem('skillanchor_token');
+        const storedUser = localStorage.getItem('skillanchor_user');
 
         if (storedToken && storedUser) {
             setToken(storedToken);
@@ -44,9 +44,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
     }, []);
     const login = (newToken: string, newUser: User) => {
-        localStorage.setItem('token', newToken);
-        localStorage.setItem('user', JSON.stringify(newUser));
-        document.cookie = `token=${newToken}; path=/; max-age=604800; samesite=lax`;
+        localStorage.setItem('skillanchor_token', newToken);
+        localStorage.setItem('skillanchor_user', JSON.stringify(newUser));
+        document.cookie = `skillanchor_token=${newToken}; path=/; max-age=604800; samesite=lax`;
         setToken(newToken);
         setUser(newUser);
     };
@@ -55,13 +55,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
         }
         const newUser = { ...user, ...userData };
-        localStorage.setItem('user', JSON.stringify(newUser));
+        localStorage.setItem('skillanchor_user', JSON.stringify(newUser));
         setUser(newUser);
     };
     const logout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        document.cookie = `token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+        localStorage.removeItem('skillanchor_token');
+        localStorage.removeItem('skillanchor_user');
+        document.cookie = `skillanchor_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
         setToken(null);
         setUser(null);
         queryClient.clear();
