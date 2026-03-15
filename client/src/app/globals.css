@@ -1,9 +1,37 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Global Scaling & Smooth Scroll */
 html {
     scroll-behavior: smooth;
     overflow-x: hidden;
     text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
+}
+
+a, a:hover, a:focus {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* Force theme toggle to be circular - Bootstrap's button styles override Tailwind */
+button[title*="theme"] {
+    border-radius: 9999px !important;
+}
+
+/* Kill all white borders on glass cards in dark mode */
+.dark .rounded-2xl,
+.dark .rounded-xl,
+.dark .rounded-full,
+.dark .\!rounded-2xl {
+    border-color: transparent !important;
+}
+
+/* Preserve intentional colored borders (indigo gradient accents, dividers) */
+.dark .border-indigo-500,
+.dark .border-indigo-400,
+.dark .border-red-500 {
+    border-color: inherit !important;
 }
 
 :root {

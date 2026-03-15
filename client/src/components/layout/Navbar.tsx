@@ -4,6 +4,9 @@ import { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, MapPin, Menu, Sun, Moon, Monitor, ChevronDown, User, Settings, LogOut, X } from "lucide-react";
+
 function NavbarContent({ name }: { name?: string }) {
   const { user: authUser, logout } = useAuth();
 
@@ -19,6 +22,7 @@ function NavbarContent({ name }: { name?: string }) {
   const [theme, setTheme] = useState("light");
   const [heroVisible, setHeroVisible] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const compactSearchRef = useRef<HTMLInputElement>(null);
@@ -55,8 +59,13 @@ function NavbarContent({ name }: { name?: string }) {
       let isDark = theme === "dark";
       if (theme === "system") isDark = mediaQuery.matches;
 
-      if (isDark) root.setAttribute("data-theme", "dark");
-      else root.removeAttribute("data-theme");
+      if (isDark) {
+        root.setAttribute("data-theme", "dark");
+        root.classList.add("dark");
+      } else {
+        root.removeAttribute("data-theme");
+        root.classList.remove("dark");
+      }
     };
 
     applyTheme();
@@ -126,288 +135,342 @@ function NavbarContent({ name }: { name?: string }) {
   };
 
   return (
-    <div
-      className="px-3 px-lg-4 py-3"
-      style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 1200,
-        background: scrolled ? 'var(--bg-body)' : 'transparent',
-        transition: 'background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-      }}
+    <motion.header 
+      initial={{ y: -20, opacity: 0 }} 
+      animate={{ y: 0, opacity: 1 }} 
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      className={`fixed top-4 left-0 right-0 z-[1200] mx-auto w-[95%] max-w-7xl flex items-center justify-between px-6 py-3 rounded-2xl backdrop-blur-2xl transition-all duration-300 ${
+        scrolled ? "bg-white/60 dark:bg-black/60 shadow-2xl shadow-indigo-500/10 border border-white/50 dark:border-white/10" : "bg-white/40 dark:bg-black/40 border border-white/30 dark:border-white/5"
+      }`}
     >
-      <nav
-        className={`navbar navbar-expand-lg rounded-4 px-3 px-lg-5 transition-all duration-300 ${scrolled ? "glass-panel py-2" : "py-3"}`}
-        style={{ transition: "background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.4s cubic-bezier(0.16, 1, 0.3, 1)" }}
-      >
-        <div className="container-fluid d-flex align-items-center">
-          <Link className="navbar-brand fw-bolder fs-4 d-flex align-items-center gap-2 me-4 logo-hover flex-shrink-0" href="/">
-            <div className="d-flex align-items-center justify-content-center rounded-circle"
-              style={{ width: "32px", height: "32px", background: "var(--text-main)", color: "var(--bg-card)" }}>
-              <span className="fw-bold" style={{ fontSize: "16px", letterSpacing: "-0.05em" }}>S</span>
+      <div className="flex items-center space-x-6 h-full">
+        {/* LOGO */}
+        <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
+          <Link href="/" className="flex items-center space-x-2 text-slate-900 dark:text-white no-underline">
+            <div className="flex items-center justify-center rounded-2xl w-8 h-8 bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md">
+              <span className="font-bold text-base -tracking-wider">S</span>
             </div>
-            <span style={{ letterSpacing: "-0.05em", color: "var(--text-main)" }}>SkillAnchor</span>
+            <span className="font-bold tracking-tight text-lg">SkillAnchor</span>
           </Link>
+        </motion.div>
 
-          {isHomePage && (
-            <div
-              className="d-none d-lg-flex align-items-center me-auto"
-              style={{
-                maxWidth: showCompactSearch ? '480px' : '0px',
-                opacity: showCompactSearch ? 1 : 0,
-                overflow: 'hidden',
-                transition: 'max-width 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), flex-basis 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
-                pointerEvents: showCompactSearch ? 'all' : 'none',
-                flex: showCompactSearch ? '1 1 480px' : '0 0 0px',
-                willChange: 'max-width, opacity, flex-basis',
-              }}
-            >
-              <div
-                className="d-flex align-items-center rounded-pill w-100"
-                style={{
-                  height: '42px',
-                  backgroundColor: 'var(--bg-surface)',
-                  border: '1px solid var(--border-color)',
-                  transition: 'background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease',
-                  overflow: 'hidden',
-                  minWidth: '320px',
-                }}
-              >
-                <div className="d-flex align-items-center flex-grow-1 px-3">
-                  <i className="bi bi-search" style={{ fontSize: '0.85rem', color: 'var(--text-muted)', flexShrink: 0 }}></i>
-                  <input
-                    ref={compactSearchRef}
-                    type="text"
-                    value={compactSearch}
-                    onChange={(e) => setCompactSearch(e.target.value)}
-                    onKeyDown={handleCompactSearch}
-                    className="form-control border-0 bg-transparent shadow-none py-0"
-                    placeholder="Search jobs..."
-                    style={{ fontSize: '0.85rem', fontWeight: '500', color: 'var(--text-main)', paddingLeft: '10px' }}
-                  />
-                </div>
-
-                <div style={{ width: '1px', height: '22px', background: 'var(--border-color)', flexShrink: 0 }}></div>
-
-                <div className="d-flex align-items-center px-3" style={{ minWidth: '120px' }}>
-                  <i className="bi bi-geo-alt-fill" style={{ fontSize: '0.85rem', color: 'var(--primary-500)', flexShrink: 0 }}></i>
-                  <input
-                    type="text"
-                    value={compactLocation}
-                    onChange={(e) => setCompactLocation(e.target.value)}
-                    onKeyDown={handleCompactSearch}
-                    className="form-control border-0 bg-transparent shadow-none py-0"
-                    placeholder="Location..."
-                    style={{ fontSize: '0.85rem', fontWeight: '500', color: 'var(--text-main)', paddingLeft: '10px' }}
-                  />
-                </div>
-
-                <button
-                  onClick={executeCompactSearch}
-                  className="btn rounded-pill px-3 py-1 fw-bold me-1 d-flex align-items-center justify-content-center flex-shrink-0"
-                  style={{
-                    background: 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
-                    color: 'white', fontSize: '0.8rem', border: 'none', height: '32px',
-                  }}
-                >
-                  <i className="bi bi-search me-1" style={{ fontSize: '0.75rem' }}></i> Go
-                </button>
-              </div>
-            </div>
-          )}
-
-          {!isHomePage && (
-            <div
-              className="d-none d-lg-flex align-items-center position-relative transition-all me-auto"
-              style={{ width: searchActive ? "340px" : "240px", transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)" }}
-            >
-              <div
-                className="d-flex align-items-center rounded-pill"
-                style={{
-                  position: "absolute", width: "100%", height: "44px", overflow: "hidden", cursor: "text",
-                  backgroundColor: searchActive ? "var(--bg-card)" : "var(--bg-surface)",
-                  border: searchActive ? "1px solid var(--border-active)" : "1px solid var(--border-color)",
-                  boxShadow: searchActive ? "var(--shadow-lg)" : "none",
-                  transition: "all 0.2s ease"
-                }}
-                onClick={() => {
-                  setSearchActive(true);
-                  inputRef.current?.focus();
-                }}
-              >
-                <i className="bi bi-search fs-6" style={{ marginLeft: "16px", transition: "color 0.2s", color: searchActive ? "var(--text-main)" : "var(--text-muted)" }}></i>
+        {/* COMPACT SEARCH FOR HOMEPAGE W/ HIDDEN HERO */}
+        {isHomePage && (
+          <div
+            className={`hidden lg:flex items-center overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              showCompactSearch ? "max-w-[480px] opacity-100 pl-4" : "max-w-0 opacity-0 pointer-events-none"
+            }`}
+          >
+            <div className="flex items-center rounded-2xl h-[42px] min-w-[320px] bg-white/50 dark:bg-black/50 backdrop-blur-md border border-white/40 dark:border-white/10 overflow-hidden shadow-sm">
+              <div className="flex items-center flex-grow px-3">
+                <Search size={14} className="text-slate-500 dark:text-slate-400 shrink-0" />
                 <input
-                  ref={inputRef} type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={handleSearch}
-                  className="form-control border-0 bg-transparent shadow-none" placeholder="Search jobs..."
-                  style={{ opacity: 1, transform: "translateX(0)", fontSize: "0.9rem", paddingLeft: "12px", fontWeight: "500", color: "var(--text-main)" }}
-                  onFocus={() => setSearchActive(true)} onBlur={() => setSearchActive(false)}
+                  ref={compactSearchRef}
+                  type="text"
+                  value={compactSearch}
+                  onChange={(e) => setCompactSearch(e.target.value)}
+                  onKeyDown={handleCompactSearch}
+                  className="w-full bg-transparent border-none outline-none focus:ring-0 text-sm font-medium text-slate-900 dark:text-white pl-2"
+                  placeholder="Search jobs..."
                 />
               </div>
+
+              <div className="w-[1px] h-[22px] bg-slate-300 dark:bg-slate-700 shrink-0"></div>
+
+              <div className="flex items-center px-3 min-w-[120px]">
+                <MapPin size={14} className="text-indigo-500 shrink-0" />
+                <input
+                  type="text"
+                  value={compactLocation}
+                  onChange={(e) => setCompactLocation(e.target.value)}
+                  onKeyDown={handleCompactSearch}
+                  className="w-full bg-transparent border-none outline-none focus:ring-0 text-sm font-medium text-slate-900 dark:text-white pl-2"
+                  placeholder="Location..."
+                />
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={executeCompactSearch}
+                className="flex items-center justify-center shrink-0 h-8 px-3 mr-1 rounded-xl text-white text-xs font-bold border-none bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md"
+              >
+                <Search size={12} className="mr-1" /> Go
+              </motion.button>
             </div>
-          )}
+          </div>
+        )}
 
-          {!isHomePage && (
-            <button
-              className="btn d-lg-none ms-auto me-2 rounded-circle p-0 flex-shrink-0 d-flex align-items-center justify-content-center"
-              onClick={() => setSearchActive(!searchActive)}
-              style={{ width: "40px", height: "40px", background: "var(--bg-surface)", border: "1px solid var(--border-color)", boxShadow: "var(--shadow-sm)", color: "var(--text-main)" }}
+        {/* UNIVERSAL SEARCH FOR OTHER PAGES */}
+        {!isHomePage && (
+          <div className={`hidden lg:flex items-center relative transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${searchActive ? "w-[340px]" : "w-[240px]"}`}>
+            <div
+              className={`absolute w-full h-[40px] flex items-center rounded-2xl overflow-hidden cursor-text transition-all duration-300 ${
+                searchActive 
+                  ? "bg-white/80 dark:bg-black/80 border border-indigo-400 dark:border-indigo-500 shadow-lg shadow-indigo-500/10" 
+                  : "bg-white/40 dark:bg-black/40 border border-white/50 dark:border-white/10"
+              }`}
+              onClick={() => {
+                setSearchActive(true);
+                inputRef.current?.focus();
+              }}
             >
-              {searchActive ? (
-                <i className="bi bi-x-lg"></i>
-              ) : (
-                <i className="bi bi-search"></i>
-              )}
-            </button>
+              <Search size={16} className={`ml-4 transition-colors duration-200 ${searchActive ? "text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400"}`} />
+              <input
+                ref={inputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearch}
+                className="w-full bg-transparent border-none outline-none focus:ring-0 text-sm font-medium text-slate-900 dark:text-white pl-3 pr-4"
+                placeholder="Search jobs..."
+                onFocus={() => setSearchActive(true)}
+                onBlur={() => setSearchActive(false)}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center space-x-2 md:space-x-4">
+        {/* MOBILE SEARCH TOGGLE */}
+        {!isHomePage && (
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="lg:hidden flex shrink-0 items-center justify-center w-10 h-10 rounded-xl bg-white/40 dark:bg-black/40 border border-white/50 dark:border-white/10 shadow-sm text-slate-900 dark:text-white"
+            onClick={() => setSearchActive(!searchActive)}
+          >
+            {searchActive ? <X size={18} /> : <Search size={18} />}
+          </motion.button>
+        )}
+
+        {/* MOBILE MENU TOGGLE */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="lg:hidden flex shrink-0 items-center justify-center w-10 h-10 rounded-xl bg-white/40 dark:bg-black/40 border border-white/50 dark:border-white/10 shadow-sm text-slate-900 dark:text-white"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+        </motion.button>
+
+        {/* DESKTOP NAV LINKS */}
+        <nav className="hidden lg:flex items-center space-x-1">
+          {user?.role === 'employer' && (
+            <>
+              <Link href="/my-jobs" className="px-3 py-2 text-sm font-semibold tracking-tight text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors duration-200 no-underline">My Jobs</Link>
+              <Link href="/my-team" className="px-3 py-2 text-sm font-semibold tracking-tight text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors duration-200 no-underline">My Team</Link>
+            </>
           )}
 
-          <button
-            className="btn d-lg-none border-0 shadow-none p-0 flex-shrink-0 d-flex align-items-center justify-content-center rounded-circle"
-            type="button" data-bs-toggle="collapse" data-bs-target="#navContent"
-            style={{ width: "40px", height: "40px", background: "var(--bg-surface)", border: "1px solid var(--border-color)", boxShadow: "var(--shadow-sm)", color: "var(--text-main)" }}
-          >
-            <i className="bi bi-list fs-4"></i>
-          </button>
+          {user?.role === 'worker' && (
+            <Link href="/my-applications" className="px-3 py-2 text-sm font-semibold tracking-tight text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors duration-200 no-underline">My Applications</Link>
+          )}
+          
+          <Link href="/companies" className="px-3 py-2 text-sm font-semibold tracking-tight text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors duration-200 no-underline">Companies</Link>
 
-          <div className="collapse navbar-collapse flex-grow-0" id="navContent">
-            <ul className="navbar-nav ms-auto mb-2 mb-lg-0 gap-2 gap-lg-4 align-items-center">
+          {/* THEME TOGGLE */}
+            <motion.button
+              whileHover={{ scale: 1.1, rotate: 15 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={toggleTheme}
+              className="relative flex items-center justify-center w-10 h-10 rounded-full bg-white/40 dark:bg-black/40 border border-white/50 dark:border-white/10 text-slate-700 dark:text-slate-200 mx-2 shadow-sm overflow-hidden"
+              title={`Current theme: ${theme}`}
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={theme}
+                  initial={{ opacity: 0, rotate: -90 }}
+                  animate={{ opacity: 1, rotate: 0 }}
+                  exit={{ opacity: 0, rotate: 90 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute flex items-center justify-center"
+                >
+                  {theme === "light" && <Sun size={18} />}
+                  {theme === "dark" && <Moon size={18} />}
+                  {theme === "system" && <Monitor size={18} />}
+                </motion.div>
+              </AnimatePresence>
+            </motion.button>
+
+          {/* USER PROFILE OR LOGIN */}
+          {user ? (
+            <div ref={dropdownRef} className="relative z-50">
+              <motion.div 
+                whileHover={{ scale: 1.02 }} 
+                whileTap={{ scale: 0.98 }}
+                className="flex items-center gap-2 cursor-pointer p-1 pr-3 rounded-2xl bg-white/50 dark:bg-black/50 border border-white/50 dark:border-white/10 shadow-sm"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              >
+                <div 
+                  className="flex items-center justify-center rounded-xl w-8 h-8 font-bold text-white text-xs shadow-md shrink-0"
+                  style={{ background: user.avatar ? `url(${user.avatar}) center/cover` : 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+                >
+                  {!user.avatar && user.name?.charAt(0)?.toUpperCase()}
+                </div>
+                <span className="font-semibold text-sm tracking-tight text-slate-900 dark:text-white">
+                  {user.name}
+                </span>
+                <ChevronDown size={14} className={`text-slate-500 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
+              </motion.div>
+
+              <AnimatePresence>
+                {dropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="absolute right-0 top-full mt-4 min-w-[280px] p-3 rounded-2xl backdrop-blur-3xl bg-white/70 dark:bg-[#1a1c23]/70 border border-white/50 dark:border-white/10 shadow-2xl overflow-hidden z-50"
+                  >
+                    <div className="pointer-events-none absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"></div>
+                    
+                    <div className="relative mb-2 p-4 rounded-[16px] bg-indigo-500/5 dark:bg-indigo-500/10">
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="flex items-center justify-center rounded-2xl w-12 h-12 font-bold text-white text-lg shadow-lg shadow-indigo-500/30 shrink-0"
+                          style={{ background: user.avatar ? `url(${user.avatar}) center/cover` : 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+                        >
+                          {!user.avatar && user.name?.charAt(0)?.toUpperCase()}
+                        </div>
+                        <div className="overflow-hidden">
+                          <h6 className="m-0 font-bold text-base tracking-tight truncate text-slate-900 dark:text-white">{user.name}</h6>
+                          <span className="block text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
+                            {user.email || 'Worker Account'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col gap-1 relative z-10">
+                      <Link href="/profile" onClick={() => setDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors duration-200 text-slate-700 dark:text-slate-200 font-semibold text-sm no-underline">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                          <User size={16} />
+                        </div>
+                        My Profile
+                      </Link>
+                      
+                      <Link href="/profile/settings" onClick={() => setDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors duration-200 text-slate-700 dark:text-slate-200 font-semibold text-sm no-underline">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-slate-500/10 text-slate-600 dark:text-slate-400">
+                          <Settings size={16} />
+                        </div>
+                        Account Settings
+                      </Link>
+                      
+                      <div className="h-px bg-slate-200/50 dark:bg-slate-700/50 my-1 mx-2"></div>
+                      
+                      <button onClick={() => { handleLogout(); setDropdownOpen(false); }} className="flex w-full items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-red-500/10 transition-colors duration-200 text-red-500 font-semibold text-sm border-none bg-transparent cursor-pointer">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-red-500/10 text-red-500">
+                          <LogOut size={16} />
+                        </div>
+                        Logout
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Link href="/login" className="px-4 py-2 rounded-xl font-bold text-sm tracking-tight text-white bg-slate-900 dark:bg-slate-100 dark:!text-slate-900 shadow-md shadow-slate-900/20 dark:shadow-white/10 no-underline">
+                Sign In
+              </Link>
+            </motion.div>
+          )}
+        </nav>
+      </div>
+
+      {/* MOBILE MENU DROPDOWN */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="absolute top-full left-0 right-0 mt-4 mx-4 p-4 rounded-2xl backdrop-blur-3xl bg-white/80 dark:bg-[#1a1c23]/80 border border-white/50 dark:border-white/10 shadow-2xl overflow-hidden lg:hidden flex flex-col gap-4"
+          >
+            {/* MOBILE SEARCH (Visible only here if search active) */}
+            {searchActive && !isHomePage && (
+              <div className="flex items-center rounded-2xl px-4 py-3 bg-white/50 dark:bg-black/50 border border-indigo-500 shadow-md">
+                <Search size={16} className="text-slate-500 mr-2 shrink-0" />
+                <input
+                  ref={(el) => { if (searchActive) el?.focus(); }}
+                  type="text"
+                  className="w-full bg-transparent border-none outline-none text-sm font-medium text-slate-900 dark:text-white"
+                  placeholder="Search jobs..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearch}
+                />
+              </div>
+            )}
+
+            <div className="flex flex-col gap-2">
               {user?.role === 'employer' && (
                 <>
-                  <li className="nav-item">
-                    <Link className="nav-link fw-medium px-2 hover-dark" href="/my-jobs" style={{ color: "var(--text-muted)" }}>My Jobs</Link>
-                  </li>
-                  <li className="nav-item">
-                    <Link className="nav-link fw-medium px-2 hover-dark" href="/my-team" style={{ color: "var(--text-muted)" }}>My Team</Link>
-                  </li>
+                  <Link href="/my-jobs" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-2xl font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors no-underline">My Jobs</Link>
+                  <Link href="/my-team" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-2xl font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors no-underline">My Team</Link>
                 </>
               )}
-
               {user?.role === 'worker' && (
-                <li className="nav-item">
-                  <Link className="nav-link fw-medium px-2 hover-dark" href="/my-applications" style={{ color: "var(--text-muted)" }}>My Applications</Link>
-                </li>
+                <Link href="/my-applications" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-2xl font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors no-underline">My Applications</Link>
               )}
-              <li className="nav-item">
-                <Link className="nav-link fw-medium px-2 hover-dark" href="/companies" style={{ color: "var(--text-muted)" }}>Companies</Link>
-              </li>
+              <Link href="/companies" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-2xl font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors no-underline">Companies</Link>
+            </div>
 
-              <li className="nav-item">
-                <button
-                  onClick={toggleTheme}
-                  className="btn rounded-circle d-flex align-items-center justify-content-center p-0 theme-toggle"
-                  style={{ width: "40px", height: "40px", border: "1px solid var(--border-color)", background: "var(--bg-surface)", color: "var(--text-main)" }}
-                  title={`Current theme: ${theme}`}
-                >
-                  {theme === "light" && <i className="bi bi-sun"></i>}
-                  {theme === "dark" && <i className="bi bi-moon-stars"></i>}
-                  {theme === "system" && <i className="bi bi-circle-half"></i>}
+            <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-white/50 dark:bg-black/50 border border-white/30 dark:border-white/5">
+              <span className="font-semibold text-slate-700 dark:text-slate-200">Theme</span>
+              <motion.button
+                whileHover={{ scale: 1.1, rotate: 15 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={toggleTheme}
+                className="relative flex items-center justify-center w-10 h-10 rounded-full bg-white dark:bg-slate-800 shadow-sm text-slate-700 dark:text-slate-200 border-none overflow-hidden"
+              >
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={theme}
+                    initial={{ opacity: 0, rotate: -90 }}
+                    animate={{ opacity: 1, rotate: 0 }}
+                    exit={{ opacity: 0, rotate: 90 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute flex items-center justify-center"
+                  >
+                    {theme === "light" && <Sun size={18} />}
+                    {theme === "dark" && <Moon size={18} />}
+                    {theme === "system" && <Monitor size={18} />}
+                  </motion.div>
+                </AnimatePresence>
+              </motion.button>
+            </div>
+
+            <div className="h-px bg-slate-200/50 dark:bg-slate-700/50 w-full"></div>
+
+            {user ? (
+              <div className="flex flex-col gap-2">
+                <Link href="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold text-slate-700 dark:text-slate-200 no-underline">
+                  <User size={18} className="text-indigo-500" /> My Profile
+                </Link>
+                <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-red-500/10 font-semibold text-red-500 border-none bg-transparent w-full text-left">
+                  <LogOut size={18} /> Logout
                 </button>
-              </li>
-              {user ? (
-                <li className="nav-item dropdown">
-                  <div ref={dropdownRef} className="d-flex align-items-center gap-3 position-relative">
-                    <div className="d-flex align-items-center gap-2 cursor-pointer" role="button" onClick={() => setDropdownOpen(!dropdownOpen)}>
-                      <div className="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
-                        style={{
-                          width: '32px', height: '32px',
-                          background: user.avatar ? `url(${user.avatar}) center/cover` : 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
-                          color: 'white', fontSize: '0.8rem', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)', transition: 'box-shadow 0.3s ease'
-                        }}>
-                        {!user.avatar && user.name?.charAt(0)?.toUpperCase()}
-                      </div>
-                      <span className="fw-semibold d-none d-xl-inline" style={{ color: 'var(--text-main)', fontSize: '0.95rem' }}>
-                        {user.name}
-                      </span>
-                      <i className="bi bi-chevron-down" style={{ fontSize: '0.65rem', color: 'var(--text-muted)', transition: 'transform 0.2s' }}></i>
-                    </div>
-
-                    <ul className={`dropdown-menu dropdown-menu-end border-0 ${dropdownOpen ? 'show' : ''}`}
-                      style={{
-                        position: 'absolute', top: '100%', right: 0,
-                        borderRadius: '24px', minWidth: '280px', padding: '12px', background: 'var(--bg-card)',
-                        backdropFilter: 'blur(24px)', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.18), 0 10px 30px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255,255,255,0.1)',
-                        border: '1px solid var(--border-color)', marginTop: '14px', zIndex: 1500,
-                        animation: dropdownOpen ? 'dropdownSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1)' : 'none'
-                      }}>
-                      <li style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.04))', borderRadius: '16px', padding: '16px', marginBottom: '8px' }}>
-                        <div className="d-flex align-items-center gap-3">
-                          <div className="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
-                            style={{
-                              width: '56px', height: '56px', background: user.avatar ? `url(${user.avatar}) center/cover` : 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
-                              color: 'white', fontSize: '1.25rem', boxShadow: '0 8px 24px rgba(99, 102, 241, 0.3)'
-                            }}>
-                            {!user.avatar && user.name?.charAt(0)?.toUpperCase()}
-                          </div>
-                          <div className="flex-grow-1 min-width-0">
-                            <h6 className="mb-1 fw-bold text-truncate" style={{ color: 'var(--text-main)', fontSize: '1rem' }}>{user.name}</h6>
-                            <small className="text-truncate d-block" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                              {user.email || 'Worker Account'}
-                            </small>
-                          </div>
-                        </div>
-                      </li>
-                      <li>
-                        <Link className="dropdown-item rounded-3 d-flex align-items-center gap-3" href="/profile" onClick={() => setDropdownOpen(false)} style={{ color: 'var(--text-main)', transition: 'background-color 0.15s ease, color 0.15s ease', padding: '12px 14px', fontWeight: 500 }}>
-                          <div className="d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px', borderRadius: '12px', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(99, 102, 241, 0.05))' }}>
-                            <i className="bi bi-person-fill" style={{ color: 'var(--primary-600)', fontSize: '1rem' }}></i>
-                          </div>
-                          <span>My Profile</span>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link className="dropdown-item rounded-3 d-flex align-items-center gap-3" href="/profile/settings" onClick={() => setDropdownOpen(false)} style={{ color: 'var(--text-main)', transition: 'background-color 0.15s ease, color 0.15s ease', padding: '12px 14px', fontWeight: 500 }}>
-                          <div className="d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px', borderRadius: '12px', background: 'linear-gradient(135deg, rgba(107, 114, 128, 0.12), rgba(107, 114, 128, 0.04))' }}>
-                            <i className="bi bi-gear-fill" style={{ color: 'var(--text-muted)', fontSize: '1rem' }}></i>
-                          </div>
-                          <span>Account Settings</span>
-                        </Link>
-                      </li>
-                      <li style={{ padding: '8px 0' }}>
-                        <hr style={{ margin: 0, borderColor: 'var(--border-color)', opacity: 0.5 }} />
-                      </li>
-                      <li>
-                        <button onClick={() => { handleLogout(); setDropdownOpen(false); }} className="dropdown-item rounded-3 d-flex align-items-center gap-3 w-100" style={{ color: '#ef4444', transition: 'background-color 0.15s ease', padding: '12px 14px', fontWeight: 500 }}>
-                          <div className="d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)' }}>
-                            <i className="bi bi-box-arrow-right" style={{ fontSize: '1rem' }}></i>
-                          </div>
-                          <span>Logout</span>
-                        </button>
-                      </li>
-                    </ul>
-                  </div>
-                </li>
-              ) : (
-                <li className="nav-item">
-                  <Link href="/login" className="btn rounded-pill px-4 py-2 fw-semibold shadow-sm" style={{ background: "var(--text-main)", color: "var(--bg-card)", fontSize: "0.95rem", border: "none" }}>
-                    Sign In
-                  </Link>
-                </li>
-              )}
-            </ul>
-          </div>
-        </div>
-
-        <div className={`d-lg-none w-100 px-3 mobile-search-overlay ${searchActive ? "active" : ""}`}>
-          <div className="d-flex align-items-center rounded-pill px-3 py-2 mt-3" style={{ background: "var(--bg-surface)", border: "1px solid var(--border-active)", boxShadow: "var(--shadow-md)" }}>
-            <i className="bi bi-search text-muted"></i>
-            <input
-              ref={(el) => { if (searchActive) el?.focus(); }}
-              type="text"
-              className="form-control border-0 bg-transparent shadow-none"
-              placeholder="Search jobs..."
-              style={{ color: "var(--text-main)", fontWeight: "500" }}
-            />
-          </div>
-        </div>
-      </nav>
-    </div>
+              </div>
+            ) : (
+              <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="flex justify-center w-full px-5 py-3 rounded-2xl font-bold text-white bg-slate-900 dark:bg-slate-100 dark:!text-slate-900 shadow-lg no-underline">
+                Sign In
+              </Link>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.header>
   );
 }
 
 export default function Navbar({ name }: { name?: string }) {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="h-[76px] w-full"></div>}>
       <NavbarContent name={name} />
     </Suspense>
   )
 }
-
