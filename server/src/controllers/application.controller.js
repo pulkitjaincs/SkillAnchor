@@ -4,6 +4,7 @@ import WorkExperience from "../models/WorkExperience.model.js";
 import WorkerProfile from "../models/WorkerProfile.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { applicationEmitter } from "../events/application.events.js";
+import { generateReadSignedUrl } from "../config/s3.js";
 
 export const applyToJob = asyncHandler(async (req, res) => {
     const { jobId } = req.params;
@@ -68,6 +69,26 @@ export const getJobApplicants = asyncHandler(async (req, res) => {
 
     const hasMore = applications.length > limit;
     if (hasMore) applications.pop();
+
+    const applicantIds = applications.map(app => app.applicant?._id).filter(id => id);
+    const profiles = await WorkerProfile.find({ user: { $in: applicantIds } }, "user avatar isAvatarHidden").lean();
+    
+    const avatarMap = {};
+    for (const profile of profiles) {
+        if (profile.avatar && !profile.isAvatarHidden) {
+            if (!profile.avatar.startsWith('http')) {
+                avatarMap[profile.user.toString()] = await generateReadSignedUrl(profile.avatar);
+            } else {
+                avatarMap[profile.user.toString()] = profile.avatar;
+            }
+        }
+    }
+
+    for (const app of applications) {
+        if (app.applicant) {
+            app.applicant.avatarUrl = avatarMap[app.applicant._id.toString()] || null;
+        }
+    }
 
     res.json({ applications, hasMore });
 });

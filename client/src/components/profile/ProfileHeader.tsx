@@ -35,13 +35,16 @@ const ProfileHeader = memo(({ profile, isOwnProfile, isEmployer, completionPerce
                 <div className="d-flex flex-column flex-md-row align-items-start gap-4">
                     <div className="position-relative">
                         <div className="rounded-circle d-flex align-items-center justify-content-center overflow-hidden position-relative" style={avatarContainerStyle}>
-                            {profile.avatar ? (
-                                <Image src={profile.avatar} alt={profile.name} fill sizes="120px" className="rounded-circle" style={{ objectFit: 'cover' }} />
-                            ) : (
-                                <span className="fw-bold" style={{ fontSize: '48px', color: 'var(--text-main)' }}>
-                                    {getInitials(profile.name)}
-                                </span>
-                            )}
+                            {(() => {
+                                const src = profile.avatarUrl || profile.avatar;
+                                return src?.startsWith('http') ? (
+                                    <Image src={src} alt={profile.name} fill sizes="120px" className="rounded-circle" style={{ objectFit: 'cover' }} />
+                                ) : (
+                                    <span className="fw-bold" style={{ fontSize: '48px', color: 'var(--text-main)' }}>
+                                        {getInitials(profile.name)}
+                                    </span>
+                                );
+                            })()}
                         </div>
                         {profile.documents?.aadhaar?.verified && (
                             <div className="position-absolute bottom-0 end-0 bg-success rounded-circle d-flex align-items-center justify-content-center"

@@ -12,6 +12,10 @@ const WorkerProfileSchema = new mongoose.Schema({
         required: true,
     },
     avatar: String,
+    isAvatarHidden: {
+        type: Boolean,
+        default: false,
+    },
     dob: Date,
     gender: {
         type: String,

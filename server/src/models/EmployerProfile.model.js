@@ -11,6 +11,11 @@ const EmployerProfileSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    avatar: String,
+    isAvatarHidden: {
+        type: Boolean,
+        default: false,
+    },
     designation: String,
     company: {
         type: mongoose.Schema.Types.ObjectId,

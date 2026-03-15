@@ -304,10 +304,13 @@ function NavbarContent({ name }: { name?: string }) {
                 onClick={() => setDropdownOpen(!dropdownOpen)}
               >
                 <div 
-                  className="flex items-center justify-center rounded-xl w-8 h-8 font-bold text-white text-xs shadow-md shrink-0"
-                  style={{ background: user.avatar ? `url(${user.avatar}) center/cover` : 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+                  className="flex items-center justify-center rounded-xl w-8 h-8 font-bold text-white text-xs shadow-md shrink-0 overflow-hidden"
+                  style={{ background: user.avatar ? 'transparent' : 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
                 >
-                  {!user.avatar && user.name?.charAt(0)?.toUpperCase()}
+                  {user.avatar
+                    ? <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                    : user.name?.charAt(0)?.toUpperCase()
+                  }
                 </div>
                 <span className="font-semibold text-sm tracking-tight text-slate-900 dark:text-white">
                   {user.name}
@@ -329,10 +332,13 @@ function NavbarContent({ name }: { name?: string }) {
                     <div className="relative mb-2 p-4 rounded-[16px] bg-indigo-500/5 dark:bg-indigo-500/10">
                       <div className="flex items-center gap-3">
                         <div 
-                          className="flex items-center justify-center rounded-2xl w-12 h-12 font-bold text-white text-lg shadow-lg shadow-indigo-500/30 shrink-0"
-                          style={{ background: user.avatar ? `url(${user.avatar}) center/cover` : 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+                          className="flex items-center justify-center rounded-2xl w-12 h-12 font-bold text-white text-lg shadow-lg shadow-indigo-500/30 shrink-0 overflow-hidden"
+                          style={{ background: user.avatar ? 'transparent' : 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
                         >
-                          {!user.avatar && user.name?.charAt(0)?.toUpperCase()}
+                          {user.avatar
+                            ? <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                            : user.name?.charAt(0)?.toUpperCase()
+                          }
                         </div>
                         <div className="overflow-hidden">
                           <h6 className="m-0 font-bold text-base tracking-tight truncate text-slate-900 dark:text-white">{user.name}</h6>

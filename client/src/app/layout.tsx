@@ -32,7 +32,7 @@ export default function RootLayout({
         <div className="d-flex flex-column" style={{ minHeight: "100vh", backgroundColor: "var(--bg-body)" }}>
           <Providers>
             <Navbar />
-            <main className="flex-grow pt-[88px] sm:pt-[96px]">
+            <main className="flex-grow-1" style={{ paddingTop: '88px' }}>
               {children}
             </main>
             <Footer />

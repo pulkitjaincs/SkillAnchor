@@ -27,10 +27,10 @@ export const useUpdateProfile = () => {
     });
 };
 
-export const useUploadAvatar = () => {
+export const useUpdateAvatarUrl = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (formData: FormData) => profileAPI.uploadAvatar(formData),
+        mutationFn: (avatarKey: string) => profileAPI.updateAvatarUrl(avatarKey),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['profile'] });
         },
