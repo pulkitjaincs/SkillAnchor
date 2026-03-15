@@ -2,27 +2,48 @@ import WorkerProfile from "../models/WorkerProfile.model.js";
 import EmployerProfile from "../models/EmployerProfile.model.js";
 import WorkExperience from "../models/WorkExperience.model.js";
 import User from "../models/User.model.js";
-import { uploadToS3 } from "../config/s3.js";
+import { generateReadSignedUrl, deleteFromS3 } from "../config/s3.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { assembleProfileResponse } from "../services/profile.service.js";
 import mongoose from "mongoose";
 
-export const uploadAvatar = asyncHandler(async (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded or invalid format" });
+export const updateAvatarUrl = asyncHandler(async (req, res) => {
+    const { avatarKey } = req.body;
+    const ProfileModel = req.user.role === 'employer' ? EmployerProfile : WorkerProfile;
+
+    // Handle clearing the avatar
+    if (!avatarKey) {
+        const existingProfile = await ProfileModel.findOne({ user: req.user._id });
+        if (existingProfile && existingProfile.avatar) {
+            try {
+                await deleteFromS3(existingProfile.avatar);
+            } catch (err) {
+                console.error("Failed to delete avatar from S3:", err);
+            }
+        }
+        await ProfileModel.findOneAndUpdate(
+            { user: req.user._id },
+            { $set: { avatar: null } },
+            { upsert: true }
+        );
+        return res.status(200).json({ success: true, avatarKey: null, avatarUrl: null });
     }
 
-    const key = `avatars/${req.user._id}-${Date.now()}.jpg`;
-    const avatarUrl = await uploadToS3(req.file.buffer, req.file.mimetype, key);
+    // Validate that the key belongs to the avatars folder of this user
+    const expectedPrefix = `avatars/${req.user._id}-`;
+    if (!avatarKey.startsWith(expectedPrefix)) {
+        return res.status(400).json({ success: false, error: "Invalid avatar key" });
+    }
 
-    const ProfileModel = req.user.role === 'employer' ? EmployerProfile : WorkerProfile;
     await ProfileModel.findOneAndUpdate(
         { user: req.user._id },
-        { $set: { avatar: avatarUrl } },
+        { $set: { avatar: avatarKey } },
         { upsert: true }
     );
 
-    return res.status(200).json({ avatar: avatarUrl });
+    // Generate a fresh signed URL to return to the client
+    const avatarUrl = await generateReadSignedUrl(avatarKey);
+    return res.status(200).json({ success: true, avatarKey, avatarUrl });
 });
 
 export const getMyTeam = asyncHandler(async (req, res) => {
@@ -50,6 +71,19 @@ export const getMyTeam = asyncHandler(async (req, res) => {
     res.json({ team, hasMore });
 });
 
+// Helper: if avatar is an S3 key (not a full URL), generate a signed read URL
+export const resolveAvatarUrl = async (profile, isOwner = false) => {
+    if (!profile) return null;
+    if (profile.isAvatarHidden && !isOwner) {
+        return { ...profile, avatarUrl: null, avatar: null };
+    }
+    if (profile.avatar && !profile.avatar.startsWith('http')) {
+        const avatarUrl = await generateReadSignedUrl(profile.avatar);
+        return { ...profile, avatarUrl };
+    }
+    return { ...profile, avatarUrl: profile.avatar || null };
+};
+
 export const getMyProfile = asyncHandler(async (req, res) => {
     const isEmployer = req.user.role === 'employer';
 
@@ -58,14 +92,16 @@ export const getMyProfile = asyncHandler(async (req, res) => {
             .populate({ path: "company", select: "name logo industry" })
             .lean();
 
-        return res.status(200).json(assembleProfileResponse(profile, req.user, 'employer'));
+        const resolved = await resolveAvatarUrl(profile, true);
+        return res.status(200).json(assembleProfileResponse(resolved, req.user, 'employer'));
     }
 
     const profile = await WorkerProfile.findOne({ user: req.user._id })
         .populate({ path: "workHistory", populate: { path: "company", select: "name logo" } })
         .lean();
 
-    return res.status(200).json(assembleProfileResponse(profile, req.user, 'worker'));
+    const resolved = await resolveAvatarUrl(profile, true);
+    return res.status(200).json(assembleProfileResponse(resolved, req.user, 'worker'));
 });
 
 export const updateMyProfile = asyncHandler(async (req, res) => {
@@ -80,8 +116,9 @@ export const updateMyProfile = asyncHandler(async (req, res) => {
     }
 
     if (isEmployer) {
-        const { designation, isHiringManager, whatsapp } = req.body;
+        const { designation, isHiringManager, whatsapp, isAvatarHidden } = req.body;
         const profileFields = { user: req.user._id, name, designation, whatsapp, isHiringManager };
+        if (isAvatarHidden !== undefined) profileFields.isAvatarHidden = isAvatarHidden;
 
         const profile = await EmployerProfile.findOneAndUpdate(
             { user: req.user._id },
@@ -92,12 +129,13 @@ export const updateMyProfile = asyncHandler(async (req, res) => {
         return res.status(200).json(profile);
     }
 
-    const { gender, dob, whatsapp, email, city, state, pincode, bio, skills, languages, expectedSalary, documents } = req.body;
+    const { gender, dob, whatsapp, email, city, state, pincode, bio, skills, languages, expectedSalary, documents, isAvatarHidden } = req.body;
 
     const profileFields = {
         user: req.user._id,
         name, gender, dob, whatsapp, email, city, state, pincode, bio, skills, languages, expectedSalary, documents
     };
+    if (isAvatarHidden !== undefined) profileFields.isAvatarHidden = isAvatarHidden;
 
     const profile = await WorkerProfile.findOneAndUpdate(
         { user: req.user._id },
@@ -140,5 +178,7 @@ export const getProfileByUserId = asyncHandler(async (req, res) => {
         });
     }
 
-    return res.status(200).json(assembleProfileResponse(profile, user, user.role || 'worker'));
+    const isOwner = req.user && req.user._id.toString() === userId;
+    const resolvedProfile = await resolveAvatarUrl(profile, isOwner);
+    return res.status(200).json(assembleProfileResponse(resolvedProfile, user, user.role || 'worker'));
 });

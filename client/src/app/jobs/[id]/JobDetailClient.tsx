@@ -113,7 +113,7 @@ export default function JobDetailClient({ id }: { id: string }) {
                 </svg>
 
                 {/* Back nav container */}
-                <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28">
+                <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10">
                     <motion.button
                         whileHover={{ scale: 1.05, backgroundColor: "rgba(0,0,0,0.05)" }}
                         whileTap={{ scale: 0.95 }}

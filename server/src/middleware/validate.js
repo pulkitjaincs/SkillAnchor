@@ -123,6 +123,7 @@ export const updateProfileSchema = z.object({
         languages: z.array(z.string()).optional(),
         designation: z.string().optional(),
         isHiringManager: z.boolean().optional(),
+        isAvatarHidden: z.boolean().optional(),
         expectedSalary: z.object({
             min: z.number().optional(),
             max: z.number().optional(),

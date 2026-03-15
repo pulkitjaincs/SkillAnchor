@@ -1,6 +1,6 @@
 import { InputField, SelectField } from '@/components/common/FormComponents';
 
-export default function EditProfile_Basics({ formData, handleChange, user, isEmployer, avatar, uploadingAvatar, handleAvatarUpload, fileInputRef, navigate }: any) {
+export default function EditProfile_Basics({ formData, handleChange, user, isEmployer, avatar, uploadingAvatar, handleAvatarUpload, handleAvatarRemove, fileInputRef, navigate }: any) {
     return (
         <div>
             <h4 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>
@@ -30,6 +30,29 @@ export default function EditProfile_Basics({ formData, handleChange, user, isEmp
                         }}>
                         {uploadingAvatar ? <><span className="spinner-border spinner-border-sm me-2"></span>Uploading...</> : <><i className="bi bi-camera me-2"></i>Upload Photo</>}
                     </button>
+                    {avatar && (
+                        <button type="button" onClick={handleAvatarRemove} disabled={uploadingAvatar}
+                            style={{
+                                background: 'transparent', border: 'none', marginLeft: '12px',
+                                fontSize: '0.85rem', fontWeight: 500, color: 'var(--danger)', cursor: 'pointer'
+                            }}>
+                            Remove Photo
+                        </button>
+                    )}
+                </div>
+                
+                <div className="ms-auto pe-3">
+                    <div className="form-check form-switch d-flex align-items-center gap-2 m-0 p-0">
+                        <label className="form-check-label fw-semibold m-0" htmlFor="isAvatarHidden" style={{ color: 'var(--text-main)', fontSize: '0.85rem' }}>
+                            Hide Photo
+                        </label>
+                        <input className="form-check-input m-0 cursor-pointer" type="checkbox" role="switch" id="isAvatarHidden" 
+                            name="isAvatarHidden"
+                            checked={formData.isAvatarHidden || false}
+                            onChange={(e) => handleChange({ target: { name: 'isAvatarHidden', value: e.target.checked } })}
+                            style={{ cursor: 'pointer', width: '36px', height: '20px' }}
+                        />
+                    </div>
                 </div>
             </div>
 

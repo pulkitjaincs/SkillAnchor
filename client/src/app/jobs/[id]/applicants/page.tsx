@@ -105,17 +105,21 @@ export default function JobApplicantsPage() {
                                 <div className="row align-items-center">
                                     <div className="col-lg-5 mb-3 mb-lg-0">
                                         <div className="d-flex align-items-center gap-3">
-                                            <div className="d-flex align-items-center justify-content-center rounded-circle"
+                                            <div className="d-flex align-items-center justify-content-center rounded-circle overflow-hidden"
                                                 style={{
                                                     width: '48px',
                                                     height: '48px',
-                                                    background: 'var(--primary-500)',
+                                                    background: app.applicant?.avatarUrl ? 'transparent' : 'var(--primary-500)',
                                                     color: 'white',
                                                     fontWeight: 'bold',
                                                     fontSize: '1.1rem',
                                                     flexShrink: 0
                                                 }}>
-                                                {app.applicant?.name?.charAt(0).toUpperCase() || '?'}
+                                                {app.applicant?.avatarUrl ? (
+                                                    <img src={app.applicant.avatarUrl} alt={app.applicant?.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                ) : (
+                                                    app.applicant?.name?.charAt(0).toUpperCase() || '?'
+                                                )}
                                             </div>
                                             <div>
                                                 <Link href={`/profile/${app.applicant?._id}?fromJob=${jobId}`} className="text-decoration-none">

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo, useCallback, lazy, Suspense } from 'react';
+import { useState, useMemo, useCallback, lazy, Suspense, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { getInitials } from '@/utils/index';
+import { useAuth } from '@/context/AuthContext';
 import { useProfile } from '@/hooks/queries/useProfile';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -26,8 +27,16 @@ export default function ProfileClient() {
     const router = useRouter();
     const [selectedExp, setSelectedExp] = useState<any>(null);
     const [showAddModal, setShowAddModal] = useState(false);
+    const { updateUserData } = useAuth();
 
     const { data: profile, isLoading: loading, isError } = useProfile(userId);
+
+    // Sync newly fetched signed avatar URL into global auth state so Navbar updates
+    useEffect(() => {
+        if (profile?.avatarUrl && !userId) {
+            updateUserData({ avatar: profile.avatarUrl });
+        }
+    }, [profile?.avatarUrl, userId]);
 
     const workHistory = useMemo(() => profile?.workHistory || [], [profile]);
     const isEmployer = profile?.role === 'employer';

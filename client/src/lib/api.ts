@@ -66,9 +66,7 @@ export const profileAPI = {
     updateMyProfile: (data: any) => api.put('/profile/my-profile', data),
     getByUserId: (userId: string) => api.get(`/profile/user/${userId}`),
     getMyTeam: (params?: any) => api.get('/profile/my-team', { params }),
-    uploadAvatar: (formData: any) => api.post('/profile/upload-avatar', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-    })
+    updateAvatarUrl: (avatarKey: string) => api.patch('/profile/update-avatar-url', { avatarKey })
 };
 
 // Work Experience API

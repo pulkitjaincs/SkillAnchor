@@ -6,7 +6,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useForm } from '@/hooks';
 import { Button } from '@/components/common/FormComponents';
 
-import { useProfile, useUpdateProfile, useUploadAvatar } from '@/hooks/queries/useProfile';
+import { useProfile, useUpdateProfile, useUpdateAvatarUrl } from '@/hooks/queries/useProfile';
+import { uploadFileToS3 } from '@/utils/s3';
 
 import EditProfile_Basics from '@/components/profile-edit/EditProfile_Basics';
 import EditProfile_Location from '@/components/profile-edit/EditProfile_Location';
@@ -34,7 +35,7 @@ export default function EditProfileClient() {
 
     const { data: profile, isLoading: fetching } = useProfile();
     const updateMutation = useUpdateProfile();
-    const uploadAvatarMutation = useUploadAvatar();
+    const updateAvatarUrlMutation = useUpdateAvatarUrl();
 
     const {
         values: formData,
@@ -44,7 +45,8 @@ export default function EditProfileClient() {
         name: '', gender: '', dob: '', phone: '', whatsapp: '', email: '',
         city: '', state: '', pincode: '', bio: '', languages: '', skills: '',
         expectedSalaryMin: '', expectedSalaryMax: '', expectedSalaryType: 'monthly',
-        aadhaarNumber: '', panNumber: '', licenseNumber: '', designation: '', isHiringManager: false
+        aadhaarNumber: '', panNumber: '', licenseNumber: '', designation: '', isHiringManager: false,
+        isAvatarHidden: false
     });
 
     useEffect(() => {
@@ -70,9 +72,10 @@ export default function EditProfileClient() {
                 panNumber: profile.documents?.pan?.number || '',
                 licenseNumber: profile.documents?.license?.number || '',
                 designation: profile.designation || '',
-                isHiringManager: profile.isHiringManager || false
+                isHiringManager: profile.isHiringManager || false,
+                isAvatarHidden: profile.isAvatarHidden || false
             });
-            if (profile.avatar) setAvatar(profile.avatar);
+            if (profile.avatarUrl || profile.avatar) setAvatar(profile.avatarUrl || profile.avatar);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [profile]);
@@ -81,12 +84,28 @@ export default function EditProfileClient() {
         const file = e.target.files?.[0];
         if (!file) return;
         try {
-            const fd = new FormData();
-            fd.append('avatar', file);
-            const { data } = await uploadAvatarMutation.mutateAsync(fd);
-            setAvatar(data.avatar);
+            // Upload to S3, save the key (not the URL) to the DB
+            const { key } = await uploadFileToS3(file, 'avatars');
+            const { data } = await updateAvatarUrlMutation.mutateAsync(key);
+            // Use the signed URL returned by the backend for immediate display
+            setAvatar(data.avatarUrl);
+            // Sync into AuthContext so Navbar updates immediately
+            updateUserData({ avatar: data.avatarUrl });
         } catch (err) {
+            console.error('Upload error:', err);
             alert('Failed to upload photo');
+        }
+    };
+
+    const handleAvatarRemove = async () => {
+        if (!confirm("Are you sure you want to remove your profile photo?")) return;
+        try {
+            await updateAvatarUrlMutation.mutateAsync('');
+            setAvatar('');
+            updateUserData({ avatar: undefined });
+        } catch (err) {
+            console.error('Remove error:', err);
+            alert('Failed to remove photo');
         }
     };
 
@@ -98,7 +117,8 @@ export default function EditProfileClient() {
                     name: formData.name,
                     whatsapp: formData.whatsapp,
                     designation: formData.designation,
-                    isHiringManager: formData.isHiringManager
+                    isHiringManager: formData.isHiringManager,
+                    isAvatarHidden: formData.isAvatarHidden
                 };
             } else {
                 payload = {
@@ -123,7 +143,8 @@ export default function EditProfileClient() {
                         aadhaar: { number: formData.aadhaarNumber },
                         pan: { number: formData.panNumber },
                         license: { number: formData.licenseNumber }
-                    }
+                    },
+                    isAvatarHidden: formData.isAvatarHidden
                 };
             }
             await updateMutation.mutateAsync(payload);
@@ -239,8 +260,9 @@ export default function EditProfileClient() {
                             user={authUser}
                             isEmployer={isEmployer}
                             avatar={avatar}
-                            uploadingAvatar={uploadAvatarMutation.isPending}
+                            uploadingAvatar={updateAvatarUrlMutation.isPending}
                             handleAvatarUpload={handleAvatarUpload}
+                            handleAvatarRemove={handleAvatarRemove}
                             fileInputRef={fileInputRef}
                             navigate={navigate}
                         />

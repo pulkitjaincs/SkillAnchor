@@ -9,6 +9,7 @@ import workExperienceRoutes from "./routes/workExperience.routes.js";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { nosqlSanitize } from "./middleware/sanitize.middleware.js";
+import uploadRoutes from "./routes/upload.routes.js";
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use("/api/jobs", jobRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/work-experience", workExperienceRoutes);
+app.use("/api/upload", uploadRoutes);
 
 app.use((err, req, res, next) => {
     // JSON parse errors
