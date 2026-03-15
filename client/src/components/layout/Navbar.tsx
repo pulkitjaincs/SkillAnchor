@@ -147,7 +147,7 @@ function NavbarContent({ name }: { name?: string }) {
         {/* LOGO */}
         <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
           <Link href="/" className="flex items-center space-x-2 text-slate-900 dark:text-white no-underline">
-            <div className="flex items-center justify-center rounded-2xl w-8 h-8 bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md">
+            <div className="flex items-center justify-center rounded-2xl w-8 h-8 bg-slate-900 dark:bg-white text-white dark:!text-slate-900 shadow-md">
               <span className="font-bold text-base -tracking-wider">S</span>
             </div>
             <span className="font-bold tracking-tight text-lg">SkillAnchor</span>

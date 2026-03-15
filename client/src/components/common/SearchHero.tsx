@@ -100,17 +100,24 @@ const SearchHero = ({
                 </form>
             </div>
 
-            <div className="category-chips-wrapper mt-4 d-flex justify-content-center flex-wrap gap-2">
-                {categories.map((cat) => (
-                    <button
-                        key={cat.name}
-                        onClick={() => handleCategoryClick(cat.name)}
-                        className={`category-chip btn rounded-pill px-3 py-2 fw-medium transition-all ${activeCategory === cat.name ? 'active' : ''}`}
-                    >
-                        <i className={`bi ${cat.icon} me-2`}></i>
-                        {cat.name}
-                    </button>
-                ))}
+            <div className="mt-6 flex justify-center flex-wrap gap-2.5 px-4">
+                {categories.map((cat) => {
+                    const isActive = activeCategory === cat.name;
+                    return (
+                        <button
+                            key={cat.name}
+                            onClick={() => handleCategoryClick(cat.name)}
+                            className={`flex items-center gap-2 !rounded-full px-4 py-2 font-medium text-sm transition-all duration-200 border category-chip ${
+                                isActive 
+                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20 active' 
+                                    : 'bg-white/50 dark:bg-black/30 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:border-indigo-400 dark:hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-black/50'
+                            }`}
+                        >
+                            <i className={`bi ${cat.icon}`}></i>
+                            {cat.name}
+                        </button>
+                    );
+                })}
             </div>
         </div>
     );
