@@ -10,6 +10,7 @@
   <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Node.js-20.x-339933?logo=node.js&logoColor=white" alt="Node.js" />
   <img src="https://img.shields.io/badge/MongoDB-8.0-47A248?logo=mongodb&logoColor=white" alt="MongoDB" />
+  <img src="https://img.shields.io/badge/Redis-7.x-FF4438?logo=redis&logoColor=white" alt="Redis" />
   <img src="https://img.shields.io/badge/AWS_S3-Storage-FF9900?logo=amazonaws&logoColor=white" alt="AWS S3" />
 </p>
 
@@ -35,6 +36,8 @@
 - **Image Optimization**: `next/image` for automatic WebP/AVIF compression and CLS prevention.
 - **Font Optimization**: `next/font/google` inlines Inter and Plus Jakarta Sans at build time.
 - **Route-Level Boundaries**: `loading.tsx`, `error.tsx`, and `not-found.tsx` for graceful suspense and error handling.
+- **Intelligent Caching**: **Redis-powered** cache-aside pattern for job listings and user profiles, reducing database load and response times.
+- **Distributed Rate Limiting**: Redis-backed rate limiting ensures consistent security across multiple server instances.
 
 ---
 
@@ -118,6 +121,7 @@ The platform is engineered for **performance**, **scalability**, and a **premium
 | **Animations** | Framer Motion | Page transitions with reduced motion support |
 | **Backend** | Node.js 20, Express 5 | RESTful API server |
 | **Database** | MongoDB 8.0, Mongoose 9 | Document storage and ODM |
+| **Cache/Store** | Redis 7 | Distributed caching, OTP storage, and rate limiting |
 | **Validation** | Zod 4 | Schema-based request validation on all routes |
 | **Auth** | JWT, bcrypt, OTP | Stateless authentication |
 | **Storage** | AWS S3 | Profile photo storage |
@@ -333,6 +337,7 @@ cd server && npm run dev      # → http://localhost:5000
 - [x] MongoDB Aggregation Pipelines for Profile Joins
 - [x] Zod validation on all API routes
 - [x] Component modularization and shared types
+- [x] **Redis Integration (Phase 1)**: Distributed caching, rate limiting, and OTP migration
 - [ ] Shift-based scheduling with calendar view
 - [ ] Real-time in-app messaging (Socket.io)
 - [ ] Push notifications

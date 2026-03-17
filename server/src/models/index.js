@@ -1,6 +1,5 @@
 // Central export for all models
 export { default as User } from "./User.model.js";
-export { default as OTP } from "./OTP.model.js";
 export { default as WorkerProfile } from "./WorkerProfile.model.js";
 export { default as EmployerProfile } from "./EmployerProfile.model.js";
 export { default as Company } from "./Company.model.js";

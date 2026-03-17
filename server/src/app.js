@@ -10,6 +10,9 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { nosqlSanitize } from "./middleware/sanitize.middleware.js";
 import uploadRoutes from "./routes/upload.routes.js";
+import { RedisStore } from "rate-limit-redis";
+import { redis } from "./config/redis.js";
+
 
 const app = express();
 
@@ -18,7 +21,10 @@ app.use(helmet());
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
-    message: { success: false, error: "Too many requests, please try again later." }
+    message: { success: false, error: "Too many requests, please try again later." },
+    store: new RedisStore({
+        sendCommand: (...args) => redis.call(...args),
+    }),
 });
 app.use("/api/", limiter);
 app.use(nosqlSanitize);

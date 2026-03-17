@@ -1,6 +1,5 @@
 import crypto from "crypto";
-import OTP from "../models/OTP.model.js";
-
+import { redis } from "../config/redis.js";
 import User from "../models/User.model.js";
 
 /**
@@ -11,12 +10,9 @@ import User from "../models/User.model.js";
 export const generateAndStoreOTP = async (conditions) => {
     const otp = crypto.randomInt(100000, 1000000).toString();
 
-    await OTP.findOneAndUpdate(
-        { $or: conditions },
-        { otp, expiresAt: Date.now() + 10 * 60 * 1000, isUsed: false },
-        { upsert: true }
-    );
-    console.log(`OTP for ${JSON.stringify(conditions)}: ${otp}`);
+    const identifier = Object.values(conditions[0])[0];
+    const key = `otp:${identifier}`;
+    await redis.setex(key, 600, JSON.stringify({ otp, attempts: 0 }));
     return otp;
 };
 
@@ -27,14 +23,43 @@ export const generateAndStoreOTP = async (conditions) => {
  * @param {string} otp - The OTP to verify
  */
 export const verifyAndConsumeOTP = async (conditions, otp) => {
-    const record = await OTP.findOne({ $or: conditions, otp });
-    if (!record || record.expiresAt < Date.now()) {
+    const identifier = Object.values(conditions[0])[0];
+    const key = `otp:${identifier}`;
+
+    const data = await redis.get(key);
+    if (!data) {
         const err = new Error("Invalid or expired OTP");
         err.status = 400;
         throw err;
     }
-    await OTP.deleteOne({ _id: record._id });
+
+    const { otp: storedOtp, attempts } = JSON.parse(data);
+
+    if (storedOtp !== otp) {
+        const newAttempts = attempts + 1;
+
+        if (newAttempts >= 5) {
+            await redis.del(key);
+            const err = new Error("Too many failed attempts. Please request a new OTP.");
+            err.status = 429;
+            throw err;
+        }
+
+        const ttl = await redis.ttl(key);
+
+        if (ttl > 0) {
+            await redis.setex(key, ttl, JSON.stringify({ otp: storedOtp, attempts: newAttempts }));
+        }
+
+        const err = new Error("Invalid OTP");
+        err.status = 400;
+        throw err;
+    }
+
+
+    await redis.del(key);
 };
+
 
 /**
  * Build query conditions from email/phone, throwing if neither provided.

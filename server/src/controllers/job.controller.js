@@ -1,12 +1,39 @@
 import Job from "../models/Job.model.js";
-import "../models/Company.model.js"; // Required for populate
+import "../models/Company.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { cacheAside, invalidateCache } from "../utils/cache.js";
 
 export const getAllJobs = asyncHandler(async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const cursor = req.query.cursor;
     const searchTerm = req.query.search;
+    const { location, category, jobType } = req.query;
 
+    const isDefaultRequest = !searchTerm && !location && !category && !jobType && !cursor;
+
+    if (isDefaultRequest) {
+        const cacheKey = `jobs:list:limit:${limit}`;
+
+        const data = await cacheAside(cacheKey, 60, async () => {
+            const jobs = await Job.find({ status: "active" }, {
+                title: 1, description: 1, company: 1,
+                city: 1, state: 1,
+                salaryMin: 1, salaryMax: 1, salaryType: 1,
+                jobType: 1, experienceMin: 1, skills: 1,
+                createdAt: 1
+            })
+                .populate("company", "name logo")
+                .sort({ _id: -1 })
+                .limit(limit + 1)
+                .lean();
+
+            const hasMore = jobs.length > limit;
+            if (hasMore) jobs.pop();
+            return { jobs, hasMore };
+        });
+
+        return res.status(200).json(data);
+    }
     let query = { status: "active" };
     let sortOptions = { _id: -1 };
     let projection = {
@@ -16,22 +43,22 @@ export const getAllJobs = asyncHandler(async (req, res) => {
         jobType: 1, experienceMin: 1, skills: 1,
         createdAt: 1
     };
+
     if (searchTerm) {
         query.$text = { $search: searchTerm };
         projection.score = { $meta: "textScore" };
         sortOptions = { score: { $meta: "textScore" }, createdAt: -1 };
     }
 
-    if (req.query.location) {
+    if (location) {
         query.$or = [
-            { city: { $regex: req.query.location, $options: 'i' } },
-            { state: { $regex: req.query.location, $options: 'i' } }
+            { city: { $regex: location, $options: 'i' } },
+            { state: { $regex: location, $options: 'i' } }
         ];
     }
 
-    if (req.query.category) query.category = req.query.category;
-    if (req.query.jobType) query.jobType = req.query.jobType;
-
+    if (category) query.category = category;
+    if (jobType) query.jobType = jobType;
     if (cursor) query._id = { $lt: cursor };
 
     let jobs = await Job.find(query, projection)
@@ -57,6 +84,7 @@ export const getAllJobs = asyncHandler(async (req, res) => {
     if (hasMore) jobs.pop();
     res.status(200).json({ jobs, hasMore });
 });
+
 
 export const getJobById = asyncHandler(async (req, res) => {
     const job = await Job.findById(req.params.id)
@@ -97,6 +125,7 @@ export const createJob = asyncHandler(async (req, res) => {
         city, state, locality, salaryMin, salaryMax, salaryType, jobType,
         shift, experienceMin, skills, gender, benefits, vacancies, status: "active"
     });
+    await invalidateCache("jobs:list:*");
     res.status(201).json(job);
 });
 
@@ -107,6 +136,7 @@ export const updateJob = asyncHandler(async (req, res) => {
         return res.status(403).json({ error: "Not authorized" });
     }
     const updatedJob = await Job.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    await invalidateCache("jobs:list:*");
     res.json(updatedJob);
 });
 
@@ -117,5 +147,6 @@ export const deleteJob = asyncHandler(async (req, res) => {
         return res.status(403).json({ error: "Not authorized" });
     }
     await Job.findByIdAndDelete(req.params.id);
+    await invalidateCache("jobs:list:*");
     res.json({ message: "Job deleted successfully" });
 });

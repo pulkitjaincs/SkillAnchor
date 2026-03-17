@@ -6,12 +6,13 @@ import { generateReadSignedUrl, deleteFromS3 } from "../config/s3.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { assembleProfileResponse } from "../services/profile.service.js";
 import mongoose from "mongoose";
+import {redis} from "../config/redis.js";
+import { cacheAside, invalidateCache } from "../utils/cache.js";
 
 export const updateAvatarUrl = asyncHandler(async (req, res) => {
     const { avatarKey } = req.body;
     const ProfileModel = req.user.role === 'employer' ? EmployerProfile : WorkerProfile;
 
-    // Handle clearing the avatar
     if (!avatarKey) {
         const existingProfile = await ProfileModel.findOne({ user: req.user._id });
         if (existingProfile && existingProfile.avatar) {
@@ -26,10 +27,10 @@ export const updateAvatarUrl = asyncHandler(async (req, res) => {
             { $set: { avatar: null } },
             { upsert: true }
         );
+        await invalidateCache(`profile:${req.user._id}`);
         return res.status(200).json({ success: true, avatarKey: null, avatarUrl: null });
     }
 
-    // Validate that the key belongs to the avatars folder of this user
     const expectedPrefix = `avatars/${req.user._id}-`;
     if (!avatarKey.startsWith(expectedPrefix)) {
         return res.status(400).json({ success: false, error: "Invalid avatar key" });
@@ -40,8 +41,7 @@ export const updateAvatarUrl = asyncHandler(async (req, res) => {
         { $set: { avatar: avatarKey } },
         { upsert: true }
     );
-
-    // Generate a fresh signed URL to return to the client
+    await invalidateCache(`profile:${req.user._id}`);
     const avatarUrl = await generateReadSignedUrl(avatarKey);
     return res.status(200).json({ success: true, avatarKey, avatarUrl });
 });
@@ -71,7 +71,6 @@ export const getMyTeam = asyncHandler(async (req, res) => {
     res.json({ team, hasMore });
 });
 
-// Helper: if avatar is an S3 key (not a full URL), generate a signed read URL
 export const resolveAvatarUrl = async (profile, isOwner = false) => {
     if (!profile) return null;
     if (profile.isAvatarHidden && !isOwner) {
@@ -125,6 +124,7 @@ export const updateMyProfile = asyncHandler(async (req, res) => {
             { $set: profileFields },
             { new: true, upsert: true, setDefaultsOnInsert: true }
         );
+        await invalidateCache(`profile:${req.user._id}`);
 
         return res.status(200).json(profile);
     }
@@ -142,43 +142,52 @@ export const updateMyProfile = asyncHandler(async (req, res) => {
         { $set: profileFields },
         { new: true, upsert: true, setDefaultsOnInsert: true }
     );
-
+    await invalidateCache(`profile:${req.user._id}`);
     return res.status(200).json(profile);
 });
 
 export const getProfileByUserId = asyncHandler(async (req, res) => {
     const { userId } = req.params;
+    const cacheKey = `profile:${userId}`;
 
-    const userAggr = await User.aggregate([
-        { $match: { _id: new mongoose.Types.ObjectId(userId) } },
-        { $project: { password: 0, __v: 0 } },
-        {
-            $lookup: {
-                from: "workerprofiles",
-                localField: "_id",
-                foreignField: "user",
-                as: "profile"
-            }
-        },
-        { $unwind: { path: "$profile", preserveNullAndEmptyArrays: true } }
-    ]);
+    const data = await cacheAside(cacheKey, 120, async () => {
+        const userAggr = await User.aggregate([
+            { $match: { _id: new mongoose.Types.ObjectId(userId) } },
+            { $project: { password: 0, __v: 0 } },
+            {
+                $lookup: {
+                    from: "workerprofiles",
+                    localField: "_id",
+                    foreignField: "user",
+                    as: "profile"
+                }
+            },
+            { $unwind: { path: "$profile", preserveNullAndEmptyArrays: true } }
+        ]);
 
-    if (!userAggr || userAggr.length === 0) {
-        return res.status(404).json({ error: "User not found" });
-    }
+        if (!userAggr || userAggr.length === 0) return null;
 
-    let user = userAggr[0];
-    let profile = user.profile || null;
-    delete user.profile;
+        let user = userAggr[0];
+        let profile = user.profile || null;
+        delete user.profile;
 
-    if (profile && profile.workHistory && profile.workHistory.length > 0) {
-        await WorkerProfile.populate(profile, {
-            path: "workHistory",
-            populate: { path: "company", select: "name logo" }
-        });
+        if (profile && profile.workHistory && profile.workHistory.length > 0) {
+            await WorkerProfile.populate(profile, {
+                path: "workHistory",
+                populate: { path: "company", select: "name logo" }
+            });
+        }
+
+        return { user, profile, role: user.role };
+    });
+
+    if (!data) { return res.status(404).json({ error: "User not found" }); }
+
+    if (data.role === 'employer') {
+        await redis.expire(cacheKey, 300);
     }
 
     const isOwner = req.user && req.user._id.toString() === userId;
-    const resolvedProfile = await resolveAvatarUrl(profile, isOwner);
-    return res.status(200).json(assembleProfileResponse(resolvedProfile, user, user.role || 'worker'));
+    const resolvedProfile = await resolveAvatarUrl(data.profile, isOwner);
+    return res.status(200).json(assembleProfileResponse(resolvedProfile, data.user, data.role || 'worker'));
 });
