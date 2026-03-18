@@ -13,6 +13,9 @@ export const useLogin = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isNewUser, setIsNewUser] = useState(false);
+    const [name, setName] = useState('');
+    const [role, setRole] = useState<'worker' | 'employer'>('worker');
 
     const searchParams = useSearchParams();
     const redirect = searchParams.get('redirect') || '/';
@@ -24,6 +27,7 @@ export const useLogin = () => {
         setOtpSent(false);
         setOtp('');
         setError('');
+        setIsNewUser(false);
     };
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -39,7 +43,8 @@ export const useLogin = () => {
                     return;
                 }
                 if (!otpSent) {
-                    await authAPI.sendOTP({ phone });
+                    const { data } = await authAPI.sendOTP({ phone });
+                    setIsNewUser(data.isNewUser);
                     setOtpSent(true);
                     setLoading(false);
                     return;
@@ -49,7 +54,17 @@ export const useLogin = () => {
                     setLoading(false);
                     return;
                 }
-                const { data } = await authAPI.verifyOTP({ phone, otp });
+                const payload: any = { phone, otp };
+                if (isNewUser) {
+                    if (!name.trim()) {
+                        setError('Please enter your full name');
+                        setLoading(false);
+                        return;
+                    }
+                    payload.name = name.trim();
+                    payload.role = role;
+                }
+                const { data } = await authAPI.verifyOTP(payload);
                 if (data.token) {
                     login(data.token, data.user);
                     router.push(redirect);
@@ -79,7 +94,8 @@ export const useLogin = () => {
 
                 if (emailMethod === 'otp') {
                     if (!otpSent) {
-                        await authAPI.sendOTP({ email });
+                        const { data } = await authAPI.sendOTP({ email });
+                        setIsNewUser(data.isNewUser);
                         setOtpSent(true);
                         setLoading(false);
                         return;
@@ -89,7 +105,17 @@ export const useLogin = () => {
                         setLoading(false);
                         return;
                     }
-                    const { data } = await authAPI.verifyOTP({ email, otp });
+                    const payload: any = { email, otp };
+                    if (isNewUser) {
+                        if (!name.trim()) {
+                            setError('Please enter your full name');
+                            setLoading(false);
+                            return;
+                        }
+                        payload.name = name.trim();
+                        payload.role = role;
+                    }
+                    const { data } = await authAPI.verifyOTP(payload);
                     if (data.token) {
                         login(data.token, data.user);
                         router.push(redirect);
@@ -124,6 +150,9 @@ export const useLogin = () => {
         password, setPassword,
         error, setError,
         loading,
+        isNewUser,
+        name, setName,
+        role, setRole,
         resetState,
         handleLogin,
         getButtonText,

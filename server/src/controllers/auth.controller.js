@@ -12,8 +12,9 @@ import {
 export const sendOTP = asyncHandler(async (req, res) => {
     const { phone, email } = req.body;
     const conditions = buildConditions({ email, phone });
+    const user = await User.findOne({ $or: conditions });
     await generateAndStoreOTP(conditions);
-    res.status(200).json({ message: "OTP Sent" });
+    res.status(200).json({ message: "OTP Sent", isNewUser: !user });
 });
 
 export const verifyOTP = asyncHandler(async (req, res) => {
@@ -21,11 +22,19 @@ export const verifyOTP = asyncHandler(async (req, res) => {
     const conditions = buildConditions({ email, phone });
     await verifyAndConsumeOTP(conditions, otp);
 
-    let user = await User.findOne({ phone });
+    let user = await User.findOne({ $or: conditions });
     if (!user) {
-        user = await User.create({ phone, name, authType: "phone", role, phoneVerified: true });
+        user = await User.create({
+            phone,
+            email,
+            name: name || (email ? email.split("@")[0] : "User"),
+            authType: email ? "email" : "phone",
+            role: role || "worker",
+            ...(email ? { emailVerified: true } : { phoneVerified: true })
+        });
     } else {
-        user.phoneVerified = true;
+        if (email) user.emailVerified = true;
+        if (phone) user.phoneVerified = true;
         await user.save();
     }
 

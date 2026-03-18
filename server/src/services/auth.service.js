@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { redis } from "../config/redis.js";
 import User from "../models/User.model.js";
-
+import { sendEmailOTP } from "../utils/email.js";
 /**
  * Generate a 6-digit OTP and store/upsert it for the given conditions.
  * @param {Array} conditions - Array of query conditions (e.g., [{ email }, { phone }])
@@ -13,6 +13,10 @@ export const generateAndStoreOTP = async (conditions) => {
     const identifier = Object.values(conditions[0])[0];
     const key = `otp:${identifier}`;
     await redis.setex(key, 600, JSON.stringify({ otp, attempts: 0 }));
+    const emailCondition = conditions.find(c => c.email);
+    if (emailCondition) {
+        await sendEmailOTP(emailCondition.email, `Hello! \n\nYour OTP for SkillAnchor is ${otp}. \nIt will expire in 10 minutes. \nDo not share with anyone else`);
+    }
     return otp;
 };
 
