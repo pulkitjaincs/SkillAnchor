@@ -20,32 +20,24 @@ const WorkerProfileSchema = new mongoose.Schema({
     gender: {
         type: String,
         enum: ["male", "female", "other"],
-        required: true,
     },
     phone: {
         type: String,
-        required: true,
     },
     email: String,
     whatsapp: String,
     city: {
         type: String,
-        required: true,
     },
     state: {
         type: String,
-        required: true,
     },
     pincode: String,
     languages: {
         type: [String],
-        required: true,
-        validate: [arr => arr.length > 0, "At least one language required"],
     },
     skills: {
         type: [String],
-        required: true,
-        validate: [arr => arr.length > 0, "At least one skill required"],
     },
     workHistory: [{
         type: mongoose.Schema.Types.ObjectId,

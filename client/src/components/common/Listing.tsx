@@ -35,7 +35,8 @@ const Listing = memo(({ job, onClose, isSwitch = false }: ListingProps) => {
             }
             try {
                 const res = await applicationsAPI.getMyApplications();
-                const hasApplied = res.data.some((app: any) => app.job._id === job._id);
+                const apps = res.data?.applications || [];
+                const hasApplied = apps.some((app: any) => app.job._id === job._id);
                 setApplied(hasApplied);
             } catch { /* silently ignore */ }
         };

@@ -29,7 +29,10 @@ const limiter = rateLimit({
 app.use("/api/", limiter);
 app.use(nosqlSanitize);
 app.use(compression());
-app.use(cors());
+app.use(cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
