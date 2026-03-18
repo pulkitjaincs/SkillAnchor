@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, MapPin, Menu, Sun, Moon, Monitor, ChevronDown, User, Settings, LogOut, X } from "lucide-react";
+import { Search, MapPin, Menu, Sun, Moon, Monitor, ChevronDown, User, Settings, LogOut, X, Anchor } from "lucide-react";
+import BrandLogo from "@/components/common/BrandLogo";
 
 function NavbarContent({ name }: { name?: string }) {
   const { user: authUser, logout } = useAuth();
@@ -147,9 +148,7 @@ function NavbarContent({ name }: { name?: string }) {
         {/* LOGO */}
         <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
           <Link href="/" className="flex items-center space-x-2 text-slate-900 dark:text-white no-underline">
-            <div className="flex items-center justify-center rounded-2xl w-8 h-8 bg-slate-900 dark:bg-white text-white dark:!text-slate-900 shadow-md">
-              <span className="font-bold text-base -tracking-wider">S</span>
-            </div>
+            <BrandLogo iconSize={36} />
             <span className="font-bold tracking-tight text-lg">SkillAnchor</span>
           </Link>
         </motion.div>

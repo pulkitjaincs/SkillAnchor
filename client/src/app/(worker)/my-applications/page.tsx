@@ -12,6 +12,12 @@ const ApplicationDetailModal = lazy(() => import('@/components/modals/Applicatio
 export default function MyApplicationsPage() {
     const [selectedApp, setSelectedApp] = useState<any>(null);
 
+    useMemo(() => {
+        if (typeof document !== 'undefined') {
+            document.title = 'My Applications | SkillAnchor';
+        }
+    }, []);
+
     const {
         data,
         isLoading: loading,

@@ -40,6 +40,18 @@ function HomePageContent() {
     category: categoryQuery
   });
 
+  useEffect(() => {
+    if (searchQuery && locationQuery) {
+      document.title = `${searchQuery} in ${locationQuery} | SkillAnchor`;
+    } else if (searchQuery) {
+      document.title = `${searchQuery} Jobs | SkillAnchor`;
+    } else if (categoryQuery && categoryQuery !== 'All') {
+      document.title = `${categoryQuery} Jobs | SkillAnchor`;
+    } else {
+      document.title = 'SkillAnchor | Better Jobs, Faster';
+    }
+  }, [searchQuery, locationQuery, categoryQuery]);
+
   const allJobs = useMemo(() => {
     return data?.pages.flatMap((page: any) => page.jobs) || [];
   }, [data]);

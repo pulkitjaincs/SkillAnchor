@@ -12,6 +12,7 @@ import { nosqlSanitize } from "./middleware/sanitize.middleware.js";
 import uploadRoutes from "./routes/upload.routes.js";
 import { RedisStore } from "rate-limit-redis";
 import { redis } from "./config/redis.js";
+import cookieParser from "cookie-parser";
 
 
 const app = express();
@@ -33,6 +34,7 @@ app.use(cors({
     origin: process.env.CLIENT_URL,
     credentials: true
 }));
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

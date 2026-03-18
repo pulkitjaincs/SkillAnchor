@@ -16,6 +16,14 @@ export default function MyJobsPage() {
         isFetchingNextPage
     } = useEmployerJobs();
 
+    const router = useRouter();
+
+    useMemo(() => {
+        if (typeof document !== 'undefined') {
+            document.title = 'My Posted Jobs | SkillAnchor';
+        }
+    }, []);
+
     const jobs = useMemo(() => {
         return data?.pages.flatMap((page: any) => page.jobs) || [];
     }, [data]);

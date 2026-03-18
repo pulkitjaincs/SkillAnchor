@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useRegister } from '@/hooks/ui/useRegister';
+import BrandLogo from '@/components/common/BrandLogo';
 import '../AuthPages.css';
 
 export default function RegisterPage() {
@@ -25,6 +26,10 @@ export default function RegisterPage() {
     } = useRegister();
 
     useEffect(() => {
+        document.title = 'Create Account | SkillAnchor';
+    }, []);
+
+    useEffect(() => {
         if (user) {
             router.push('/');
             return;
@@ -39,8 +44,8 @@ export default function RegisterPage() {
                     <div className="card border-0 shadow-lg auth-card">
 
                         <div className="text-center pt-5 pb-4 px-4 auth-header">
-                            <div className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 auth-header-icon">
-                                <span className="fw-bold fs-3">S</span>
+                            <div className="d-inline-flex align-items-center justify-content-center mb-4">
+                                <BrandLogo className="w-20 h-20" iconSize={64} />
                             </div>
                             <h2 className="fw-bold mb-1 auth-header-title">Join SkillAnchor</h2>
                             <p className="mb-0 auth-header-subtitle">Create your account to get started</p>

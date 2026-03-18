@@ -39,7 +39,14 @@ export const verifyOTP = asyncHandler(async (req, res) => {
     }
 
     const safeUser = await User.findById(user._id).select("-password -__v").lean();
-    res.json({ token: generateToken(user._id), user: safeUser });
+    const token = generateToken(user._id);
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 30 * 24 * 60 * 60 * 1000
+    });
+    res.json({ user: safeUser });
 });
 
 export const register = asyncHandler(async (req, res) => {
@@ -51,7 +58,14 @@ export const register = asyncHandler(async (req, res) => {
     });
 
     const safeUser = await User.findById(user._id).select("-password -__v").lean();
-    res.status(201).json({ token: generateToken(user._id), user: safeUser });
+    const token = generateToken(user._id);
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 30 * 24 * 60 * 60 * 1000
+    });
+    res.json({ user: safeUser });
 });
 
 export const login = asyncHandler(async (req, res) => {
@@ -77,8 +91,15 @@ export const login = asyncHandler(async (req, res) => {
         throw err;
     }
 
-    const safeUser = await User.findById(user._id).select("-password -__v").lean();
-    res.json({ token: generateToken(user._id), user: safeUser });
+    const safeUser = await User.findById(user._id).select("-password -__v").lean(); 
+    const token = generateToken(user._id);
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 30 * 24 * 60 * 60 * 1000
+    });
+    res.json({ user: safeUser });
 });
 
 export const forgotPassword = asyncHandler(async (req, res) => {
@@ -168,4 +189,9 @@ export const verifyUpdateOTP = asyncHandler(async (req, res) => {
     ).select("-password -__v");
 
     res.json({ message: "Account updated successfully", user });
+});
+
+export const getMe = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user._id).select("-password -__v");
+    res.json({user});
 });

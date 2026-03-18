@@ -65,10 +65,8 @@ export const useLogin = () => {
                     payload.role = role;
                 }
                 const { data } = await authAPI.verifyOTP(payload);
-                if (data.token) {
-                    login(data.token, data.user);
-                    router.push(redirect);
-                }
+                login(data.user);
+                router.push(redirect);
             }
 
             if (loginMethod === 'email') {
@@ -86,10 +84,8 @@ export const useLogin = () => {
                         return;
                     }
                     const { data } = await authAPI.login({ email, password });
-                    if (data.token) {
-                        login(data.token, data.user);
-                        router.push(redirect);
-                    }
+                    login(data.user);
+                    router.push(redirect);
                 }
 
                 if (emailMethod === 'otp') {
@@ -116,10 +112,8 @@ export const useLogin = () => {
                         payload.role = role;
                     }
                     const { data } = await authAPI.verifyOTP(payload);
-                    if (data.token) {
-                        login(data.token, data.user);
-                        router.push(redirect);
-                    }
+                    login(data.user);
+                    router.push(redirect);
                 }
             }
         } catch (err: any) {

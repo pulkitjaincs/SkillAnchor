@@ -16,6 +16,12 @@ export default function MyTeamPage() {
         isFetchingNextPage
     } = useMyTeam();
 
+    useMemo(() => {
+        if (typeof document !== 'undefined') {
+            document.title = 'My Team | SkillAnchor';
+        }
+    }, []);
+
     const team = useMemo(() => {
         return teamData?.pages?.flatMap((page: any) => page.team) || [];
     }, [teamData]);

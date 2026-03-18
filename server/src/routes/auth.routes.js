@@ -1,9 +1,10 @@
 import express from "express";
-import { sendOTP, verifyOTP, register, login, forgotPassword, resetPassword, logout, updatePassword, sendUpdateOTP, verifyUpdateOTP } from "../controllers/auth.controller.js";
+import { sendOTP, verifyOTP, register, login, forgotPassword, resetPassword, logout, updatePassword, sendUpdateOTP, verifyUpdateOTP, getMe } from "../controllers/auth.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { validate, registerSchema, loginSchema, otpSchema, verifyOTPSchema, forgotPasswordSchema, resetPasswordSchema, updatePasswordSchema } from "../middleware/validate.js";
 
 const router = express.Router();
+router.get("/get-me", protect, getMe);
 router.post("/send-otp", validate(otpSchema), sendOTP);
 router.post("/verify-otp", validate(verifyOTPSchema), verifyOTP);
 router.post("/register", validate(registerSchema), register);

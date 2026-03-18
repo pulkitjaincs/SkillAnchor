@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { authAPI } from '@/lib/api';
+import BrandLogo from '@/components/common/BrandLogo';
+import { useEffect } from 'react';
 import '../AuthPages.css';
 
 export default function ForgotPasswordPage() {
@@ -19,6 +21,10 @@ export default function ForgotPasswordPage() {
     const [loading, setLoading] = useState(false);
 
     const router = useRouter();
+
+    useEffect(() => {
+        document.title = 'Reset Password | SkillAnchor';
+    }, []);
 
     const handleSendOtp = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -94,9 +100,8 @@ export default function ForgotPasswordPage() {
                     <div className="card border-0 shadow-lg" style={{ borderRadius: '24px', background: 'var(--bg-card)', overflow: 'hidden' }}>
 
                         <div className="text-center pt-5 pb-4 px-4" style={{ background: 'linear-gradient(135deg, var(--primary-100), var(--zinc-100))' }}>
-                            <div className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                                style={{ width: '64px', height: '64px', background: 'var(--text-main)', color: 'var(--bg-body)' }}>
-                                <i className="bi bi-key" style={{ fontSize: '28px' }}></i>
+                            <div className="d-inline-flex align-items-center justify-content-center mb-4">
+                                <BrandLogo className="w-20 h-20" iconSize={64} />
                             </div>
                             <h2 className="fw-bold mb-1" style={{ letterSpacing: '-0.03em', color: 'var(--text-main)' }}>
                                 {step === 1 ? 'Forgot Password?' : 'Reset Password'}

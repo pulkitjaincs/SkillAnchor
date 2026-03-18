@@ -12,6 +12,10 @@ export default function PostJobPage() {
     const router = useRouter();
     const [error, setError] = useState('');
     const createMutation = useCreateJob();
+
+    React.useEffect(() => {
+        document.title = 'Post a Job | SkillAnchor';
+    }, []);
     const { values: formData, handleChange } = useForm({
         title: '',
         description: '',

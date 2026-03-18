@@ -7,22 +7,13 @@ const api = axios.create({
     headers: {
         "Content-Type": "application/json",
     },
+    withCredentials: true
 });
 
-api.interceptors.request.use((config) => {
-    if (typeof window !== 'undefined') {
-        const token = localStorage.getItem("skillanchor_token");
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-    }
-    return config;
-});
-
-api.interceptors.response.use((response) => response,
+api.interceptors.response.use(
+    (response) => response,
     (error) => {
         if (typeof window !== 'undefined' && error.response?.status === 401) {
-            localStorage.removeItem('skillanchor_token');
             window.dispatchEvent(new Event('auth:unauthorized'));
         }
         return Promise.reject(error);
@@ -38,7 +29,8 @@ export const authAPI = {
     logout: () => api.post('/auth/logout'),
     updatePassword: (data: any) => api.post('/auth/update-password', data),
     sendUpdateOTP: (data: any) => api.post('/auth/send-update-otp', data),
-    verifyUpdateOTP: (data: any) => api.post('/auth/verify-update-otp', data)
+    verifyUpdateOTP: (data: any) => api.post('/auth/verify-update-otp', data),
+    getMe: () => api.get('/auth/get-me')
 };
 
 // Jobs API

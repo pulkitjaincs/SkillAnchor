@@ -1,6 +1,4 @@
-"use client";
-
-import { usePathname } from "next/navigation";
+import { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -20,6 +18,17 @@ const plusJakarta = Plus_Jakarta_Sans({
   display: 'swap',
   variable: '--font-plus-jakarta',
 });
+
+export const metadata: Metadata = {
+  title: {
+    default: "SkillAnchor | Better Jobs, Faster",
+    template: "%s | SkillAnchor",
+  },
+  description: "SkillAnchor - The modern job platform for skilled workers and employers.",
+  icons: {
+    icon: "/icon.svg",
+  },
+};
 
 export default function RootLayout({
   children,
