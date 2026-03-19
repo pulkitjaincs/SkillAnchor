@@ -11,18 +11,23 @@
   <img src="https://img.shields.io/badge/Node.js-20.x-339933?logo=node.js&logoColor=white" alt="Node.js" />
   <img src="https://img.shields.io/badge/MongoDB-8.0-47A248?logo=mongodb&logoColor=white" alt="MongoDB" />
   <img src="https://img.shields.io/badge/Redis-7.x-FF4438?logo=redis&logoColor=white" alt="Redis" />
-  <img src="https://img.shields.io/badge/AWS_S3-Storage-FF9900?logo=amazonaws&logoColor=white" alt="AWS S3" />
+  <img src="https://img.shields.io/badge/Vitest-Full_Stack-729B1B?logo=vitest&logoColor=white" alt="Vitest" />
 </p>
+
+---
+
+> **[Read the Full Architecture Documentation (ARCHITECTURE.md)](ARCHITECTURE.md)** for a deep dive into our design patterns, auth flow, and state management.
 
 ---
 
 ## 🛡️ Security
 
-- **Edge Middleware Auth**: Next.js `middleware.ts` intercepts requests at the edge, validating JWT cookies before the page is rendered.
+- **Edge Middleware Auth**: Next.js intercepts requests, validating JWTs securely.
+- **Strict HttpOnly Cookies**: Total eradication of `localStorage` tokens. JWTs are handled strictly by the browser via `httpOnly`, `secure`, `sameSite=strict` cookies, eliminating XSS token theft vectors.
 - **Hardened HTTP Headers**: `helmet` middleware for XSS and clickjacking protection.
-- **Rate Limiting**: `express-rate-limit` to prevent brute-force attacks.
-- **Request Validation**: **Zod** schema validation on **all** API routes (auth, jobs, applications, profile, work experience).
-- **NoSQL Injection Guard**: Custom sanitization middleware on all incoming data.
+- **Rate Limiting**: Redis-backed request throttling on all authentication/OTP routes.
+- **Exhaustive Schema Validation**: **Zod 4** validates payloads on **all** API routes before controller execution.
+- **NoSQL Injection Guard**: Custom middleware and `express-mongo-sanitize` completely sanitize incoming requests.
 - **Secure OTP Generation**: Native `crypto.randomInt` for cryptographically strong verification codes.
 - **Centralized Error Handling**: Global error middleware catches Mongoose, Zod, and application errors with consistent responses.
 
@@ -38,6 +43,18 @@
 - **Route-Level Boundaries**: `loading.tsx`, `error.tsx`, and `not-found.tsx` for graceful suspense and error handling.
 - **Intelligent Caching**: **Redis-powered** cache-aside pattern for job listings and user profiles, reducing database load and response times.
 - **Distributed Rate Limiting**: Redis-backed rate limiting ensures consistent security across multiple server instances.
+
+- **Distributed Rate Limiting**: Redis-backed rate limiting ensures consistent security across multiple server instances.
+
+---
+
+## 🧪 Testing Infrastructure
+
+SkillAnchor employs a comprehensive, parallelized testing suite using **Vitest**.
+
+- **Backend (Node.js/Express):** Full test isolation with dedicated in-memory MongoDB and Redis databases. Features extensive unit tests for service logic and integration tests (via Supertest) for API routes. 
+- **Frontend (React/Next.js):** JSDOM and React Testing Library integration. Includes deep component testing simulating mock hooks, routing, dynamic imports (`next/dynamic`), and complex authentication states.
+- **Code Coverage:** Enforced via V8 coverage reports.
 
 ---
 
@@ -337,7 +354,10 @@ cd server && npm run dev      # → http://localhost:5000
 - [x] MongoDB Aggregation Pipelines for Profile Joins
 - [x] Zod validation on all API routes
 - [x] Component modularization and shared types
-- [x] **Redis Integration (Phase 1)**: Distributed caching, rate limiting, and OTP migration
+- [x] **Redis Integration**: Distributed caching, rate limiting, and OTP migration
+- [x] **Strict HttpOnly Cookie Auth**: Migration from insecure client-side tokens
+- [x] **TypeScript Hardening**: Elimination of `any` and strict API typing
+- [x] **Full-Stack Test Suite**: Vitest, Supertest, RTL, and JSDOM coverage
 - [ ] Shift-based scheduling with calendar view
 - [ ] Real-time in-app messaging (Socket.io)
 - [ ] Push notifications
