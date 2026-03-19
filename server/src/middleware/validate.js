@@ -9,12 +9,12 @@ export const validate = (schema) => (req, res, next) => {
         });
         if (!result.success) {
             const messages = (result.error?.issues || result.error?.errors || []).map(err => err.message).join(", ");
-            return res.status(400).json({ error: messages || "Validation failed" });
+            return res.status(400).json({ success: false, error: messages || "Validation failed" });
         }
         next();
     } catch (e) {
         console.error(`Validation error on ${req.method} ${req.originalUrl}:`, e.message);
-        return res.status(400).json({ error: "Validation failed" });
+        return res.status(400).json({ success: false, error: "Validation failed" });
     }
 };
 

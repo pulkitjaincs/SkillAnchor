@@ -161,7 +161,7 @@ const Listing = memo(({ job, onClose, isSwitch = false }: ListingProps) => {
                                     letterSpacing: '0.08em',
                                     padding: '5px 11px',
                                 }}>
-                                {job.jobType?.replace(/-/g, ' ') || 'Full-time'}
+                                {(job.jobType || 'Full-time').replace(/-/g, ' ')}
                             </span>
                         </div>
 
