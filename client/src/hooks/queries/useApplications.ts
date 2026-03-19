@@ -1,5 +1,6 @@
-import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery, InfiniteData } from '@tanstack/react-query';
 import { applicationsAPI, jobsAPI } from '@/lib/api';
+import { Application, PaginatedApplicationsResponse, PaginatedJobsResponse, Job } from '@/types';
 
 export const useApplications = (enabled = true) => {
     return useInfiniteQuery({
@@ -9,11 +10,9 @@ export const useApplications = (enabled = true) => {
             const { data } = await applicationsAPI.getMyApplications(params);
             return data;
         },
-        getNextPageParam: (lastPage: any) => {
-            if (lastPage.hasMore && lastPage.applications.length > 0) {
-                return lastPage.applications[lastPage.applications.length - 1]._id;
-            }
-            return undefined;
+        getNextPageParam: (lastPage: PaginatedApplicationsResponse) => {
+            if (!lastPage.hasMore || lastPage.applications.length === 0) return undefined;
+            return lastPage.applications[lastPage.applications.length - 1]._id;
         },
         staleTime: 1000 * 60 * 5,
         initialPageParam: null,
@@ -52,13 +51,13 @@ export const useWithdrawApplication = () => {
             await queryClient.cancelQueries({ queryKey: ['applications'] });
             const previousApps = queryClient.getQueryData(['applications']);
 
-            queryClient.setQueryData(['applications'], (old: any) => {
+            queryClient.setQueryData(['applications'], (old: InfiniteData<PaginatedApplicationsResponse>) => {
                 if (!old) return old;
                 return {
                     ...old,
-                    pages: old.pages.map((page: any) => ({
+                    pages: old.pages.map((page: PaginatedApplicationsResponse) => ({
                         ...page,
-                        applications: page.applications.filter((app: any) => app._id !== appId)
+                        applications: page.applications.filter((app: Application) => app._id !== appId)
                     }))
                 };
             });
@@ -83,11 +82,9 @@ export const useEmployerJobs = () => {
             const { data } = await jobsAPI.getMyJobs(params);
             return data;
         },
-        getNextPageParam: (lastPage: any) => {
-            if (lastPage.hasMore && lastPage.jobs.length > 0) {
-                return lastPage.jobs[lastPage.jobs.length - 1]._id;
-            }
-            return undefined;
+        getNextPageParam: (lastPage: PaginatedJobsResponse) => {
+            if (!lastPage.hasMore || lastPage.jobs.length === 0) return undefined;
+            return lastPage.jobs[lastPage.jobs.length - 1]._id;
         },
         staleTime: 1000 * 60 * 5,
         initialPageParam: null
@@ -102,11 +99,9 @@ export const useJobApplicants = (jobId: string) => {
             const { data } = await applicationsAPI.getJobApplicants(jobId, params);
             return data;
         },
-        getNextPageParam: (lastPage: any) => {
-            if (lastPage.hasMore && lastPage.applications.length > 0) {
-                return lastPage.applications[lastPage.applications.length - 1]._id;
-            }
-            return undefined;
+        getNextPageParam: (lastPage: PaginatedApplicationsResponse) => {
+            if (!lastPage.hasMore || lastPage.applications.length === 0) return undefined;
+            return lastPage.applications[lastPage.applications.length - 1]._id;
         },
         enabled: !!jobId,
         staleTime: 1000 * 60 * 5,
@@ -124,13 +119,13 @@ export const useUpdateApplicationStatus = () => {
 
             const previousApplicants = queryClient.getQueriesData({ queryKey: ['applicants'] });
 
-            queryClient.setQueriesData({ queryKey: ['applicants'] }, (old: any) => {
+            queryClient.setQueriesData({ queryKey: ['applicants'] }, (old: InfiniteData<PaginatedApplicationsResponse>) => {
                 if (!old) return old;
                 return {
                     ...old,
-                    pages: old.pages.map((page: any) => ({
+                    pages: old.pages.map((page: PaginatedApplicationsResponse) => ({
                         ...page,
-                        applications: page.applications.map((app: any) =>
+                        applications: page.applications.map((app: Application) =>
                             app._id === appId ? { ...app, status } : app
                         )
                     }))
@@ -167,7 +162,7 @@ export const useDeleteJob = () => {
 export const useCreateJob = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: any) => jobsAPI.create(data),
+        mutationFn: (data: Partial<Job>) => jobsAPI.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['employer-jobs'] });
             queryClient.invalidateQueries({ queryKey: ['jobs'] });
@@ -178,7 +173,7 @@ export const useCreateJob = () => {
 export const useUpdateJob = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, data }: { id: string, data: any }) => jobsAPI.update(id, data),
+        mutationFn: ({ id, data }: { id: string, data: Partial<Job> }) => jobsAPI.update(id, data),
         onSuccess: (data, variables) => {
             queryClient.invalidateQueries({ queryKey: ['employer-jobs'] });
             queryClient.invalidateQueries({ queryKey: ['jobs'] });

@@ -1,5 +1,5 @@
 import axios from "axios";
-
+import { Job, User, Application, ApiResponse, PaginatedJobsResponse, PaginatedApplicationsResponse, Profile, WorkExperience } from "@/types";
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api";
 
 const api = axios.create({
@@ -20,54 +20,54 @@ api.interceptors.response.use(
     }
 );
 export const authAPI = {
-    sendOTP: (data: any) => api.post('/auth/send-otp', data),
-    verifyOTP: (data: any) => api.post('/auth/verify-otp', data),
-    register: (data: any) => api.post('/auth/register', data),
-    login: (data: any) => api.post('/auth/login', data),
-    forgotPassword: (data: any) => api.post('/auth/forgot-password', data),
-    resetPassword: (data: any) => api.post('/auth/reset-password', data),
+    sendOTP: (data: Record<string, unknown>) => api.post('/auth/send-otp', data),
+    verifyOTP: (data: Record<string, unknown>) => api.post('/auth/verify-otp', data),
+    register: (data: Record<string, unknown>) => api.post('/auth/register', data),
+    login: (data: Record<string, unknown>) => api.post<ApiResponse<{ user: User }>>('/auth/login', data),
+    forgotPassword: (data: Record<string, unknown>) => api.post('/auth/forgot-password', data),
+    resetPassword: (data: Record<string, unknown>) => api.post('/auth/reset-password', data),
     logout: () => api.post('/auth/logout'),
-    updatePassword: (data: any) => api.post('/auth/update-password', data),
-    sendUpdateOTP: (data: any) => api.post('/auth/send-update-otp', data),
-    verifyUpdateOTP: (data: any) => api.post('/auth/verify-update-otp', data),
-    getMe: () => api.get('/auth/get-me')
+    updatePassword: (data: Record<string, unknown>) => api.post('/auth/update-password', data),
+    sendUpdateOTP: (data: Record<string, unknown>) => api.post('/auth/send-update-otp', data),
+    verifyUpdateOTP: (data: Record<string, unknown>) => api.post('/auth/verify-update-otp', data),
+    getMe: () => api.get<ApiResponse<{ user: User }>>('/auth/get-me')
 };
 
 // Jobs API
 export const jobsAPI = {
-    getAll: (params?: any) => api.get('/jobs', { params }),
-    getById: (id: string) => api.get(`/jobs/${id}`),
-    getMyJobs: (params?: any) => api.get('/jobs/my-jobs', { params }),
-    create: (data: any) => api.post('/jobs', data),
-    update: (id: string, data: any) => api.put(`/jobs/${id}`, data),
-    delete: (id: string) => api.delete(`/jobs/${id}`)
+    getAll: (params?: Record<string, unknown>) => api.get<PaginatedJobsResponse>('/jobs', { params }),
+    getById: (id: string) => api.get<ApiResponse<{ job: Job }>>(`/jobs/${id}`),
+    getMyJobs: (params?: Record<string, unknown>) => api.get<PaginatedJobsResponse>('/jobs/my-jobs', { params }),
+    create: (data: Partial<Job>) => api.post<ApiResponse<{ job: Job }>>('/jobs', data),
+    update: (id: string, data: Partial<Job>) => api.put<ApiResponse<{ job: Job }>>(`/jobs/${id}`, data),
+    delete: (id: string) => api.delete<ApiResponse<{ job: Job }>>(`/jobs/${id}`)
 };
 
 // Applications API
 export const applicationsAPI = {
-    apply: (jobId: string, data: any) => api.post(`/applications/apply/${jobId}`, data),
-    getMyApplications: (params?: any) => api.get('/applications/my-applications', { params }),
-    getJobApplicants: (jobId: string, params?: any) => api.get(`/applications/job/${jobId}`, { params }),
-    updateStatus: (id: string, status: string) => api.patch(`/applications/${id}/status`, { status }),
-    withdraw: (id: string) => api.delete(`/applications/${id}`)
+    apply: (jobId: string, data: { coverNote?: string }) => api.post<ApiResponse<{ application: Application }>>(`/applications/apply/${jobId}`, data),
+    getMyApplications: (params?: Record<string, unknown>) => api.get<PaginatedApplicationsResponse>('/applications/my-applications', { params }),
+    getJobApplicants: (jobId: string, params?: Record<string, unknown>) => api.get<PaginatedApplicationsResponse>(`/applications/job/${jobId}`, { params }),
+    updateStatus: (id: string, status: string) => api.patch<ApiResponse<{ application: Application }>>(`/applications/${id}/status`, { status }),
+    withdraw: (id: string) => api.delete<ApiResponse<{ message: string }>>(`/applications/${id}`)
 };
 
 // Profile API
 export const profileAPI = {
-    getMyProfile: () => api.get('/profile/my-profile'),
-    updateMyProfile: (data: any) => api.put('/profile/my-profile', data),
-    getByUserId: (userId: string) => api.get(`/profile/user/${userId}`),
-    getMyTeam: (params?: any) => api.get('/profile/my-team', { params }),
-    updateAvatarUrl: (avatarKey: string) => api.patch('/profile/update-avatar-url', { avatarKey })
+    getMyProfile: () => api.get<ApiResponse<{ profile: Profile }>>('/profile/my-profile'),
+    updateMyProfile: (data: Partial<Profile>) => api.put<ApiResponse<{ profile: Profile }>>('/profile/my-profile', data),
+    getByUserId: (userId: string) => api.get<ApiResponse<{ profile: Profile }>>(`/profile/user/${userId}`),
+    getMyTeam: (params?: Record<string, unknown>) => api.get<ApiResponse<{ profiles: Profile[] }>>('/profile/my-team', { params }),
+    updateAvatarUrl: (avatarKey: string) => api.patch<ApiResponse<{ profile: Profile }>>('/profile/update-avatar-url', { avatarKey })
 };
 
 // Work Experience API
 export const workExperienceAPI = {
-    getByUser: (userId: string) => api.get(`/work-experience/user/${userId}`),
-    create: (data: any) => api.post('/work-experience', data),
-    update: (id: string, data: any) => api.put(`/work-experience/${id}`, data),
-    delete: (id: string) => api.delete(`/work-experience/${id}`),
-    endEmployment: (id: string) => api.patch(`/work-experience/${id}/end`),
-    toggleVisibility: (id: string) => api.patch(`/work-experience/${id}/toggle-visibility`)
+    getByUser: (userId: string) => api.get<ApiResponse<{ workExperiences: WorkExperience[] }>>(`/work-experience/user/${userId}`),
+    create: (data: Partial<WorkExperience>) => api.post<ApiResponse<{ workExperience: WorkExperience }>>('/work-experience', data),
+    update: (id: string, data: Partial<WorkExperience>) => api.put<ApiResponse<{ workExperience: WorkExperience }>>(`/work-experience/${id}`, data),
+    delete: (id: string) => api.delete<ApiResponse<{ workExperience: WorkExperience }>>(`/work-experience/${id}`),
+    endEmployment: (id: string) => api.patch<ApiResponse<{ workExperience: WorkExperience }>>(`/work-experience/${id}/end`),
+    toggleVisibility: (id: string) => api.patch<ApiResponse<{ workExperience: WorkExperience }>>(`/work-experience/${id}/toggle-visibility`)
 };
 export default api;

@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useCallback, Suspense, memo } from "react";
 import dynamic from "next/dynamic";
-import Image from "next/image";
 import { useAuth } from '@/context/AuthContext';
 import { applicationsAPI } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { formatDate, formatSalary } from "@/utils/index";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Variants } from "framer-motion";
-import type { Job } from '@/types';
+import type { Job, Application } from '@/types';
 
 const ApplyModal = dynamic(() => import("@/components/common/ApplyModal"), { ssr: false });
 
@@ -36,7 +36,7 @@ const Listing = memo(({ job, onClose, isSwitch = false }: ListingProps) => {
             try {
                 const res = await applicationsAPI.getMyApplications();
                 const apps = res.data?.applications || [];
-                const hasApplied = apps.some((app: any) => app.job._id === job._id);
+                const hasApplied = apps.some((app: Application) => app.job._id === job._id);
                 setApplied(hasApplied);
             } catch { /* silently ignore */ }
         };
@@ -215,7 +215,7 @@ const Listing = memo(({ job, onClose, isSwitch = false }: ListingProps) => {
                                 {[
                                     { icon: 'bi-cash-coin', label: 'Salary', value: formatSalary(job.salaryMin, job.salaryMax, job.salaryType) },
                                     { icon: 'bi-award', label: 'Exp', value: (job.experienceMin ?? 0) > 0 ? `${job.experienceMin}+ yr` : 'Fresher' },
-                                    { icon: 'bi-people', label: 'Open', value: `${(job as any).vacancies ?? 1}` },
+                                    { icon: 'bi-people', label: 'Open', value: `${job.vacancies ?? 1}` },
                                 ].map((s, i, arr) => (
                                     <div key={i} className="flex-fill text-center py-3 px-2"
                                         style={{
@@ -265,14 +265,14 @@ const Listing = memo(({ job, onClose, isSwitch = false }: ListingProps) => {
                             )}
 
                             {/* Benefits */}
-                            {(job as any).benefits && (job as any).benefits.length > 0 && (
+                            {job.benefits && job.benefits.length > 0 && (
                                 <div className="mb-5">
                                     <div className="d-flex align-items-center gap-2 mb-3">
                                         <span className="fw-black text-uppercase opacity-40" style={{ fontSize: '0.65rem', letterSpacing: '1.5px' }}>Perks</span>
                                         <div className="flex-grow-1" style={{ height: 1, background: 'var(--border-color)' }}></div>
                                     </div>
                                     <div className="d-flex flex-column gap-2">
-                                        {(job as any).benefits.map((b: string, idx: number) => (
+                                        {job.benefits.map((b: string, idx: number) => (
                                             <div key={idx} className="d-flex align-items-center gap-2">
                                                 <div className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
                                                     style={{ width: 20, height: 20, background: 'rgba(16,185,129,0.12)' }}>
