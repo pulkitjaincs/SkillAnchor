@@ -6,7 +6,7 @@ import { generateReadSignedUrl, deleteFromS3 } from "../config/s3.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { Request, Response } from "express";
 import { assembleProfileResponse } from "../services/profile.service.js";
-import mongoose from "mongoose";
+import mongoose, { QueryFilter } from "mongoose";
 import { redis } from "../config/redis.js";
 import { cacheAside, invalidateCache } from "../utils/cache.js";
 import { AppError } from "../types/error.js";
@@ -53,7 +53,7 @@ export const getMyTeam = asyncHandler(async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 10;
     const cursor = req.query.cursor as string;
 
-    const query: mongoose.FilterQuery<IWorkExperience>  = {
+    const query:QueryFilter<IWorkExperience>  = {
         employer: req.user._id,
         $or: [
             { endDate: { $exists: false } },
@@ -198,5 +198,6 @@ export const getProfileByUserId = asyncHandler(async (req: Request, res: Respons
 
     const isOwner = req.user && req.user._id.toString() === userId;
     const resolvedProfile = await resolveAvatarUrl(data.profile, isOwner);
-    res.status(200).json(assembleProfileResponse(resolvedProfile, data.user, data.role || 'worker'));
+    const role = data.role === 'employer' ? 'employer' : 'worker';
+    res.status(200).json(assembleProfileResponse(resolvedProfile, data.user, role));
 });

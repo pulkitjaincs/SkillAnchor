@@ -1,9 +1,9 @@
 import Job, { IJob } from "../models/Job.model.js";
+import mongoose, { QueryFilter } from "mongoose";
 import "../models/Company.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { Request, Response } from "express";
 import { cacheAside, invalidateCache } from "../utils/cache.js";
-import mongoose from "mongoose";
 import { AppError } from "../types/error.js";
 
 export const getAllJobs = asyncHandler(async (req: Request, res: Response) => {
@@ -39,7 +39,7 @@ export const getAllJobs = asyncHandler(async (req: Request, res: Response) => {
 
         return res.status(200).json(data);
     }
-    const query: mongoose.FilterQuery<IJob> = { status: "active" };
+    const query: QueryFilter<IJob> = { status: "active" };
     let sortOptions: string | { [key: string]: mongoose.SortOrder } | [string, mongoose.SortOrder][] = { _id: -1 };
     const projection: Record<string, string | number | object> = {
         title: 1, description: 1, company: 1,
@@ -104,7 +104,7 @@ export const getMyJobs = asyncHandler(async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 10;
     const cursor = req.query.cursor as string;
 
-    const query: mongoose.FilterQuery<IJob> = { employer: req.user._id };
+    const query: QueryFilter<IJob> = { employer: req.user._id };
     if (cursor) query._id = { $lt: new mongoose.Types.ObjectId(cursor) };
 
     const jobs = await Job.find(query,
@@ -154,4 +154,4 @@ export const deleteJob = asyncHandler(async (req: Request, res: Response) => {
     await Job.findByIdAndDelete(req.params.id);
     await invalidateCache("jobs:list:*");
     res.json({ message: "Job deleted successfully" });
-});
+});

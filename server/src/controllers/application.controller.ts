@@ -6,7 +6,7 @@ import { Request, Response } from "express";
 import { applicationEmitter } from "../events/application.events.js";
 import { generateReadSignedUrl } from "../config/s3.js";
 import { AppError } from "../types/error.js";
-import mongoose from "mongoose";
+import mongoose, { QueryFilter } from "mongoose";
 
 interface PopulatedJob extends Omit<IJob, 'company'> {
     _id: mongoose.Types.ObjectId;
@@ -44,7 +44,7 @@ export const getMyApplications = asyncHandler(async (req: Request, res: Response
     const limit = parseInt(req.query.limit as string) || 10;
     const cursor = req.query.cursor as string;
 
-    const query: mongoose.FilterQuery<IApplication> = { applicant: req.user._id };
+    const query: QueryFilter<IApplication> = { applicant: req.user._id };
     if (cursor) query._id = { $lt: new mongoose.Types.ObjectId(cursor) };
 
     const applications = await Application.find(query)
@@ -70,7 +70,7 @@ export const getJobApplicants = asyncHandler(async (req: Request, res: Response)
         throw new AppError("Not authorized", 403);
     }
 
-    const query: mongoose.FilterQuery<IApplication> = { job: jobId };
+    const query: QueryFilter<IApplication> = { job: jobId };
     if (cursor) query._id = { $lt: new mongoose.Types.ObjectId(cursor) };
 
     const applications = await Application.find(query)
