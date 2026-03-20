@@ -5,13 +5,13 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Next.js-16-000000?logo=next.js&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/Next.js-16.1-000000?logo=next.js&logoColor=white" alt="Next.js" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React" />
   <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Node.js-20.x-339933?logo=node.js&logoColor=white" alt="Node.js" />
   <img src="https://img.shields.io/badge/MongoDB-8.0-47A248?logo=mongodb&logoColor=white" alt="MongoDB" />
   <img src="https://img.shields.io/badge/Redis-7.x-FF4438?logo=redis&logoColor=white" alt="Redis" />
-  <img src="https://img.shields.io/badge/Vitest-Full_Stack-729B1B?logo=vitest&logoColor=white" alt="Vitest" />
+  <img src="https://img.shields.io/badge/Vitest-4-729B1B?logo=vitest&logoColor=white" alt="Vitest" />
 </p>
 
 ---
@@ -26,7 +26,8 @@
 - **Strict HttpOnly Cookies**: Total eradication of `localStorage` tokens. JWTs are handled strictly by the browser via `httpOnly`, `secure`, `sameSite=strict` cookies, eliminating XSS token theft vectors.
 - **Hardened HTTP Headers**: `helmet` middleware for XSS and clickjacking protection.
 - **Rate Limiting**: Redis-backed request throttling on all authentication/OTP routes.
-- **Exhaustive Schema Validation**: **Zod 4** validates payloads on **all** API routes before controller execution.
+- **Exhaustive Schema Validation**: **Zod** validates payloads on **all** API routes before controller execution.
+- **Validated Environment Variables**: `env.ts` parses and validates all environment variables at server startup using Zod — the server fails fast with a clear error if any required variable is missing or malformed.
 - **NoSQL Injection Guard**: Custom middleware and `express-mongo-sanitize` completely sanitize incoming requests.
 - **Secure OTP Generation**: Native `crypto.randomInt` for cryptographically strong verification codes.
 - **Centralized Error Handling**: Global error middleware catches Mongoose, Zod, and application errors with consistent responses.
@@ -34,6 +35,7 @@
 ## ⚡ Performance & UX
 
 - **Hybrid Rendering**: Server Components by default, `"use client"` only for interactive leaves — drastically minimizes the JavaScript bundle.
+- **React Compiler**: `babel-plugin-react-compiler` automatically memoizes components and hooks, eliminating manual `useMemo`/`useCallback` boilerplate.
 - **Fluid UI (120fps Experience)**: System-wide optimization of CSS transitions to use exclusively compositor-friendly properties (`transform`, `opacity`), eliminating layout jank and reflows for a buttery-smooth feel.
 - **Hardware Acceleration**: GPU-promoted layers via `will-change` and `translateZ(0)` on high-interaction components like cards and listings.
 - **Optimized Transitions**: Page transitions tuned to 300ms with custom cubic-bezier curves for a snappier, responsive interface.
@@ -42,9 +44,9 @@
 - **Font Optimization**: `next/font/google` inlines Inter and Plus Jakarta Sans at build time.
 - **Route-Level Boundaries**: `loading.tsx`, `error.tsx`, and `not-found.tsx` for graceful suspense and error handling.
 - **Intelligent Caching**: **Redis-powered** cache-aside pattern for job listings and user profiles, reducing database load and response times.
+- **Scan-Based Cache Invalidation**: Cache invalidation uses Redis `SCAN` streams to safely delete keys without blocking the event loop.
 - **Distributed Rate Limiting**: Redis-backed rate limiting ensures consistent security across multiple server instances.
-
-- **Distributed Rate Limiting**: Redis-backed rate limiting ensures consistent security across multiple server instances.
+- **Gzip Compression**: `compression` middleware enabled on the Express server for all API responses.
 
 ---
 
@@ -52,7 +54,7 @@
 
 SkillAnchor employs a comprehensive, parallelized testing suite using **Vitest**.
 
-- **Backend (Node.js/Express):** Full test isolation with dedicated in-memory MongoDB and Redis databases. Features extensive unit tests for service logic and integration tests (via Supertest) for API routes. 
+- **Backend (Node.js/Express):** Full test isolation with dedicated in-memory MongoDB and Redis databases. Features extensive unit tests for service logic and integration tests (via Supertest) for API routes.
 - **Frontend (React/Next.js):** JSDOM and React Testing Library integration. Includes deep component testing simulating mock hooks, routing, dynamic imports (`next/dynamic`), and complex authentication states.
 - **Code Coverage:** Enforced via V8 coverage reports.
 
@@ -112,6 +114,7 @@ The platform is engineered for **performance**, **scalability**, and a **premium
 | Feature | Description |
 | :--- | :--- |
 | **Passwordless Auth** | Phone OTP and Email OTP login options |
+| **Email OTP Delivery** | OTPs sent via SMTP (Nodemailer) for email-based auth flows |
 | **Email + Password** | Traditional auth with forgot-password OTP flow |
 | **Dark Mode** | Full dark/light/system theme support |
 | **Responsive Design** | Mobile-first, works on all screen sizes |
@@ -129,19 +132,22 @@ The platform is engineered for **performance**, **scalability**, and a **premium
 | **Frontend** | Next.js 16 (App Router), React 19, TypeScript | Framework with hybrid SSR/SSG/ISR rendering |
 | **Routing** | File-system App Router (`src/app/`) | Server-side and client-side navigation |
 | **Auth** | Edge Middleware (`middleware.ts`) | Route protection before page code is sent |
-| **State** | TanStack React Query | Server state, caching, optimistic updates, background sync |
+| **State** | TanStack React Query v5 | Server state, caching, optimistic updates, background sync |
 | **Auth State** | Context API | Client-side auth context |
 | **Styling** | Bootstrap 5, Custom CSS Variables | Responsive design system with theming |
+| **Icons** | Bootstrap Icons, Lucide React | UI iconography |
 | **Fonts** | `next/font` (Inter, Plus Jakarta Sans) | Build-time font inlining, no external requests |
 | **Images** | `next/image` | Automatic optimization, lazy loading, format negotiation |
 | **Rendering** | React Virtuoso | Windowed list virtualization |
-| **Animations** | Framer Motion | Page transitions with reduced motion support |
+| **Animations** | Framer Motion 12 | Page transitions with reduced motion support |
+| **Compiler** | React Compiler (`babel-plugin-react-compiler`) | Automatic component memoization |
 | **Backend** | Node.js 20, Express 5 | RESTful API server |
 | **Database** | MongoDB 8.0, Mongoose 9 | Document storage and ODM |
 | **Cache/Store** | Redis 7 | Distributed caching, OTP storage, and rate limiting |
-| **Validation** | Zod 4 | Schema-based request validation on all routes |
+| **Validation** | Zod | Schema-based request and env-var validation |
 | **Auth** | JWT, bcrypt, OTP | Stateless authentication |
 | **Storage** | AWS S3 | Profile photo storage |
+| **Email** | Nodemailer (SMTP) | Transactional OTP email delivery |
 
 ---
 
@@ -182,15 +188,17 @@ SkillAnchor/
 │       ├── types/               # Shared TypeScript interfaces (Job, User, Company)
 │       └── utils/               # formatDate, formatSalary, timeAgo helpers
 │
-└── server/                      # Express API
+└── server/                      # Express API (TypeScript)
      └── src/
         ├── controllers/         # Route handlers (thin, wrapped with asyncHandler)
         ├── services/            # Business logic (auth, profile services)
         ├── models/              # Mongoose schemas with compound indexes
         ├── routes/              # API endpoints with Zod validation
-        ├── middleware/          # Auth guards, validation, uploads
-        ├── utils/               # asyncHandler, generateToken
-        └── config/              # Database, S3, environment config
+        ├── middleware/          # Auth guards, Zod validation, NoSQL sanitize
+        ├── events/              # Node.js EventEmitter hooks (e.g., hired → WorkExperience)
+        ├── utils/               # asyncHandler, generateToken, cache, email
+        ├── types/               # Shared TypeScript types (AppError)
+        └── config/              # db, redis, s3, env (Zod-validated)
 
 ```
 
@@ -202,7 +210,9 @@ SkillAnchor/
 
 - **Node.js** v18+
 - **MongoDB** v6+ (local or Atlas)
+- **Redis** v7+ (local or managed, e.g., Upstash)
 - **AWS S3 Bucket** *(optional, for profile photos)*
+- **SMTP Server** *(optional, for email OTP delivery)*
 
 ### Installation
 
@@ -236,14 +246,25 @@ CLIENT_URL=http://localhost:3000
 MONGO_URI=mongodb://localhost:27017/SkillAnchorDB
 
 # Authentication
-JWT_SECRET=your_jwt_secret_key
+JWT_SECRET=your_jwt_secret_key_min_32_chars
 
-# AWS S3 (Optional)
+# Redis (required for caching, OTP, and rate limiting)
+REDIS_URL=redis://localhost:6379
+
+# AWS S3 (Optional — for profile photos)
 AWS_ACCESS_KEY_ID=your_access_key
 AWS_SECRET_ACCESS_KEY=your_secret_key
 AWS_REGION=ap-south-1
-AWS_BUCKET_NAME=your_bucket_name
+S3_BUCKET_NAME=your_bucket_name
+
+# SMTP Email (Optional — for email OTP delivery)
+EMAIL_HOST=smtp.example.com
+EMAIL_PORT=587
+EMAIL_USER=your_email@example.com
+EMAIL_PASS=your_email_password
 ```
+
+> **Note:** The server validates all environment variables at startup using Zod. Missing or invalid values will cause the process to exit immediately with a descriptive error.
 
 ### Run Locally
 
@@ -316,6 +337,7 @@ cd server && npm run dev      # → http://localhost:5000
 | **EmployerProfile** | Company association, business details |
 | **Company** | Name, logo, description |
 | **WorkExperience** | Employment history with verified/unverified status |
+| **SavedJob** | Bookmarked job listings per worker |
 
 ---
 
@@ -358,6 +380,11 @@ cd server && npm run dev      # → http://localhost:5000
 - [x] **Strict HttpOnly Cookie Auth**: Migration from insecure client-side tokens
 - [x] **TypeScript Hardening**: Elimination of `any` and strict API typing
 - [x] **Full-Stack Test Suite**: Vitest, Supertest, RTL, and JSDOM coverage
+- [x] **Server Code Audit & Hardening**: Fixed type safety issues, Mongoose query filters, and API response consistency
+- [x] **Zod Env Validation**: Startup-time environment variable parsing with descriptive failure messages
+- [x] **Email OTP Delivery**: SMTP-based transactional email via Nodemailer
+- [x] **React Compiler**: Automatic component memoization via `babel-plugin-react-compiler`
+- [x] **Event-Driven Side Effects**: `applicationEmitter` decouples hire events from controller logic
 - [ ] Shift-based scheduling with calendar view
 - [ ] Real-time in-app messaging (Socket.io)
 - [ ] Push notifications
