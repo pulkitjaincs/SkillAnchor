@@ -42,13 +42,9 @@ next-env.d.ts
 *.sw?
 
 # Project Specific
-prompt.md
 build.log
 bundle-analysis.html
 project_interview_guide.md
-IMPLEMENTATION_PLAN.md
 .agent/instructions.md
-.agent/DesignInstructions.node_modules
-SkillAnchor_Implementation_Plan.pdf
 .agent/DesignInstructions.md
 plan.md

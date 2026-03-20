@@ -145,3 +145,18 @@ The application implements a modern observability stack to ensure production rea
 ### Graceful Shutdown
 - The server implements a robust shutdown sequence when receiving `SIGTERM` or `SIGINT`.
 - It ensures all active database connections (MongoDB), Redis clients, and BullMQ workers are closed cleanly before the process exits, preventing data corruption and lost background jobs.
+
+---
+
+## 🚀 9. DevOps & Automation (Phase 5 Integration)
+
+The platform is integrated with professional DevOps standards to ensure code quality and seamless delivery.
+
+### GitHub Actions CI
+- **Automated Verification:** A `.github/workflows/ci.yml` pipeline triggers on every push and pull request to the `main` branch.
+- **Backend Quality:** Automatically runs TypeScript type-checking (`tsc --noEmit`), ESLint linting, and the primary test suite with dedicated Redis/MongoDB service containers.
+- **Frontend Quality:** Automated `npm run build`, linting, and Vitest execution ensures UI stability.
+
+### Code Quality Standards
+- **Strict Linting:** Both client and server utilize ESLint to enforce consistent coding patterns and early bug detection.
+- **Server Hardening:** Explicitly added `eslint` and `@typescript-eslint` to the backend to maintain the same quality bar as the Next.js frontend.

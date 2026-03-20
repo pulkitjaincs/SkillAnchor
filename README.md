@@ -12,6 +12,7 @@
   <img src="https://img.shields.io/badge/MongoDB-8.0-47A248?logo=mongodb&logoColor=white" alt="MongoDB" />
   <img src="https://img.shields.io/badge/Redis-7.x-FF4438?logo=redis&logoColor=white" alt="Redis" />
   <img src="https://img.shields.io/badge/Vitest-4-729B1B?logo=vitest&logoColor=white" alt="Vitest" />
+  <img src="https://github.com/pulkitjaincs/SkillAnchor/actions/workflows/ci.yml/badge.svg" alt="CI" />
 </p>
 
 ---
@@ -394,6 +395,7 @@ cd server && npm run dev      # → http://localhost:5000
 - [x] **Request Correlation**: System-wide traceability via unique `x-request-id` headers and log markers
 - [x] **API Versioning**: Standardized `/api/v1` routing across backend and frontend
 - [x] **Graceful Shutdown**: Clean resource release (MongoDB, Redis, BullMQ) on server termination
+- [x] **CI Pipeline**: GitHub Actions workflow for automated testing, linting, and type-checking
 - [ ] Shift-based scheduling with calendar view
 - [ ] Real-time in-app messaging (Socket.io)
 - [ ] Push notifications
