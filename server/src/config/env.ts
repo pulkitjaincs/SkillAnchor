@@ -18,10 +18,12 @@ const envSchema = z.object({
   EMAIL_PASS: z.string().optional(),
 });
 
+import { logger } from "../utils/logger.js";
+
 const result = envSchema.safeParse(process.env);
 
 if (!result.success) {
-  console.error("❌ Invalid environment variables:", JSON.stringify(result.error.format(), null, 2));
+  logger.error({ error: result.error.format() }, "❌ Invalid environment variables");
   process.exit(1);
 }
 

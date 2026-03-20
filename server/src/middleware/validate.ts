@@ -1,6 +1,8 @@
 import { z, ZodTypeAny } from "zod";
 import { Request, Response, NextFunction } from "express";
 
+import { logger } from "../utils/logger.js";
+
 export const validate = (schema: ZodTypeAny) => (req: Request, res: Response, next: NextFunction) => {
     try {
         const result = schema.safeParse({
@@ -14,7 +16,7 @@ export const validate = (schema: ZodTypeAny) => (req: Request, res: Response, ne
         }
         next();
     } catch (e: any) {
-        console.error(`Validation error on ${req.method} ${req.originalUrl}:`, e.message);
+        logger.error(`Validation error on ${req.method} ${req.originalUrl}:`, e.message);
         return res.status(400).json({ success: false, error: "Validation failed" });
     }
 };

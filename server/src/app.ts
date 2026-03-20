@@ -15,6 +15,9 @@ import { redis } from "./config/redis.js";
 import cookieParser from "cookie-parser";
 import { env } from "./config/env.js";
 import { apiLimiter, strictLimiter } from "./config/rateLimiter.js";
+import { pinoHttp } from "pino-http";
+import { logger } from "./utils/logger.js";
+import { requestIdMiddleware } from "./middleware/requestId.js";
 const app = express();
 
 app.set('etag', 'strong');
@@ -33,16 +36,26 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/api/health", (req: Request, res: Response) => {
+app.get("/api/v1/health", (req: Request, res: Response) => {
     res.json({ message: "OK" });
 });
 
-app.use("/api/auth", authRoutes);
-app.use("/api/jobs", jobRoutes);
-app.use("/api/applications", applicationRoutes);
-app.use("/api/profile", profileRoutes);
-app.use("/api/work-experience", workExperienceRoutes);
-app.use("/api/upload", uploadRoutes);
+app.get("/api/v1/logs", (req: Request, res: Response) => {
+    logger.info("Sample log generated from /api/v1/logs endpoint");
+    res.json({ success: true, message: "Check server logs for structured output" });
+});
+
+app.use(requestIdMiddleware);
+app.use(pinoHttp({
+    logger,
+    genReqId: (req) => req.id
+}));
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/jobs", jobRoutes);
+app.use("/api/v1/applications", applicationRoutes);
+app.use("/api/v1/profile", profileRoutes);
+app.use("/api/v1/work-experience", workExperienceRoutes);
+app.use("/api/v1/upload", uploadRoutes);
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     if (err instanceof SyntaxError && (err as any).status === 400 && 'body' in err) {
@@ -63,7 +76,9 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     }
 
     const status = err.status || 500;
-    if (status >= 500) console.error(err.stack);
+    if (status >= 500) {
+        logger.error({ err }, "Unhandled server error");
+    }
     res.status(status).json({ success: false, error: err.message || 'Internal Server Error' });
 });
 

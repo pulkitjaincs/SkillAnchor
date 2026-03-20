@@ -286,45 +286,45 @@ cd server && npm run dev      # → http://localhost:5000
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| POST | `/api/auth/send-otp` | Send OTP to phone or email |
-| POST | `/api/auth/verify-otp` | Verify OTP and authenticate |
-| POST | `/api/auth/register` | Register with email |
-| POST | `/api/auth/login` | Login with email + password |
-| POST | `/api/auth/forgot-password` | Initiate password reset |
-| POST | `/api/auth/reset-password` | Reset password with OTP |
-| POST | `/api/auth/logout` | Logout and clear session |
-| POST | `/api/auth/update-password` | Change password (authenticated) |
-| POST | `/api/auth/send-update-otp` | OTP for contact update |
-| POST | `/api/auth/verify-update-otp` | Verify and update contact |
+| POST | `/api/v1/auth/send-otp` | Send OTP to phone or email |
+| POST | `/api/v1/auth/verify-otp` | Verify OTP and authenticate |
+| POST | `/api/v1/auth/register` | Register with email |
+| POST | `/api/v1/auth/login` | Login with email + password |
+| POST | `/api/v1/auth/forgot-password` | Initiate password reset |
+| POST | `/api/v1/auth/reset-password` | Reset password with OTP |
+| POST | `/api/v1/auth/logout` | Logout and clear session |
+| POST | `/api/v1/auth/update-password` | Change password (authenticated) |
+| POST | `/api/v1/auth/send-update-otp` | OTP for contact update |
+| POST | `/api/v1/auth/verify-update-otp` | Verify and update contact |
 
 ### Worker Profile
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| GET | `/api/profile/my-profile` | Get current user's profile |
-| GET | `/api/profile/user/:userId` | Get profile by user ID |
-| PUT | `/api/profile/my-profile` | Update profile |
-| POST | `/api/profile/upload-avatar` | Upload profile photo to S3 |
+| GET | `/api/v1/profile/my-profile` | Get current user's profile |
+| GET | `/api/v1/profile/user/:userId` | Get profile by user ID |
+| PUT | `/api/v1/profile/my-profile` | Update profile |
+| POST | `/api/v1/profile/upload-avatar` | Upload profile photo to S3 |
 
 ### Jobs
 
 | Method | Endpoint | Auth |
 | :--- | :--- | :--- |
-| GET | `/api/jobs` | Public |
-| GET | `/api/jobs/:id` | Public |
-| POST | `/api/jobs` | Employer |
-| PUT | `/api/jobs/:id` | Employer |
-| DELETE | `/api/jobs/:id` | Employer |
+| GET | `/api/v1/jobs` | Public |
+| GET | `/api/v1/jobs/:id` | Public |
+| POST | `/api/v1/jobs` | Employer |
+| PUT | `/api/v1/jobs/:id` | Employer |
+| DELETE | `/api/v1/jobs/:id` | Employer |
 
 ### Applications
 
 | Method | Endpoint | Auth |
 | :--- | :--- | :--- |
-| POST | `/api/applications/apply/:jobId` | Worker |
-| GET | `/api/applications/my-applications` | Worker |
-| GET | `/api/applications/job/:jobId` | Employer |
-| PATCH | `/api/applications/:id/status` | Employer |
-| DELETE | `/api/applications/:id` | Worker |
+| POST | `/api/v1/applications/apply/:jobId` | Worker |
+| GET | `/api/v1/applications/my-applications` | Worker |
+| GET | `/api/v1/applications/job/:jobId` | Employer |
+| PATCH | `/api/v1/applications/:id/status` | Employer |
+| DELETE | `/api/v1/applications/:id` | Worker |
 
 ---
 
@@ -390,6 +390,10 @@ cd server && npm run dev      # → http://localhost:5000
 - [x] **MongoDB Transactions**: Atomic multi-document writes for job applications and hire-event processing
 - [x] **Robust Rate Limiting**: Centralized Redis-backed throttling with strict policies for write-heavy routes
 - [x] **Optimized Cache Invalidation**: Reliable `async/await` scanning for non-blocking cache clearing
+- [x] **Structured Logging**: High-performance JSON logging with **Pino** and **Pino-HTTP**
+- [x] **Request Correlation**: System-wide traceability via unique `x-request-id` headers and log markers
+- [x] **API Versioning**: Standardized `/api/v1` routing across backend and frontend
+- [x] **Graceful Shutdown**: Clean resource release (MongoDB, Redis, BullMQ) on server termination
 - [ ] Shift-based scheduling with calendar view
 - [ ] Real-time in-app messaging (Socket.io)
 - [ ] Push notifications

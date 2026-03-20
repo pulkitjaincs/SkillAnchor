@@ -2,7 +2,7 @@
 
 **SkillAnchor** is a modern, full-stack web platform connecting blue-collar workers and unskilled laborers with authentic employers and micro-contractors.
 
-This document details the architecture, design patterns, security mechanisms, and testing infrastructure of the application as of **Phase 3**.
+This document details the architecture, design patterns, security mechanisms, and testing infrastructure of the application as of **Phase 4**.
 
 ---
 
@@ -24,6 +24,10 @@ The project utilizes a monorepo setup, strictly separating the frontend (Client)
 *   **Caching & Rate Limiting:** Redis (via Aiven)
 *   **Message Broker:** BullMQ (backed by Redis) for background jobs
 *   **Authentication:** JWT via HttpOnly Cookies
+*   **Logging:** Structured JSON logging with Pino & Pino-HTTP
+*   **Observability:** Request Correlation IDs (UUID) for end-to-end tracing
+*   **API Versioning:** Standardized `/v1` routes
+*   **Reliability:** SIGTERM/SIGINT graceful shutdown handlers
 *   **Email Delivery:** Nodemailer (SMTP)
 
 ---
@@ -116,5 +120,28 @@ While the project is locally developed, the architectural choices mandate the fo
 2.  **Backend (Express):** Deployed as a scalable Node container (e.g., Render, Fly.io, or AWS ECS).
 3.  **Databases:**
     *   MongoDB Atlas Serverless/Dedicated.
-    *   Redis hosted remotely (Aiven/Upstash for low latency to the Node server).
-4.  **Routing:** The frontend API client proxies requests directly to the deployed backend URL, passing credentials seamlessly.
+---
+
+## 🛡️ 8. Observability & Production Hardening (Phase 4 Upgrade)
+
+The application implements a modern observability stack to ensure production readiness and ease of debugging.
+
+### Structured Logging (Pino)
+- We migrated from `console.log/error` to **Pino**, a high-performance, low-overhead JSON logger.
+- **Production:** Logs are output as machine-readable JSON for integration with log aggregators (ELK, Datadog).
+- **Development:** Logs are "pretty-printed" for human readability.
+
+### Request Correlation (RequestId)
+- Every incoming request is assigned a unique `requestId` (UUID) via middleware.
+- This ID is:
+    1.  Included in all logs generated during the request lifecycle.
+    2.  Returned to the client in the `x-request-id` header.
+- This allows developers to isolate logs for a specific request across concurrent users.
+
+### API Versioning
+- All API routes are prefixed with `/api/v1/`.
+- This ensures backward compatibility as the platform evolves and allows for side-by-side deployment of new API versions in the future.
+
+### Graceful Shutdown
+- The server implements a robust shutdown sequence when receiving `SIGTERM` or `SIGINT`.
+- It ensures all active database connections (MongoDB), Redis clients, and BullMQ workers are closed cleanly before the process exits, preventing data corruption and lost background jobs.

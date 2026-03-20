@@ -4,6 +4,7 @@ import Application from '../models/Application.model.js';
 import WorkExperience from '../models/WorkExperience.model.js';
 import WorkerProfile from '../models/WorkerProfile.model.js';
 import mongoose from 'mongoose';
+import { logger } from '../utils/logger.js';
 
 export interface HiredJobData {
     applicationId: string;
@@ -51,10 +52,10 @@ export const hiredWorker = new Worker<HiredJobData>('hired-worker', async (job: 
             { session }
         );
         await session.commitTransaction();
-        console.log(`Successfully processed "hired" job for application ${applicationId}`);
+        logger.info(`Successfully processed "hired" job for application ${applicationId}`);
     } catch (error) {
         await session.abortTransaction();
-        console.error(`Error processing "hired" job ${job.id}:`, error);
+        logger.error({ err: error }, `Error processing "hired" job ${job.id}`);
         throw error;
     } finally {
         session.endSession();
@@ -63,5 +64,5 @@ export const hiredWorker = new Worker<HiredJobData>('hired-worker', async (job: 
     { connection: redis as any}
 );
 hiredWorker.on('failed', (job, err) => {
-    console.error(`Hired job ${job?.id} permanently failed after retries:`, err);
+    logger.error({ err }, `Hired job ${job?.id} permanently failed after retries`);
 });

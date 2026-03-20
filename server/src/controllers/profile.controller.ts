@@ -11,6 +11,8 @@ import { redis } from "../config/redis.js";
 import { cacheAside, invalidateCache } from "../utils/cache.js";
 import { AppError } from "../types/error.js";
 
+import { logger } from "../utils/logger.js";
+
 
 export const updateAvatarUrl = asyncHandler(async (req: Request, res: Response) => {
     const { avatarKey } = req.body;
@@ -22,7 +24,7 @@ export const updateAvatarUrl = asyncHandler(async (req: Request, res: Response) 
             try {
                 await deleteFromS3(existingProfile.avatar);
             } catch (err) {
-                console.error("Failed to delete avatar from S3:", err);
+                logger.error({ err }, "Failed to delete avatar from S3");
             }
         }
         await ProfileModel.findOneAndUpdate(

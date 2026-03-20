@@ -24,5 +24,5 @@ afterEach(async () => {
     if (collection) await collection.deleteMany({});
   }
   
-  await redis.flushall();
+  await redis.flushdb();
 });
