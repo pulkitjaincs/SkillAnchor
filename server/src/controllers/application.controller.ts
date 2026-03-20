@@ -3,10 +3,10 @@ import Job, { IJob } from "../models/Job.model.js";
 import WorkerProfile from "../models/WorkerProfile.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { Request, Response } from "express";
-import { applicationEmitter } from "../events/application.events.js";
 import { generateReadSignedUrl } from "../config/s3.js";
 import { AppError } from "../types/error.js";
 import mongoose, { QueryFilter } from "mongoose";
+import { hiredQueue } from "../queues/hired.queue.js";
 
 interface PopulatedJob extends Omit<IJob, 'company'> {
     _id: mongoose.Types.ObjectId;
@@ -138,7 +138,17 @@ export const updateApplicationStatus = asyncHandler(async (req: Request, res: Re
     );
 
     if (status === "hired") {
-        applicationEmitter.emit('hired', { application, employerId: req.user._id });
+        await hiredQueue.add(
+            'process-hire',
+            {
+                applicationId: application._id.toString(),
+                employerId: req.user._id.toString(),
+            },
+            {
+                attempts: 3,
+                backoff: { type: 'exponential', delay: 2000 },
+            }
+        );
     }
 
     res.json(updatedApplication);

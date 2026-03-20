@@ -46,6 +46,7 @@
 - **Intelligent Caching**: **Redis-powered** cache-aside pattern for job listings and user profiles, reducing database load and response times.
 - **Scan-Based Cache Invalidation**: Optimized cache invalidation using a robust `async/await` loop with Redis `SCAN` for reliable, non-blocking key deletion.
 - **Atomic Data Integrity**: Enforced write correctness across multi-collection operations (job applications, hire events) using **MongoDB Transactions**.
+- **Distributed Task Queue**: Hiring events processed via **BullMQ** (Redis-backed), enabling horizontal scaling with at-least-once delivery and exponential-backoff retries.
 - **Distributed Rate Limiting**: Redis-backed rate limiting ensures consistent security across multiple server instances with granular control over write-heavy routes.
 - **Gzip Compression**: `compression` middleware enabled on the Express server for all API responses.
 
@@ -196,7 +197,7 @@ SkillAnchor/
         ├── models/              # Mongoose schemas with compound indexes
         ├── routes/              # API endpoints with Zod validation
         ├── middleware/          # Auth guards, Zod validation, NoSQL sanitize
-        ├── events/              # Node.js EventEmitter hooks (e.g., hired → WorkExperience)
+        ├── queues/              # BullMQ Producers & Workers (e.g., hired-worker)
         ├── utils/               # asyncHandler, generateToken, cache, email
         ├── types/               # Shared TypeScript types (AppError)
         └── config/              # db, redis, s3, env (Zod-validated)
@@ -385,7 +386,7 @@ cd server && npm run dev      # → http://localhost:5000
 - [x] **Zod Env Validation**: Startup-time environment variable parsing with descriptive failure messages
 - [x] **Email OTP Delivery**: SMTP-based transactional email via Nodemailer
 - [x] **React Compiler**: Automatic component memoization via `babel-plugin-react-compiler`
-- [x] **Event-Driven Side Effects**: `applicationEmitter` decouples hire events from controller logic
+- [x] **Event-Driven Scaling**: **BullMQ** (backed by Redis) decouples hire events from controller logic for horizontal scalability
 - [x] **MongoDB Transactions**: Atomic multi-document writes for job applications and hire-event processing
 - [x] **Robust Rate Limiting**: Centralized Redis-backed throttling with strict policies for write-heavy routes
 - [x] **Optimized Cache Invalidation**: Reliable `async/await` scanning for non-blocking cache clearing

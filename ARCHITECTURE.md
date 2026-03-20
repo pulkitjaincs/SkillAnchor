@@ -22,6 +22,7 @@ The project utilizes a monorepo setup, strictly separating the frontend (Client)
 *   **Language:** JavaScript (ES6+ with extensive JSDoc types for strictness)
 *   **Database:** MongoDB Atlas (Mongoose ORM)
 *   **Caching & Rate Limiting:** Redis (via Aiven)
+*   **Message Broker:** BullMQ (backed by Redis) for background jobs
 *   **Authentication:** JWT via HttpOnly Cookies
 *   **Email Delivery:** Nodemailer (SMTP)
 
@@ -92,7 +93,22 @@ The platform is heavily tested using **Vitest**, providing a fast, isolated, and
 
 ---
 
-## 🌐 6. Deployment Topology (Target)
+## 🚀 6. Distributed Task Queuing (Phase 3 Upgrade)
+
+To support horizontal scaling, we migrated from an in-process `EventEmitter` to **BullMQ** (a Redis-backed message queue).
+
+### Why BullMQ?
+*   **Persistence:** Jobs survive server restarts.
+*   **Horizontal Scaling:** Multiple server instances can process jobs from the same queue.
+*   **Reliability:** Native support for exponential backoff retries and "at-least-once" delivery.
+
+### Implementation:
+*   **Producer:** When an employer hires a worker, the `application.controller.ts` pushes a job to the `hired-worker` queue.
+*   **Consumer:** The `hired.queue.ts` worker processes the job, creating a `WorkExperience` record and updating the `WorkerProfile` within a MongoDB transaction.
+
+---
+
+## 🌐 7. Deployment Topology (Target)
 
 While the project is locally developed, the architectural choices mandate the following production topology:
 
