@@ -31,7 +31,6 @@ const EmployerProfileSchema = new mongoose.Schema<IEmployerProfile>({
     company: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Company",
-        required: true,
     },
     phone: {
         type: String,

@@ -14,24 +14,12 @@ export const cacheAside = async <T>(key: string, ttl: number, fetchFn: () => Pro
 };
 
 export const invalidateCache = async (pattern: string): Promise<void> => {
-    const stream = redis.scanStream({
-        match: pattern,
-        count: 100,
-    });
-
-    return new Promise((resolve, reject) => {
-        stream.on("data", async (keys: string[]) => {
-            if (keys.length > 0) {
-                stream.pause();
-                try {
-                    await redis.del(...keys);
-                } catch (err) {
-                    reject(err);
-                }
-                stream.resume();
-            }
-        });
-        stream.on("end", () => resolve());
-        stream.on("error", (err) => reject(err));
-    });
+    let cursor = "0";
+    do {
+        const [nextCursor, keys] = await redis.scan(cursor, "MATCH", pattern, "COUNT", 100);
+        cursor = nextCursor;
+        if (keys.length > 0) {
+            await redis.del(...keys);
+        }
+    } while (cursor !== "0");
 };

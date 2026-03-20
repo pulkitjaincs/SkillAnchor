@@ -14,22 +14,15 @@ import { RedisStore } from "rate-limit-redis";
 import { redis } from "./config/redis.js";
 import cookieParser from "cookie-parser";
 import { env } from "./config/env.js";
-
+import { apiLimiter, strictLimiter } from "./config/rateLimiter.js";
 const app = express();
 
 app.set('etag', 'strong');
 app.use(helmet());
 
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    message: { success: false, error: "Too many requests, please try again later." },
-    store: new RedisStore({
-        sendCommand: (...args: any[]) => (redis as any).call(...args),
-    }),
-});
-
-app.use("/api/", limiter);
+app.use("/api/", apiLimiter);
+app.post("/api/jobs", strictLimiter);
+app.post("/api/applications/apply/:jobId", strictLimiter);
 app.use(nosqlSanitize);
 app.use(compression());
 app.use(cors({

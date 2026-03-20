@@ -22,23 +22,36 @@ export const applyToJob = asyncHandler(async (req: Request, res: Response) => {
     const { jobId } = req.params;
     const { coverNote } = req.body;
 
-    const job = await Job.findById(jobId);
-    if (!job) throw new AppError("Job not found", 404);
-    if (job.status !== "active") {
-        throw new AppError("This job is no longer accepting applications", 400);
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+        const job = await Job.findById(jobId).session(session);
+        if (!job) throw new AppError("Job not found", 404);
+        if (job.status !== "active") {
+            throw new AppError("This job is no longer accepting applications", 400);
+        }
+
+        const existing = await Application.findOne({ job: jobId, applicant: req.user._id }).session(session);
+        if (existing) throw new AppError("You have already applied to this job", 400);
+
+        const [application] = await Application.create([{
+            job: jobId,
+            applicant: req.user._id,
+            coverNote: coverNote || ""
+        }], { session });
+
+        await Job.findByIdAndUpdate(jobId, { $inc: { applicationsCount: 1 } }, { session });
+
+        await session.commitTransaction();
+        res.status(201).json(application);
+    } catch (error) {
+        await session.abortTransaction();
+        throw error;
+    } finally {
+        session.endSession();
     }
-
-    const existing = await Application.findOne({ job: jobId, applicant: req.user._id });
-    if (existing) throw new AppError("You have already applied to this job", 400);
-
-    const application = await Application.create({
-        job: jobId,
-        applicant: req.user._id,
-        coverNote: coverNote || ""
-    });
-    await Job.findByIdAndUpdate(jobId, { $inc: { applicationsCount: 1 } });
-    res.status(201).json(application);
 });
+
 
 export const getMyApplications = asyncHandler(async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 10;
@@ -84,7 +97,7 @@ export const getJobApplicants = asyncHandler(async (req: Request, res: Response)
 
     const applicantIds = applications.map(app => app.applicant?._id).filter(id => id);
     const profiles = await WorkerProfile.find({ user: { $in: applicantIds } }, "user avatar isAvatarHidden").lean();
-    
+
     const avatarMap: Record<string, string> = {};
     for (const profile of profiles) {
         if (profile.avatar && !profile.isAvatarHidden) {
@@ -116,11 +129,11 @@ export const updateApplicationStatus = asyncHandler(async (req: Request, res: Re
     }
 
     const updatedApplication = await Application.findByIdAndUpdate(
-        id, 
-        { 
-            status, 
-            $push: { statusHistory: { status, at: new Date() } } 
-        }, 
+        id,
+        {
+            status,
+            $push: { statusHistory: { status, at: new Date() } }
+        },
         { new: true }
     );
 
@@ -133,12 +146,24 @@ export const updateApplicationStatus = asyncHandler(async (req: Request, res: Re
 
 export const withdrawApplication = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
-    const application = await Application.findById(id);
-    if (!application) throw new AppError("Application not found", 404);
-    if (application.applicant.toString() !== req.user._id.toString()) {
-        throw new AppError("Not authorized", 403);
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+        const application = await Application.findById(id).session(session);
+        if (!application) throw new AppError("Application not found", 404);
+        if (application.applicant.toString() !== req.user._id.toString()) {
+            throw new AppError("Not authorized", 403);
+        }
+
+        await Job.findByIdAndUpdate(application.job, { $inc: { applicationsCount: -1 } }, { session });
+        await Application.findByIdAndDelete(id, { session });
+
+        await session.commitTransaction();
+        res.json({ message: "Application withdrawn successfully" });
+    } catch (error) {
+        await session.abortTransaction();
+        throw error;
+    } finally {
+        session.endSession();
     }
-    await Job.findByIdAndUpdate(application.job, { $inc: { applicationsCount: -1 } });
-    await Application.findByIdAndDelete(id);
-    res.json({ message: "Application withdrawn successfully" });
 });

@@ -1,8 +1,7 @@
 import EventEmitter from 'events';
 import WorkExperience from '../models/WorkExperience.model.js';
 import WorkerProfile from '../models/WorkerProfile.model.js';
-
-import { Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 
 export const applicationEmitter = new EventEmitter();
 
@@ -19,8 +18,10 @@ interface HiredEventPayload {
 }
 
 applicationEmitter.on('hired', async ({ application, employerId }: HiredEventPayload) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try {
-        const workExp = await WorkExperience.create({
+        const [workExp] = await WorkExperience.create([{
             worker: application.applicant,
             employer: employerId,
             linkedApplication: application._id,
@@ -31,16 +32,26 @@ applicationEmitter.on('hired', async ({ application, employerId }: HiredEventPay
             isCurrent: true,
             addedBy: "employer",
             isVerified: true,
-        });
+        }], { session });
+
+        if (!workExp) {
+            throw new Error("Failed to create WorkExperience during hire event");
+        }
 
         await WorkerProfile.findOneAndUpdate(
             { user: application.applicant },
             {
                 $push: { workHistory: workExp._id },
                 $set: { currentlyEmployed: true }
-            }
+            },
+            { session }
         );
+
+        await session.commitTransaction();
     } catch (error) {
-        console.error("Error processing 'hired' event:", error);
+        await session.abortTransaction();
+        console.error("Error processing 'hired' event within transaction:", error);
+    } finally {
+        session.endSession();
     }
 });

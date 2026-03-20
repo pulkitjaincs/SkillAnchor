@@ -25,7 +25,7 @@
 - **Edge Middleware Auth**: Next.js intercepts requests, validating JWTs securely.
 - **Strict HttpOnly Cookies**: Total eradication of `localStorage` tokens. JWTs are handled strictly by the browser via `httpOnly`, `secure`, `sameSite=strict` cookies, eliminating XSS token theft vectors.
 - **Hardened HTTP Headers**: `helmet` middleware for XSS and clickjacking protection.
-- **Rate Limiting**: Redis-backed request throttling on all authentication/OTP routes.
+- **Distributed Rate Limiting**: Redis-backed request throttling on all authentication/OTP routes, with strict policies for job creation and application submission to prevent automated spam.
 - **Exhaustive Schema Validation**: **Zod** validates payloads on **all** API routes before controller execution.
 - **Validated Environment Variables**: `env.ts` parses and validates all environment variables at server startup using Zod — the server fails fast with a clear error if any required variable is missing or malformed.
 - **NoSQL Injection Guard**: Custom middleware and `express-mongo-sanitize` completely sanitize incoming requests.
@@ -44,8 +44,9 @@
 - **Font Optimization**: `next/font/google` inlines Inter and Plus Jakarta Sans at build time.
 - **Route-Level Boundaries**: `loading.tsx`, `error.tsx`, and `not-found.tsx` for graceful suspense and error handling.
 - **Intelligent Caching**: **Redis-powered** cache-aside pattern for job listings and user profiles, reducing database load and response times.
-- **Scan-Based Cache Invalidation**: Cache invalidation uses Redis `SCAN` streams to safely delete keys without blocking the event loop.
-- **Distributed Rate Limiting**: Redis-backed rate limiting ensures consistent security across multiple server instances.
+- **Scan-Based Cache Invalidation**: Optimized cache invalidation using a robust `async/await` loop with Redis `SCAN` for reliable, non-blocking key deletion.
+- **Atomic Data Integrity**: Enforced write correctness across multi-collection operations (job applications, hire events) using **MongoDB Transactions**.
+- **Distributed Rate Limiting**: Redis-backed rate limiting ensures consistent security across multiple server instances with granular control over write-heavy routes.
 - **Gzip Compression**: `compression` middleware enabled on the Express server for all API responses.
 
 ---
@@ -385,6 +386,9 @@ cd server && npm run dev      # → http://localhost:5000
 - [x] **Email OTP Delivery**: SMTP-based transactional email via Nodemailer
 - [x] **React Compiler**: Automatic component memoization via `babel-plugin-react-compiler`
 - [x] **Event-Driven Side Effects**: `applicationEmitter` decouples hire events from controller logic
+- [x] **MongoDB Transactions**: Atomic multi-document writes for job applications and hire-event processing
+- [x] **Robust Rate Limiting**: Centralized Redis-backed throttling with strict policies for write-heavy routes
+- [x] **Optimized Cache Invalidation**: Reliable `async/await` scanning for non-blocking cache clearing
 - [ ] Shift-based scheduling with calendar view
 - [ ] Real-time in-app messaging (Socket.io)
 - [ ] Push notifications
