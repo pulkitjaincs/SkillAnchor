@@ -1,12 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 
-export const sanitizeData = (obj: any): any => {
-    if (obj instanceof Object) {
-        for (const key in obj) {
-            if (key.startsWith('$')) {
-                delete obj[key];
-            } else {
-                sanitizeData((obj as any)[key]);
+export const sanitizeData = <T extends object>(obj: T): T => {
+    for (const key in obj) {
+        if (key.startsWith('$')) {
+            delete obj[key];
+        } else {
+            const val = obj[key];
+            if (val !== null && typeof val === 'object') {
+                sanitizeData(val as object);
             }
         }
     }

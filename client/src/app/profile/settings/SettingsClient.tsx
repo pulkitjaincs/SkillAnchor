@@ -17,21 +17,21 @@ const cardStyle = {
 export default function SettingsClient() {
     const { user, updateUserData } = useAuth();
 
-    const handlePasswordSubmit = useCallback(async (data: any) => {
+    const handlePasswordSubmit = useCallback(async (data: { currentPassword: string; newPassword: string }) => {
         try {
             await authAPI.updatePassword(data);
             alert("Password updated!");
-        } catch (err: any) {
-            alert(err.response?.data?.error || "Failed to update");
+        } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { error?: string } } };
+            alert(axiosErr.response?.data?.error || "Failed to update");
             throw err;
         }
     }, []);
-
-    const handleSendOTP = useCallback(async (payload: any) => {
+    const handleSendOTP = useCallback(async (payload: { email: string } | { phone: string }) => {
         await authAPI.sendUpdateOTP(payload);
     }, []);
 
-    const handleVerifyOTP = useCallback(async (payload: any) => {
+    const handleVerifyOTP = useCallback(async (payload: { otp: string; email?: string; phone?: string }) => {
         const { data } = await authAPI.verifyUpdateOTP(payload);
         if (data.user) updateUserData(data.user);
     }, [updateUserData]);
@@ -67,7 +67,7 @@ export default function SettingsClient() {
                     <div className="col-lg-6">
                         <div style={cardStyle}>
                             <ContactDetailsCard
-                                user={user}
+                                user={user ?? {} as Parameters<typeof ContactDetailsCard>[0]['user']}
                                 onSendOTP={handleSendOTP}
                                 onVerifyOTP={handleVerifyOTP}
                             />

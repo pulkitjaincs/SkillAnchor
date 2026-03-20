@@ -50,8 +50,9 @@ export default function ForgotPasswordPage() {
             await authAPI.forgotPassword(payload);
             setSuccess('OTP sent!');
             setStep(2);
-        } catch (err: any) {
-            setError(err.response?.data?.error || 'Failed to send OTP');
+        } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { error?: string } } };
+            setError(axiosErr.response?.data?.error || 'Failed to send OTP');
         } finally {
             setLoading(false);
         }
@@ -85,8 +86,9 @@ export default function ForgotPasswordPage() {
             await authAPI.resetPassword(payload);
             setSuccess('Password reset successfully!');
             setTimeout(() => router.push('/login'), 2000);
-        } catch (err: any) {
-            setError(err.response?.data?.error || 'Failed to reset password');
+        } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { error?: string } } };
+            setError(axiosErr.response?.data?.error || 'Failed to reset password');
         } finally {
             setLoading(false);
         }

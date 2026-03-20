@@ -1,5 +1,5 @@
 import Application, { IApplication } from "../models/Application.model.js";
-import Job, { IJob } from "../models/Job.model.js";
+import Job from "../models/Job.model.js";
 import WorkerProfile from "../models/WorkerProfile.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { Request, Response } from "express";
@@ -7,16 +7,7 @@ import { generateReadSignedUrl } from "../config/s3.js";
 import { AppError } from "../types/error.js";
 import mongoose, { QueryFilter } from "mongoose";
 import { hiredQueue } from "../queues/hired.queue.js";
-
-interface PopulatedJob extends Omit<IJob, 'company'> {
-    _id: mongoose.Types.ObjectId;
-    employer: mongoose.Types.ObjectId;
-    company: { _id: mongoose.Types.ObjectId; name: string; logo: string };
-}
-
-interface PopulatedApplication extends Omit<IApplication, 'job'> {
-    job: PopulatedJob;
-}
+import type { PopulatedJob, PopulatedApplication } from "../types/index.js";
 
 export const applyToJob = asyncHandler(async (req: Request, res: Response) => {
     const { jobId } = req.params;
@@ -64,7 +55,7 @@ export const getMyApplications = asyncHandler(async (req: Request, res: Response
         .populate("job", "title company city state salaryMin salaryMax status")
         .sort({ _id: -1 })
         .limit(limit + 1)
-        .lean() as unknown as (Omit<IApplication, 'job'> & { job: any })[];
+        .lean() as unknown as (Omit<IApplication, 'job'> & { job: PopulatedJob })[];
 
     const hasMore = applications.length > limit;
     if (hasMore) applications.pop();

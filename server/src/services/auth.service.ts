@@ -4,11 +4,7 @@ import mongoose, { QueryFilter } from "mongoose";
 import User, { IUser } from "../models/User.model.js";
 import { sendEmailOTP } from "../utils/email.js";
 import { AppError } from "../types/error.js";
-
-interface OtpCondition {
-    email?: string;
-    phone?: string;
-}
+import type { OtpCondition } from "../types/index.js";
 
 export const generateAndStoreOTP = async (conditions: OtpCondition[]): Promise<string> => {
     const otp = crypto.randomInt(100000, 1000000).toString();

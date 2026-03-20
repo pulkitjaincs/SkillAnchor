@@ -40,7 +40,7 @@ export const getAllJobs = asyncHandler(async (req: Request, res: Response) => {
         return res.status(200).json(data);
     }
     const query: QueryFilter<IJob> = { status: "active" };
-    let sortOptions: string | { [key: string]: mongoose.SortOrder } | [string, mongoose.SortOrder][] = { _id: -1 };
+    let sortOptions: string | { [key: string]: mongoose.SortOrder | { $meta: string } } | [string, mongoose.SortOrder][] = { _id: -1 };
     const projection: Record<string, string | number | object> = {
         title: 1, description: 1, company: 1,
         city: 1, state: 1,
@@ -52,7 +52,7 @@ export const getAllJobs = asyncHandler(async (req: Request, res: Response) => {
     if (searchTerm) {
         query.$text = { $search: searchTerm };
         projection.score = { $meta: "textScore" };
-        sortOptions = { score: { $meta: "textScore" }, createdAt: -1 } as any;
+        sortOptions = { score: { $meta: "textScore" }, createdAt: -1 };
     }
 
     if (location) {

@@ -1,18 +1,16 @@
-import { Queue, Worker, Job as BullJob } from 'bullmq';
+import { Queue, Worker, Job as BullJob, ConnectionOptions } from 'bullmq';
 import { redis } from '../config/redis.js';
 import Application from '../models/Application.model.js';
 import WorkExperience from '../models/WorkExperience.model.js';
 import WorkerProfile from '../models/WorkerProfile.model.js';
 import mongoose from 'mongoose';
 import { logger } from '../utils/logger.js';
+import type { HiredJobData, PopulatedJobRef } from '../types/index.js';
 
-export interface HiredJobData {
-    applicationId: string;
-    employerId: string;
-}
+export type { HiredJobData };
 
 export const hiredQueue = new Queue<HiredJobData>('hired-worker', {
-    connection: redis as any,
+    connection: redis as unknown as ConnectionOptions,
 })
 
 export const hiredWorker = new Worker<HiredJobData>('hired-worker', async (job: BullJob<HiredJobData>) => {
@@ -28,7 +26,7 @@ export const hiredWorker = new Worker<HiredJobData>('hired-worker', async (job: 
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
-        const jobDetails = application.job as any;
+        const jobDetails = application.job as unknown as PopulatedJobRef;
 
         const [workExp] = await WorkExperience.create([{
             worker: application.applicant,
@@ -61,7 +59,7 @@ export const hiredWorker = new Worker<HiredJobData>('hired-worker', async (job: 
         session.endSession();
     }
 },
-    { connection: redis as any}
+    { connection: redis as unknown as ConnectionOptions }
 );
 hiredWorker.on('failed', (job, err) => {
     logger.error({ err }, `Hired job ${job?.id} permanently failed after retries`);

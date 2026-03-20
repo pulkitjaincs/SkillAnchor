@@ -1,6 +1,9 @@
 import rateLimit from "express-rate-limit";
-import { RedisStore } from "rate-limit-redis";
+import { RedisStore, SendCommandFn } from "rate-limit-redis";
 import { redis } from "./redis.js";
+
+const sendCommand: SendCommandFn = (...args: string[]) =>
+    redis.call(...args as [string, ...string[]]) as ReturnType<SendCommandFn>;
 
 export const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -9,7 +12,7 @@ export const apiLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     store: new RedisStore({
-        sendCommand: (...args: any[]) => (redis as any).call(...args),
+        sendCommand,
         prefix: 'rl:api:',
     }),
 });
@@ -21,7 +24,7 @@ export const strictLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     store: new RedisStore({
-        sendCommand: (...args: any[]) => (redis as any).call(...args),
+        sendCommand,
         prefix: 'rl:strict:',
     }),
 });

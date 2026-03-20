@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useLogin } from '@/hooks/ui/useLogin';
 import BrandLogo from '@/components/common/BrandLogo';
@@ -10,11 +9,10 @@ import '../AuthPages.css';
 
 function LoginPageContent() {
     const { user } = useAuth();
-    const router = useRouter();
     const {
         loginMethod, setLoginMethod,
         emailMethod, setEmailMethod,
-        otpSent, setOtpSent,
+        otpSent,
         phone, setPhone,
         otp, setOtp,
         email, setEmail,
@@ -23,7 +21,7 @@ function LoginPageContent() {
         isNewUser,
         name, setName,
         role, setRole,
-        resetState, handleLogin, getButtonText, redirect
+        resetState, handleLogin, getButtonText, redirect, router
     } = useLogin();
 
     useEffect(() => {

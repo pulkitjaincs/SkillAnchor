@@ -1,16 +1,9 @@
 import { IUser } from "../models/User.model.js";
+import type { ProfileResponse } from "../types/index.js";
 
-export interface ProfileResponse {
-    name: string;
-    email?: string;
-    phone?: string;
-    role: string;
-    emailVerified: boolean;
-    phoneVerified: boolean;
-    [key: string]: any;
-}
+export type { ProfileResponse };
 
-export const assembleProfileResponse = (profile: Record<string, any> | null, user: IUser, role: 'worker' | 'employer'): ProfileResponse => {
+export const assembleProfileResponse = (profile: Record<string, unknown> | null, user: IUser, role: 'worker' | 'employer'): ProfileResponse => {
     const base: ProfileResponse = {
         name: user.name || "",
         email: user.email,

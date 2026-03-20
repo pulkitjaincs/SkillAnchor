@@ -10,8 +10,8 @@ import mongoose, { QueryFilter } from "mongoose";
 import { redis } from "../config/redis.js";
 import { cacheAside, invalidateCache } from "../utils/cache.js";
 import { AppError } from "../types/error.js";
-
 import { logger } from "../utils/logger.js";
+import type { SharedProfileFields } from "../types/index.js";
 
 
 export const updateAvatarUrl = asyncHandler(async (req: Request, res: Response) => {
@@ -76,11 +76,7 @@ export const getMyTeam = asyncHandler(async (req: Request, res: Response) => {
     res.json({ team, hasMore });
 });
 
-interface SharedProfileFields {
-    avatar?: string | null;
-    isAvatarHidden?: boolean;
-    [key: string]: any;
-}
+
 
 export const resolveAvatarUrl = async <T extends SharedProfileFields>(profile: T | null, isOwner = false): Promise<(T & { avatarUrl: string | null }) | null> => {
     if (!profile) return null;
@@ -103,7 +99,7 @@ export const getMyProfile = asyncHandler(async (req: Request, res: Response) => 
             .lean();
 
         const resolved = await resolveAvatarUrl(profile, true);
-        return res.status(200).json(assembleProfileResponse(resolved, req.user, 'employer'));
+        return res.status(200).json(assembleProfileResponse(resolved as Record<string, unknown> | null, req.user, 'employer'));
     }
 
     const profile = await WorkerProfile.findOne({ user: req.user._id })
@@ -111,7 +107,7 @@ export const getMyProfile = asyncHandler(async (req: Request, res: Response) => 
         .lean();
 
     const resolved = await resolveAvatarUrl(profile, true);
-    res.status(200).json(assembleProfileResponse(resolved, req.user, 'worker'));
+    res.status(200).json(assembleProfileResponse(resolved as Record<string, unknown> | null, req.user, 'worker'));
 });
 
 export const updateMyProfile = asyncHandler(async (req: Request, res: Response) => {
@@ -132,7 +128,7 @@ export const updateMyProfile = asyncHandler(async (req: Request, res: Response) 
 
         const profile = await EmployerProfile.findOneAndUpdate(
             { user: req.user._id },
-            { $set: profileFields, $setOnInsert: { user: req.user._id } as any },
+            { $set: profileFields, $setOnInsert: { user: req.user._id } },
             { new: true, upsert: true, setDefaultsOnInsert: true }
         );
         await invalidateCache(`profile:${req.user._id}`);
@@ -149,7 +145,7 @@ export const updateMyProfile = asyncHandler(async (req: Request, res: Response) 
 
     const profile = await WorkerProfile.findOneAndUpdate(
         { user: req.user._id },
-        { $set: profileFields, $setOnInsert: { user: req.user._id } as any },
+        { $set: profileFields, $setOnInsert: { user: req.user._id } },
         { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     await invalidateCache(`profile:${req.user._id}`);
@@ -178,9 +174,10 @@ export const getProfileByUserId = asyncHandler(async (req: Request, res: Respons
 
         if (!userAggr || userAggr.length === 0) return null;
 
-        const user = userAggr[0] as IUser & { profile: any };
-        const profile = user.profile || null;
-        delete (user as any).profile;
+        type AggregatedUser = IUser & { profile?: IWorkerProfile };
+        const user = userAggr[0] as AggregatedUser;
+        const profile = user.profile ?? null;
+        delete user.profile;
 
         if (profile && profile.workHistory && profile.workHistory.length > 0) {
             await WorkerProfile.populate(profile, {
@@ -201,5 +198,5 @@ export const getProfileByUserId = asyncHandler(async (req: Request, res: Respons
     const isOwner = req.user && req.user._id.toString() === userId;
     const resolvedProfile = await resolveAvatarUrl(data.profile, isOwner);
     const role = data.role === 'employer' ? 'employer' : 'worker';
-    res.status(200).json(assembleProfileResponse(resolvedProfile, data.user, role));
+    res.status(200).json(assembleProfileResponse(resolvedProfile as Record<string, unknown> | null, data.user, role));
 });

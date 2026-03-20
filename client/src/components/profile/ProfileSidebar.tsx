@@ -1,11 +1,18 @@
 import { memo } from 'react';
 import { formatSalary } from '@/utils/index';
+import { Profile } from '@/types';
 
 const cardStyle = { borderRadius: '20px', background: 'var(--bg-card)' };
 const iconContainerStyle = { width: '40px', height: '40px', background: 'var(--bg-surface)' };
 const badgeStyle = { background: 'var(--bg-surface)', color: 'var(--text-main)' };
 
-const ProfileSidebar = memo(({ profile, isEmployer, isOwnProfile }: any) => (
+interface ProfileSidebarProps {
+    profile: Profile;
+    isEmployer: boolean;
+    isOwnProfile: boolean;
+}
+
+const ProfileSidebar = memo(({ profile, isEmployer, isOwnProfile }: ProfileSidebarProps) => (
     <>
         {/* Contact Card */}
         <div className="card border-0 shadow-sm mb-4" style={cardStyle}>
@@ -59,7 +66,7 @@ const ProfileSidebar = memo(({ profile, isEmployer, isOwnProfile }: any) => (
                             <i className="bi bi-currency-rupee me-2"></i>Expected Salary
                         </h5>
                         <p className="mb-0 fs-4 fw-bold" style={{ color: 'var(--text-main)' }}>
-                            {formatSalary(profile.expectedSalary?.min, profile.expectedSalary?.max, profile.expectedSalary?.type)}
+                            {formatSalary(profile.expectedSalary?.min ?? 0, profile.expectedSalary?.max, profile.expectedSalary?.type)}
                         </p>
                         <p className="mb-0 small" style={{ color: 'var(--text-muted)' }}>
                             per {profile.expectedSalary?.type === 'monthly' ? 'month' : 'day'}
@@ -92,7 +99,7 @@ const ProfileSidebar = memo(({ profile, isEmployer, isOwnProfile }: any) => (
 
 const docSurfaceStyle = { background: 'var(--bg-surface)' };
 
-const DocumentsCard = memo(({ profile, isOwnProfile }: any) => (
+const DocumentsCard = memo(({ profile, isOwnProfile }: { profile: Profile; isOwnProfile: boolean }) => (
     <div className="card border-0 shadow-sm" style={cardStyle}>
         <div className="card-body p-4">
             <h5 className="fw-bold mb-3" style={{ color: 'var(--text-main)' }}>
@@ -109,11 +116,11 @@ const DocumentsCard = memo(({ profile, isOwnProfile }: any) => (
                             <i className={`bi ${doc.icon}`} style={{ color: 'var(--text-main)' }}></i>
                             <span style={{ color: 'var(--text-main)' }}>{doc.label}</span>
                         </div>
-                        {profile.documents?.[doc.key]?.verified ? (
+                        {profile.documents?.[doc.key as keyof typeof profile.documents]?.verified ? (
                             <span className="badge bg-success rounded-pill">
                                 <i className="bi bi-check-lg me-1"></i>Verified
                             </span>
-                        ) : profile.documents?.[doc.key]?.number ? (
+                        ) : profile.documents?.[doc.key as keyof typeof profile.documents]?.number ? (
                             <span className="badge bg-warning text-dark rounded-pill">Pending</span>
                         ) : isOwnProfile ? (
                             <button className="btn btn-sm btn-link text-decoration-none p-0" style={{ color: 'var(--primary-600)' }}>

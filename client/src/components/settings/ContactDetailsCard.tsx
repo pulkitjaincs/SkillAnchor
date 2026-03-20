@@ -21,10 +21,27 @@ const verifyBtnStyle = { flex: 1, background: 'linear-gradient(135deg, #10b981, 
 const verifiedBadgeStyle = { background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600 };
 const otpInputStyle = { ...inputStyle, marginBottom: '12px', textAlign: 'center' as const, letterSpacing: '4px', fontWeight: 700, fontSize: '1.2rem' };
 
-const ContactDetailsCard = memo(({ user, onSendOTP, onVerifyOTP }: { user: any, onSendOTP: (payload: any) => Promise<void>, onVerifyOTP: (payload: any) => Promise<void> }) => {
+interface ContactUser {
+    email?: string;
+    phone?: string;
+    emailVerified?: boolean;
+    phoneVerified?: boolean;
+}
+
+interface ContactData {
+    email: string;
+    phone: string;
+    otp: string;
+    [key: string]: string;
+}
+
+type OTPPayload = { email: string } | { phone: string };
+type VerifyPayload = { otp: string; email?: string; phone?: string };
+
+const ContactDetailsCard = memo(({ user, onSendOTP, onVerifyOTP }: { user: ContactUser, onSendOTP: (payload: OTPPayload) => Promise<void>, onVerifyOTP: (payload: VerifyPayload) => Promise<void> }) => {
     const [editingSection, setEditingSection] = useState<string | null>(null);
     const [otpSent, setOtpSent] = useState(false);
-    const [contactData, setContactData] = useState<any>({ email: '', phone: '', otp: '' });
+    const [contactData, setContactData] = useState<ContactData>({ email: '', phone: '', otp: '' });
     const [contactLoading, setContactLoading] = useState(false);
 
     const startEditing = useCallback((field: string) => {
@@ -39,37 +56,39 @@ const ContactDetailsCard = memo(({ user, onSendOTP, onVerifyOTP }: { user: any, 
         setContactData({ email: '', phone: '', otp: '' });
     }, []);
 
-    const handleContactChange = useCallback((e: any) => {
+    const handleContactChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setContactData((prev: any) => ({ ...prev, [name]: value }));
+        setContactData((prev: ContactData) => ({ ...prev, [name]: value }));
     }, []);
 
-    const handleSendOTP = useCallback(async (e: any) => {
+    const handleSendOTP = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
         setContactLoading(true);
         try {
-            const payload = editingSection === 'email' ? { email: contactData.email } : { phone: contactData.phone };
+            const payload: OTPPayload = editingSection === 'email' ? { email: contactData.email } : { phone: contactData.phone };
             await onSendOTP(payload);
             setOtpSent(true);
-        } catch (err: any) {
-            alert(err.response?.data?.error || "Failed to send OTP");
+        } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { error?: string } } };
+            alert(axiosErr.response?.data?.error || "Failed to send OTP");
         } finally {
             setContactLoading(false);
         }
     }, [editingSection, contactData, onSendOTP]);
 
-    const handleVerifyUpdate = useCallback(async (e: any) => {
+    const handleVerifyUpdate = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
         setContactLoading(true);
         try {
-            const payload = {
+            const payload: VerifyPayload = {
                 otp: contactData.otp,
                 ...(editingSection === 'email' ? { email: contactData.email } : { phone: contactData.phone })
             };
             await onVerifyOTP(payload);
             cancelEditing();
-        } catch (err: any) {
-            alert(err.response?.data?.error || "Failed to verify");
+        } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { error?: string } } };
+            alert(axiosErr.response?.data?.error || "Failed to verify");
         } finally {
             setContactLoading(false);
         }

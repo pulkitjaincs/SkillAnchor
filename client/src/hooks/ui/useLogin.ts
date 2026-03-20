@@ -54,7 +54,7 @@ export const useLogin = () => {
                     setLoading(false);
                     return;
                 }
-                const payload: any = { phone, otp };
+                const payload: { phone: string; otp: string; name?: string; role?: string } = { phone, otp };
                 if (isNewUser) {
                     if (!name.trim()) {
                         setError('Please enter your full name');
@@ -101,7 +101,7 @@ export const useLogin = () => {
                         setLoading(false);
                         return;
                     }
-                    const payload: any = { email, otp };
+                    const payload: { email: string; otp: string; name?: string; role?: string } = { email, otp };
                     if (isNewUser) {
                         if (!name.trim()) {
                             setError('Please enter your full name');
@@ -116,8 +116,9 @@ export const useLogin = () => {
                     router.push(redirect);
                 }
             }
-        } catch (err: any) {
-            setError(err.response?.data?.error || 'Something went wrong');
+        } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { error?: string } } };
+            setError(axiosErr.response?.data?.error || 'Something went wrong');
         } finally {
             setLoading(false);
         }

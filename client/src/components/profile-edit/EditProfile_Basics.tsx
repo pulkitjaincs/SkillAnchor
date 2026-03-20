@@ -1,6 +1,13 @@
 import { InputField, SelectField } from '@/components/common/FormComponents';
 
-export default function EditProfile_Basics({ formData, handleChange, user, isEmployer, avatar, uploadingAvatar, handleAvatarUpload, handleAvatarRemove, fileInputRef, navigate }: any) {
+interface BasicsFormData { name?: string; phone?: string; whatsapp?: string; designation?: string; isHiringManager?: boolean; isAvatarHidden?: boolean; gender?: string; dob?: string; }
+interface BasicsUser { phone?: string; phoneVerified?: boolean; }
+type HandleChange = (e: { target: { name: string; value: unknown; type?: string; checked?: boolean } }) => void;
+export default function EditProfile_Basics({ formData, handleChange, user, isEmployer, avatar, uploadingAvatar, handleAvatarUpload, handleAvatarRemove, fileInputRef, navigate }: {
+    formData: BasicsFormData; handleChange: HandleChange; user: BasicsUser | null; isEmployer: boolean;
+    avatar: string | null; uploadingAvatar: boolean; handleAvatarUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    handleAvatarRemove: () => void; fileInputRef: React.RefObject<HTMLInputElement | null>; navigate: (path: string) => void;
+}) {
     return (
         <div>
             <h4 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>

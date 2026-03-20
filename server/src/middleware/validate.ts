@@ -1,4 +1,4 @@
-import { z, ZodTypeAny } from "zod";
+import { z, ZodTypeAny, ZodIssue } from "zod";
 import { Request, Response, NextFunction } from "express";
 
 import { logger } from "../utils/logger.js";
@@ -11,12 +11,13 @@ export const validate = (schema: ZodTypeAny) => (req: Request, res: Response, ne
             params: req.params,
         });
         if (!result.success) {
-            const messages = (result.error?.issues || []).map((err: any) => err.message).join(", ");
+            const messages = (result.error?.issues || []).map((err: ZodIssue) => err.message).join(", ");
             return res.status(400).json({ success: false, error: messages || "Validation failed" });
         }
         next();
-    } catch (e: any) {
-        logger.error(`Validation error on ${req.method} ${req.originalUrl}:`, e.message);
+    } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : "Validation failed";
+        logger.error(`Validation error on ${req.method} ${req.originalUrl}: ${message}`);
         return res.status(400).json({ success: false, error: "Validation failed" });
     }
 };

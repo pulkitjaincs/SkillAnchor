@@ -2,12 +2,11 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { jobsAPI } from '@/lib/api';
 import { PaginatedJobsResponse } from '@/types';
 
-export const useInfiniteJobs = (filters: Record<string, any> = {}) => {
+export const useInfiniteJobs = (filters: Record<string, string> = {}) => {
     return useInfiniteQuery({
         queryKey: ['jobs', filters],
         queryFn: async ({ pageParam = null }: { pageParam?: unknown }) => {
-            const params: Record<string, any> = { limit: 10 };
-            // Only include non-empty filter values
+            const params: Record<string, string | number | unknown> = { limit: 10 };
             Object.entries(filters).forEach(([key, value]) => {
                 if (value) params[key] = value;
             });

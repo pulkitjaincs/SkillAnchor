@@ -3,10 +3,10 @@
 import { useState, useMemo, useCallback, lazy, Suspense, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
-import { getInitials } from '@/utils/index';
 import { useAuth } from '@/context/AuthContext';
 import { useProfile } from '@/hooks/queries/useProfile';
 import { useQueryClient } from '@tanstack/react-query';
+import { WorkExperience } from '@/types';
 
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import SkillsSection from '@/components/profile/SkillsSection';
@@ -25,7 +25,7 @@ export default function ProfileClient() {
     const fromTeam = searchParams.get('from') === 'team';
     const isOwnProfile = !userId;
     const router = useRouter();
-    const [selectedExp, setSelectedExp] = useState<any>(null);
+    const [selectedExp, setSelectedExp] = useState<WorkExperience | null>(null);
     const [showAddModal, setShowAddModal] = useState(false);
     const { updateUserData } = useAuth();
 
@@ -36,6 +36,7 @@ export default function ProfileClient() {
         if (profile?.avatarUrl && !userId) {
             updateUserData({ avatar: profile.avatarUrl });
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [profile?.avatarUrl, userId]);
 
     const workHistory = useMemo(() => profile?.workHistory || [], [profile]);
@@ -56,8 +57,8 @@ export default function ProfileClient() {
         if (profile.gender) score += 10;
         if (profile.phone) score += 10;
         if (profile.city && profile.state) score += 10;
-        if (profile.skills?.length > 0) score += 15;
-        if (profile.languages?.length > 0) score += 10;
+        if (profile.skills?.length && profile.skills.length > 0) score += 15;
+        if (profile.languages?.length && profile.languages.length > 0) score += 10;
         if (profile.bio) score += 10;
         if (profile.expectedSalary?.min) score += 10;
         if (profile.dob) score += 5;
@@ -77,7 +78,7 @@ export default function ProfileClient() {
     }, []);
 
     const handleAddClick = useCallback(() => setShowAddModal(true), []);
-    const handleExpClick = useCallback((exp: any) => setSelectedExp(exp), []);
+    const handleExpClick = useCallback((exp: WorkExperience) => setSelectedExp(exp), []);
     const handleModalClose = useCallback(() => { setShowAddModal(false); setSelectedExp(null); }, []);
     const handleSave = useCallback(() => {
         queryClient.invalidateQueries({ queryKey: userId ? ['profile', userId] : ['profile'] });
@@ -150,7 +151,7 @@ export default function ProfileClient() {
                 <WorkExperienceModal
                     show={showAddModal || !!selectedExp}
                     onClose={handleModalClose}
-                    experience={selectedExp}
+                    experience={selectedExp ?? undefined}
                     onSave={handleSave}
                 />
             </Suspense>

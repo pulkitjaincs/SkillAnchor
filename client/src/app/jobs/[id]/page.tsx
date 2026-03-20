@@ -8,14 +8,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const resolvedParams = await params;
     try {
         const res = await jobsAPI.getById(resolvedParams.id);
-        const job = res.data?.data;
+        const job = res.data?.data?.job;
         if (!job) return { title: 'Job Not Found - SkillAnchor' };
 
         return {
             title: `${job.title} at ${job.company?.name || 'SkillAnchor'}`,
             description: job.description?.substring(0, 160) || 'View job description on SkillAnchor',
         };
-    } catch (e) {
+    } catch {
         return { title: 'Job - SkillAnchor' };
     }
 }

@@ -25,7 +25,7 @@ export const useJobDetails = (jobId: string) => {
         queryKey: ['jobs', jobId],
         queryFn: async () => {
             const { data } = await jobsAPI.getById(jobId);
-            return data;
+            return data.data?.job ?? null;
         },
         enabled: !!jobId,
         staleTime: 1000 * 60 * 10,
@@ -35,7 +35,7 @@ export const useJobDetails = (jobId: string) => {
 export const useApplyForJob = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ jobId, data }: { jobId: string, data: any }) => applicationsAPI.apply(jobId, data),
+        mutationFn: ({ jobId, data }: { jobId: string, data: { coverNote?: string } }) => applicationsAPI.apply(jobId, data),
         onSuccess: (data, variables) => {
             queryClient.invalidateQueries({ queryKey: ['applications'] });
             queryClient.invalidateQueries({ queryKey: ['jobs', variables.jobId] });
@@ -63,7 +63,7 @@ export const useWithdrawApplication = () => {
             });
             return { previousApps };
         },
-        onError: (err, appId, context: any) => {
+        onError: (_err, _appId, context: { previousApps: unknown } | undefined) => {
             if (context?.previousApps) {
                 queryClient.setQueryData(['applications'], context.previousApps);
             }
@@ -134,10 +134,10 @@ export const useUpdateApplicationStatus = () => {
 
             return { previousApplicants };
         },
-        onError: (err, variables, context: any) => {
+        onError: (_err, _variables, context: { previousApplicants: [readonly unknown[], unknown][] } | undefined) => {
             if (context?.previousApplicants) {
-                context.previousApplicants.forEach(([queryKey, data]: any) => {
-                    queryClient.setQueryData(queryKey, data);
+                context.previousApplicants.forEach(([queryKey, data]: [readonly unknown[], unknown]) => {
+                    queryClient.setQueryData(queryKey as Parameters<typeof queryClient.setQueryData>[0], data);
                 });
             }
         },

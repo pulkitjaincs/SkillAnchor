@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import api, { authAPI } from '@/lib/api';
+import { authAPI } from '@/lib/api';
 
 interface User {
     _id: string;
@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             try {
                 const res = await authAPI.getMe();
                 setUser(res.data.user);
-            } catch (err) {
+            } catch {
                 setUser(null);
             } finally {
                 setLoading(false);
@@ -45,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return () => {
             window.removeEventListener('auth:unauthorized', handleUnauthorized);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const login = (newUser: User) => {

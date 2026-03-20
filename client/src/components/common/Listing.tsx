@@ -41,6 +41,7 @@ const Listing = memo(({ job, onClose, isSwitch = false }: ListingProps) => {
             } catch { /* silently ignore */ }
         };
         checkIfApplied();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [job?._id, user]);
 
     const handleClose = useCallback(() => {
@@ -59,8 +60,9 @@ const Listing = memo(({ job, onClose, isSwitch = false }: ListingProps) => {
             await applicationsAPI.apply(job._id, { coverNote });
             setApplied(true);
             setShowApplyModal(false);
-        } catch (error: any) {
-            alert(error.response?.data?.message || "Error applying for job");
+        } catch (error: unknown) {
+            const axiosErr = error as { response?: { data?: { message?: string } } };
+            alert(axiosErr.response?.data?.message || "Error applying for job");
         } finally {
             setApplying(false);
         }

@@ -23,14 +23,14 @@ export const authAPI = {
     sendOTP: (data: Record<string, unknown>) => api.post('/auth/send-otp', data),
     verifyOTP: (data: Record<string, unknown>) => api.post('/auth/verify-otp', data),
     register: (data: Record<string, unknown>) => api.post('/auth/register', data),
-    login: (data: Record<string, unknown>) => api.post<ApiResponse<{ user: User }>>('/auth/login', data),
+    login: (data: Record<string, unknown>) => api.post('/auth/login', data),
     forgotPassword: (data: Record<string, unknown>) => api.post('/auth/forgot-password', data),
     resetPassword: (data: Record<string, unknown>) => api.post('/auth/reset-password', data),
     logout: () => api.post('/auth/logout'),
     updatePassword: (data: Record<string, unknown>) => api.post('/auth/update-password', data),
     sendUpdateOTP: (data: Record<string, unknown>) => api.post('/auth/send-update-otp', data),
     verifyUpdateOTP: (data: Record<string, unknown>) => api.post('/auth/verify-update-otp', data),
-    getMe: () => api.get<ApiResponse<{ user: User }>>('/auth/get-me')
+    getMe: () => api.get<{ success: boolean; user: User }>('/auth/get-me')
 };
 
 // Jobs API

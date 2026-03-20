@@ -18,11 +18,13 @@ vi.mock('@/lib/api', () => ({
 }));
 
 vi.mock('next/image', () => ({
-  default: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />,
+  default: ({ src, alt }: { src: string; alt: string }) => {
+    return <span data-testid="mock-image" aria-label={alt} data-src={src} />;
+  },
 }));
 
 vi.mock('next/dynamic', () => ({
-  default: (_loader: unknown, _opts?: unknown) =>
+  default: () =>
     function MockApplyModal({ show, onApply }: { show: boolean; onApply: (note: string) => void }) {
       if (!show) return null;
       return (
@@ -37,8 +39,9 @@ import Listing from '../components/common/Listing';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { applicationsAPI } from '@/lib/api';
+import type { Job } from '@/types';
 
-const mockJob = {
+const mockJob = ({
   _id: 'job123',
   title: 'Software Engineer',
   company: { name: 'SkillAnchor', logo: '' },
@@ -54,7 +57,7 @@ const mockJob = {
   benefits: ['Health Insurance', 'Remote Work'],
   jobType: 'full-time',
   createdAt: new Date().toISOString(),
-};
+} as unknown) as Job;
 
 const mockPush = vi.fn();
 const mockOnClose = vi.fn();
@@ -77,7 +80,7 @@ describe('Listing Component', () => {
   });
 
   it('should render job title, company, location and description', () => {
-    render(<Listing job={mockJob as any} onClose={mockOnClose} />);
+    render(<Listing job={mockJob} onClose={mockOnClose} />);
     expect(screen.getByText('Software Engineer')).toBeInTheDocument();
     expect(screen.getByText('SkillAnchor')).toBeInTheDocument();
     expect(screen.getByText(/New York, NY/)).toBeInTheDocument();
@@ -85,19 +88,19 @@ describe('Listing Component', () => {
   });
 
   it('should render all skill badges', () => {
-    render(<Listing job={mockJob as any} onClose={mockOnClose} />);
+    render(<Listing job={mockJob} onClose={mockOnClose} />);
     expect(screen.getByText('React')).toBeInTheDocument();
     expect(screen.getByText('Node.js')).toBeInTheDocument();
   });
 
   it('should render all benefit items', () => {
-    render(<Listing job={mockJob as any} onClose={mockOnClose} />);
+    render(<Listing job={mockJob} onClose={mockOnClose} />);
     expect(screen.getByText('Health Insurance')).toBeInTheDocument();
     expect(screen.getByText('Remote Work')).toBeInTheDocument();
   });
 
   it('should redirect unauthenticated users to /login on Apply click', () => {
-    render(<Listing job={mockJob as any} onClose={mockOnClose} />);
+    render(<Listing job={mockJob} onClose={mockOnClose} />);
     fireEvent.click(screen.getByText(/Apply Now/));
     expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('/login'));
     expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('job123'));
@@ -111,7 +114,7 @@ describe('Listing Component', () => {
       data: { applications: [{ job: { _id: 'job123' } }] },
     });
 
-    render(<Listing job={mockJob as any} onClose={mockOnClose} />);
+    render(<Listing job={mockJob} onClose={mockOnClose} />);
 
     const btn = await screen.findByText('Already Applied');
     expect(btn).toBeInTheDocument();
@@ -123,7 +126,7 @@ describe('Listing Component', () => {
       user: { _id: 'emp1', role: 'employer' },
     });
 
-    render(<Listing job={mockJob as any} onClose={mockOnClose} />);
+    render(<Listing job={mockJob} onClose={mockOnClose} />);
     expect(screen.queryByText(/Apply Now/)).not.toBeInTheDocument();
   });
 
@@ -135,7 +138,7 @@ describe('Listing Component', () => {
       data: { success: true },
     });
 
-    render(<Listing job={mockJob as any} onClose={mockOnClose} />);
+    render(<Listing job={mockJob} onClose={mockOnClose} />);
 
     fireEvent.click(await screen.findByText(/Apply Now/));
 
@@ -151,7 +154,7 @@ describe('Listing Component', () => {
   });
 
   it('should navigate to job detail page on "View full details" click', () => {
-    render(<Listing job={mockJob as any} onClose={mockOnClose} />);
+    render(<Listing job={mockJob} onClose={mockOnClose} />);
     fireEvent.click(screen.getByText('View full details'));
     expect(mockPush).toHaveBeenCalledWith('/jobs/job123');
   });

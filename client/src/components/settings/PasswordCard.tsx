@@ -15,16 +15,16 @@ const submitBtnBase = {
     fontWeight: 600, fontSize: '0.95rem', transition: 'background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease'
 };
 
-const PasswordCard = memo(({ onSubmit }: { onSubmit: (data: any) => Promise<void> }) => {
+const PasswordCard = memo(({ onSubmit }: { onSubmit: (data: { currentPassword: string; newPassword: string }) => Promise<void> }) => {
     const [passData, setPassData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
     const [passLoading, setPassLoading] = useState(false);
 
-    const handlePassChange = useCallback((e: any) => {
+    const handlePassChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setPassData(prev => ({ ...prev, [name]: value }));
     }, []);
 
-    const handleUpdatePassword = useCallback(async (e: any) => {
+    const handleUpdatePassword = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
         if (passData.newPassword !== passData.confirmPassword) return alert("Passwords don't match!");
         setPassLoading(true);

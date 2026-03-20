@@ -2,10 +2,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.model.js";
 import { Request, Response, NextFunction } from "express";
 import { env } from "../config/env.js";
-
-interface JwtPayload {
-    id: string;
-}
+import type { JwtPayload } from "../types/index.js";
 
 export const protect = async (req: Request, res: Response, next: NextFunction) => {
     const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
@@ -20,7 +17,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
         }
         req.user = user; 
         next();
-    } catch (err) {
+    } catch (_err) {
         res.status(401).json({ error: "Token invalid" });
     }
 }

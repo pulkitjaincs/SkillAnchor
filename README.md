@@ -382,6 +382,7 @@ cd server && npm run dev      # → http://localhost:5000
 - [x] **Redis Integration**: Distributed caching, rate limiting, and OTP migration
 - [x] **Strict HttpOnly Cookie Auth**: Migration from insecure client-side tokens
 - [x] **TypeScript Hardening**: Elimination of `any` and strict API typing
+- [x] **Zero-Warning Linting**: Strict ESLint compliance enforcing React Hooks rules and Next.js optimization primitives across the entire client application
 - [x] **Full-Stack Test Suite**: Vitest, Supertest, RTL, and JSDOM coverage
 - [x] **Server Code Audit & Hardening**: Fixed type safety issues, Mongoose query filters, and API response consistency
 - [x] **Zod Env Validation**: Startup-time environment variable parsing with descriptive failure messages

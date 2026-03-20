@@ -1,21 +1,20 @@
 "use client";
 
-import { useState, useMemo, lazy, Suspense } from 'react';
+import { useState, useMemo, lazy, Suspense, useEffect } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import Link from 'next/link';
 import { formatDate, formatSalary } from '@/utils/index';
+import { Application, PaginatedApplicationsResponse } from '@/types';
 
 import { useApplications, useWithdrawApplication } from '@/hooks/queries/useApplications';
 
 const ApplicationDetailModal = lazy(() => import('@/components/modals/ApplicationDetailModal'));
 
 export default function MyApplicationsPage() {
-    const [selectedApp, setSelectedApp] = useState<any>(null);
+    const [selectedApp, setSelectedApp] = useState<Application | null>(null);
 
-    useMemo(() => {
-        if (typeof document !== 'undefined') {
-            document.title = 'My Applications | SkillAnchor';
-        }
+    useEffect(() => {
+        document.title = 'My Applications | SkillAnchor';
     }, []);
 
     const {
@@ -27,7 +26,7 @@ export default function MyApplicationsPage() {
     } = useApplications();
 
     const applications = useMemo(() => {
-        return data?.pages?.flatMap((page: any) => page.applications) || [];
+        return data?.pages?.flatMap((page: PaginatedApplicationsResponse) => page.applications) || [];
     }, [data]);
     const withdrawMutation = useWithdrawApplication();
 
@@ -37,7 +36,7 @@ export default function MyApplicationsPage() {
         }
         try {
             await withdrawMutation.mutateAsync(appId);
-        } catch (error) {
+        } catch {
             alert("Failed to withdraw application");
         }
     };
@@ -79,7 +78,7 @@ export default function MyApplicationsPage() {
             {applications.length === 0 ? (
                 <div className="text-center py-5" style={{ color: 'var(--text-muted)' }}>
                     <i className="bi bi-inbox fs-1 mb-3 d-block"></i>
-                    <p>You haven't applied to any jobs yet.</p>
+                    <p>You haven&apos;t applied to any jobs yet.</p>
                     <Link href="/" className="btn rounded-pill px-4 py-2"
                         style={{ background: 'var(--primary-500)', color: 'white' }}>
                         Browse Jobs
@@ -93,7 +92,7 @@ export default function MyApplicationsPage() {
                         endReached={() => {
                             if (hasNextPage) fetchNextPage();
                         }}
-                        itemContent={(index, app: any) => (
+                        itemContent={(_index: number, app: Application) => (
                             <div className="d-flex flex-column flex-md-row align-items-start align-items-md-center p-3 p-sm-4 gap-3 mb-3"
                                 style={{
                                     background: 'var(--bg-card)',

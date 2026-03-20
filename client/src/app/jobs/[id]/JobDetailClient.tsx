@@ -7,9 +7,10 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Clock, MapPin, Search, Banknote, Briefcase, Users, SunMedium, Code, Gift, Check, ShieldCheck, Rocket, Lock, CheckCircle2, Link as LinkIcon, Info } from 'lucide-react';
+import { ArrowLeft, Clock, MapPin, Search, Banknote, Briefcase, SunMedium, Code, Gift, Check, ShieldCheck, Rocket, Lock, CheckCircle2, Link as LinkIcon, Info } from 'lucide-react';
 import { useJobDetails, useApplications, useApplyForJob } from '@/hooks/queries/useApplications';
-import { formatDate, formatSalary, timeAgo } from '@/utils/index';
+import { formatSalary, timeAgo } from '@/utils/index';
+import { PaginatedApplicationsResponse, Application } from '@/types';
 
 const ApplyModal = dynamic(() => import('@/components/common/ApplyModal'), { ssr: false });
 
@@ -26,8 +27,8 @@ export default function JobDetailClient({ id }: { id: string }) {
 
     const applied = useMemo(() => {
         if (!user || user.role !== 'worker' || !applications) return false;
-        const allApps = applications.pages?.flatMap((p: any) => p.applications) || [];
-        return allApps.some((app: any) => app.job?._id === id);
+        const allApps = applications.pages?.flatMap((p: PaginatedApplicationsResponse) => p.applications) || [];
+        return allApps.some((app: Application) => app.job?._id === id);
     }, [applications, user, id]);
 
     const handleApply = async (coverNote: string) => {
@@ -38,8 +39,9 @@ export default function JobDetailClient({ id }: { id: string }) {
         try {
             await applyMutation.mutateAsync({ jobId: id, data: { coverNote } });
             setShowApplyModal(false);
-        } catch (err: any) {
-            alert(err.response?.data?.error || err.response?.data?.message || 'Error applying for job');
+        } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { error?: string; message?: string } } };
+            alert(axiosErr.response?.data?.error || axiosErr.response?.data?.message || 'Error applying for job');
         }
     };
 
@@ -196,7 +198,7 @@ export default function JobDetailClient({ id }: { id: string }) {
                         >
                             {[
                                 { icon: Banknote, label: 'Salary', value: formatSalary(job.salaryMin, job.salaryMax, job.salaryType) },
-                                { icon: Briefcase, label: 'Experience', value: job.experienceMin > 0 ? `${job.experienceMin}+ yrs` : 'Fresher' },
+                                { icon: Briefcase, label: 'Experience', value: (job.experienceMin ?? 0) > 0 ? `${job.experienceMin}+ yrs` : 'Fresher' },
                                 { icon: SunMedium, label: 'Shift', value: job.shift ? job.shift.charAt(0).toUpperCase() + job.shift.slice(1).toLowerCase() : 'Flexible' },
                             ].map((stat, i) => (
                                 <div key={i} className="flex items-center justify-between px-4 sm:px-5 py-4 rounded-2xl bg-white/60 dark:bg-black/40 border border-slate-200/50 dark:border-transparent shadow-sm overflow-hidden">
@@ -226,10 +228,10 @@ export default function JobDetailClient({ id }: { id: string }) {
                         </motion.section>
 
                         {/* Skills & Benefits Grid */}
-                        {(job.skills?.length > 0 || job.benefits?.length > 0) && (
+                        {((job.skills?.length ?? 0) > 0 || (job.benefits?.length ?? 0) > 0) && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Skills Cell */}
-                                {job.skills?.length > 0 && (
+                                {(job.skills?.length ?? 0) > 0 && (
                                     <motion.div 
                                         initial={{ y: 20, opacity: 0 }}
                                         animate={{ y: 0, opacity: 1 }}
@@ -241,7 +243,7 @@ export default function JobDetailClient({ id }: { id: string }) {
                                         </h5>
                                         <div className="w-10 h-1.5 bg-indigo-500 rounded-full mb-6"></div>
                                         <div className="flex flex-wrap gap-2.5">
-                                            {job.skills.map((skill: string, idx: number) => (
+                                            {job.skills!.map((skill: string, idx: number) => (
                                                 <span key={idx} className="px-4 py-2 rounded-xl font-semibold text-sm bg-white/80 dark:bg-black/40 border border-indigo-500/20 text-indigo-900 dark:text-indigo-300 shadow-sm backdrop-blur-md">
                                                     {skill}
                                                 </span>
@@ -251,7 +253,7 @@ export default function JobDetailClient({ id }: { id: string }) {
                                 )}
 
                                 {/* Perks Cell */}
-                                {job.benefits?.length > 0 && (
+                                {(job.benefits?.length ?? 0) > 0 && (
                                     <motion.div 
                                         initial={{ y: 20, opacity: 0 }}
                                         animate={{ y: 0, opacity: 1 }}
@@ -263,7 +265,7 @@ export default function JobDetailClient({ id }: { id: string }) {
                                         </h5>
                                         <div className="w-10 h-1.5 bg-emerald-500 rounded-full mb-6"></div>
                                         <div className="flex flex-col gap-3">
-                                            {job.benefits.map((b: string, idx: number) => (
+                                            {job.benefits!.map((b: string, idx: number) => (
                                                 <div key={idx} className="flex items-start gap-3">
                                                     <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-500 mt-0.5">
                                                         <Check className="w-4 h-4" strokeWidth={3} />

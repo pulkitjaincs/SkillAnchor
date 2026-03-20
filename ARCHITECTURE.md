@@ -158,5 +158,5 @@ The platform is integrated with professional DevOps standards to ensure code qua
 - **Frontend Quality:** Automated `npm run build`, linting, and Vitest execution ensures UI stability.
 
 ### Code Quality Standards
-- **Strict Linting:** Both client and server utilize ESLint to enforce consistent coding patterns and early bug detection.
-- **Server Hardening:** Explicitly added `eslint` and `@typescript-eslint` to the backend to maintain the same quality bar as the Next.js frontend.
+- **Strict Linting**: Both client and server utilize ESLint to enforce consistent coding patterns and early bug detection. The client strictly adheres to a zero-warning policy to enforce deep rules like `react-hooks/exhaustive-deps` and `@next/next/no-img-element`.
+- **Server Hardening**: Explicitly added `eslint` and `@typescript-eslint` to the backend to maintain the same quality bar as the Next.js frontend.

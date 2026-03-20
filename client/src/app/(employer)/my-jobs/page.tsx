@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { formatDate, formatSalary } from '@/utils/index';
 import { useEmployerJobs, useDeleteJob } from '@/hooks/queries/useApplications';
+import { PaginatedJobsResponse, Job } from '@/types';
 
 export default function MyJobsPage() {
     const {
@@ -16,16 +16,12 @@ export default function MyJobsPage() {
         isFetchingNextPage
     } = useEmployerJobs();
 
-    const router = useRouter();
-
-    useMemo(() => {
-        if (typeof document !== 'undefined') {
-            document.title = 'My Posted Jobs | SkillAnchor';
-        }
+    useEffect(() => {
+        document.title = 'My Posted Jobs | SkillAnchor';
     }, []);
 
     const jobs = useMemo(() => {
-        return data?.pages.flatMap((page: any) => page.jobs) || [];
+        return data?.pages.flatMap((page: PaginatedJobsResponse) => page.jobs) || [];
     }, [data]);
     const deleteMutation = useDeleteJob();
 
@@ -35,7 +31,7 @@ export default function MyJobsPage() {
         }
         try {
             await deleteMutation.mutateAsync(jobId);
-        } catch (error) {
+        } catch {
             alert('Failed to delete job');
         }
     };
@@ -63,7 +59,7 @@ export default function MyJobsPage() {
             {jobs.length === 0 ? (
                 <div className="text-center py-5" style={{ color: 'var(--text-muted)' }}>
                     <i className="bi bi-briefcase fs-1 mb-3 d-block"></i>
-                    <p>You haven't posted any jobs yet.</p>
+                    <p>You haven&apos;t posted any jobs yet.</p>
                 </div>
             ) : (
                 <div className="d-flex flex-column">
@@ -73,7 +69,7 @@ export default function MyJobsPage() {
                         endReached={() => {
                             if (hasNextPage) fetchNextPage();
                         }}
-                        itemContent={(index, job: any) => (
+                        itemContent={(_index: number, job: Job) => (
                             <div className="p-4 position-relative mb-3"
                                 style={{
                                     background: 'var(--bg-card)',
@@ -129,7 +125,7 @@ export default function MyJobsPage() {
                                                 fontSize: '0.75rem'
                                             }}>
                                                 <i className={`bi ${job.status === 'active' ? 'bi-check-circle-fill' : 'bi-pause-circle-fill'} me-1`}></i>
-                                                {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
+                                                {(job.status ?? 'inactive').charAt(0).toUpperCase() + (job.status ?? 'inactive').slice(1)}
                                             </span>
                                         </div>
 

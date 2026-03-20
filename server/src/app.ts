@@ -7,17 +7,15 @@ import applicationRoutes from "./routes/application.routes.js";
 import profileRoutes from "./routes/profile.routes.js";
 import workExperienceRoutes from "./routes/workExperience.routes.js";
 import helmet from "helmet";
-import rateLimit from "express-rate-limit";
 import { nosqlSanitize } from "./middleware/sanitize.middleware.js";
 import uploadRoutes from "./routes/upload.routes.js";
-import { RedisStore } from "rate-limit-redis";
-import { redis } from "./config/redis.js";
 import cookieParser from "cookie-parser";
 import { env } from "./config/env.js";
 import { apiLimiter, strictLimiter } from "./config/rateLimiter.js";
 import { pinoHttp } from "pino-http";
 import { logger } from "./utils/logger.js";
 import { requestIdMiddleware } from "./middleware/requestId.js";
+import type { HttpError } from "./types/index.js";
 const app = express();
 
 app.set('etag', 'strong');
@@ -57,13 +55,13 @@ app.use("/api/v1/profile", profileRoutes);
 app.use("/api/v1/work-experience", workExperienceRoutes);
 app.use("/api/v1/upload", uploadRoutes);
 
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-    if (err instanceof SyntaxError && (err as any).status === 400 && 'body' in err) {
+app.use((err: HttpError, req: Request, res: Response, _next: NextFunction) => {
+    if (err instanceof SyntaxError && (err as HttpError & { status?: number }).status === 400 && 'body' in err) {
         return res.status(400).json({ success: false, error: "Invalid JSON" });
     }
 
-    if (err.name === 'ValidationError') {
-        const messages = Object.values((err as any).errors).map((e: any) => e.message).join(', ');
+    if (err.name === 'ValidationError' && err.errors) {
+        const messages = Object.values(err.errors).map(e => e.message).join(', ');
         return res.status(400).json({ success: false, error: messages });
     }
 
@@ -75,7 +73,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
         return res.status(400).json({ success: false, error: "Duplicate value detected" });
     }
 
-    const status = err.status || 500;
+    const status = err.status ?? 500;
     if (status >= 500) {
         logger.error({ err }, "Unhandled server error");
     }

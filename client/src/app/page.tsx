@@ -9,6 +9,7 @@ import PageTransitions from "@/components/common/PageTransitions";
 import JobCard from "@/components/common/Card";
 import JobSkeleton from "@/components/common/JobSkeleton";
 import { motion, AnimatePresence } from "framer-motion";
+import { Job, PaginatedJobsResponse } from "@/types";
 
 const Listing = dynamic(() => import("@/components/common/Listing"), {
   loading: () => <p>Loading...</p>,
@@ -17,7 +18,7 @@ const Listing = dynamic(() => import("@/components/common/Listing"), {
 
 function HomePageContent() {
   const router = useRouter();
-  const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isSwitch, setIsSwitch] = useState(false);
   const searchParams = useSearchParams();
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -53,7 +54,7 @@ function HomePageContent() {
   }, [searchQuery, locationQuery, categoryQuery]);
 
   const allJobs = useMemo(() => {
-    return data?.pages.flatMap((page: any) => page.jobs) || [];
+    return data?.pages.flatMap((page: PaginatedJobsResponse) => page.jobs) || [];
   }, [data]);
 
   // IntersectionObserver-based infinite scroll
@@ -76,14 +77,15 @@ function HomePageContent() {
 
   useEffect(() => {
     if (openJobId && allJobs.length > 0) {
-      const job = allJobs.find((j: any) => j._id === openJobId);
+      const job = allJobs.find((j: Job) => j._id === openJobId);
       if (job) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedJob(job);
       }
     }
   }, [openJobId, allJobs]);
 
-  const handleJobClick = useCallback((job: any) => {
+  const handleJobClick = useCallback((job: Job) => {
     if (selectedJob !== null && selectedJob._id !== job._id) {
       setIsSwitch(true);
     } else {
@@ -183,7 +185,7 @@ function HomePageContent() {
                           }
                       }}
                     >
-                      {allJobs.map((job: any) => (
+                      {allJobs.map((job: Job) => (
                         <div key={job._id} className="pb-3 px-1">
                           <JobCard
                             job={job}

@@ -65,8 +65,8 @@ export default function EditProfileClient() {
                 bio: profile.bio || '',
                 languages: profile.languages?.join(', ') || '',
                 skills: profile.skills?.join(', ') || '',
-                expectedSalaryMin: profile.expectedSalary?.min || '',
-                expectedSalaryMax: profile.expectedSalary?.max || '',
+                expectedSalaryMin: String(profile.expectedSalary?.min || ''),
+                expectedSalaryMax: String(profile.expectedSalary?.max || ''),
                 expectedSalaryType: profile.expectedSalary?.type || 'monthly',
                 aadhaarNumber: profile.documents?.aadhaar?.number || '',
                 panNumber: profile.documents?.pan?.number || '',
@@ -75,22 +75,20 @@ export default function EditProfileClient() {
                 isHiringManager: profile.isHiringManager || false,
                 isAvatarHidden: profile.isAvatarHidden || false
             });
-            if (profile.avatarUrl || profile.avatar) setAvatar(profile.avatarUrl || profile.avatar);
+            if (profile.avatarUrl || profile.avatar) setAvatar(profile.avatarUrl || profile.avatar || null);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [profile]);
 
-    const handleAvatarUpload = async (e: any) => {
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
         try {
-            // Upload to S3, save the key (not the URL) to the DB
             const { key } = await uploadFileToS3(file, 'avatars');
             const { data } = await updateAvatarUrlMutation.mutateAsync(key);
-            // Use the signed URL returned by the backend for immediate display
-            setAvatar(data.avatarUrl);
-            // Sync into AuthContext so Navbar updates immediately
-            updateUserData({ avatar: data.avatarUrl });
+            const avatarUrl = (data.data as unknown as { avatarUrl?: string })?.avatarUrl;
+            setAvatar(avatarUrl || null);
+            updateUserData({ avatar: avatarUrl });
         } catch (err) {
             console.error('Upload error:', err);
             alert('Failed to upload photo');
@@ -111,7 +109,7 @@ export default function EditProfileClient() {
 
     const handleSubmit = async (shouldNavigate = true) => {
         try {
-            let payload: any;
+            let payload: Record<string, unknown>;
             if (isEmployer) {
                 payload = {
                     name: formData.name,
@@ -155,14 +153,19 @@ export default function EditProfileClient() {
             } else {
                 alert("Progress saved successfully!");
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { message?: string } } };
             console.error("Save failed", err);
-            alert(err.response?.data?.message || "Failed to save profile.");
+            alert(axiosErr.response?.data?.message || "Failed to save profile.");
         }
     };
 
     const nextStep = () => currentStep < totalSteps && setCurrentStep(currentStep + 1);
     const prevStep = () => currentStep > 1 && setCurrentStep(currentStep - 1);
+
+    const basicsHandleChange = handleChange as Parameters<typeof import('@/components/profile-edit/EditProfile_Basics').default>[0]['handleChange'];
+
+    const basicsUser = (authUser ?? {}) as Parameters<typeof import('@/components/profile-edit/EditProfile_Basics').default>[0]['user'];
 
     if (fetching) {
         return (
@@ -256,8 +259,8 @@ export default function EditProfileClient() {
                     {currentStep === 1 && (
                         <EditProfile_Basics
                             formData={formData}
-                            handleChange={handleChange}
-                            user={authUser}
+                            handleChange={basicsHandleChange}
+                            user={basicsUser}
                             isEmployer={isEmployer}
                             avatar={avatar}
                             uploadingAvatar={updateAvatarUrlMutation.isPending}
@@ -271,7 +274,8 @@ export default function EditProfileClient() {
                     {currentStep === 2 && (
                         <EditProfile_Location
                             formData={formData}
-                            handleChange={handleChange}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            handleChange={handleChange as any}
                             navigate={navigate}
                         />
                     )}
@@ -279,15 +283,18 @@ export default function EditProfileClient() {
                     {currentStep === 3 && (
                         <EditProfile_Skills
                             formData={formData}
-                            handleChange={handleChange}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            handleChange={handleChange as any}
                         />
                     )}
 
                     {currentStep === 4 && (
                         <EditProfile_Finish
                             formData={formData}
-                            handleChange={handleChange}
-                            setValues={setValues}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            handleChange={handleChange as any}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            setValues={setValues as any}
                         />
                     )}
                 </div>

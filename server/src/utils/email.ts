@@ -23,6 +23,6 @@ export const sendEmailOTP = async (to: string, body: string) => {
         });
     } catch (error) {
         logger.error({ error }, "Nodemailer Error");
-        throw new Error("Failed to send OTP email.");
+        throw new Error("Failed to send OTP email.", { cause: error });
     }
 };

@@ -2,10 +2,29 @@
 
 import { useState, useEffect } from 'react';
 import { workExperienceAPI } from '@/lib/api';
-import { formatDate } from '@/utils/index';
 import { InputField, TextAreaField, Button } from '@/components/common/FormComponents';
 
-export default function WorkExperienceModal({ show, onClose, experience, onSave }: any) {
+interface WorkExperience {
+    _id: string;
+    role?: string;
+    companyName?: string;
+    company?: { name: string };
+    startDate?: string;
+    endDate?: string | null;
+    isCurrent?: boolean;
+    description?: string;
+    isVerified?: boolean;
+    isVisible?: boolean;
+}
+
+interface WorkExperienceModalProps {
+    show: boolean;
+    onClose: () => void;
+    experience?: WorkExperience | null;
+    onSave?: () => void;
+}
+
+export default function WorkExperienceModal({ show, onClose, experience, onSave }: WorkExperienceModalProps) {
     const isAddMode = !experience;
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -35,8 +54,10 @@ export default function WorkExperienceModal({ show, onClose, experience, onSave 
         setError('');
     }, [experience, show]);
 
-    const handleChange = (e: any) => {
-        const { name, value, type, checked } = e.target;
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        const checked = (e.target as HTMLInputElement).checked;
+        const type = (e.target as HTMLInputElement).type;
         setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     };
 
@@ -51,18 +72,19 @@ export default function WorkExperienceModal({ show, onClose, experience, onSave 
             if (isAddMode) {
                 await workExperienceAPI.create({
                     ...formData,
-                    endDate: formData.isCurrent ? null : formData.endDate
+                    endDate: formData.isCurrent ? undefined : formData.endDate
                 });
             } else {
                 await workExperienceAPI.update(experience._id, {
                     ...formData,
-                    endDate: formData.isCurrent ? null : formData.endDate
+                    endDate: formData.isCurrent ? undefined : formData.endDate
                 });
             }
             onSave?.();
             onClose();
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to save experience');
+        } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { message?: string } } };
+            setError(axiosErr.response?.data?.message || 'Failed to save experience');
         } finally {
             setLoading(false);
         }
@@ -72,11 +94,12 @@ export default function WorkExperienceModal({ show, onClose, experience, onSave 
         if (!window.confirm('Are you sure you want to delete this experience?')) return;
         setLoading(true);
         try {
-            await workExperienceAPI.delete(experience._id);
+            await workExperienceAPI.delete(experience!._id);
             onSave?.();
             onClose();
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to delete');
+        } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { message?: string } } };
+            setError(axiosErr.response?.data?.message || 'Failed to delete');
         } finally {
             setLoading(false);
         }
@@ -85,11 +108,12 @@ export default function WorkExperienceModal({ show, onClose, experience, onSave 
     const handleToggleVisibility = async () => {
         setLoading(true);
         try {
-            await workExperienceAPI.toggleVisibility(experience._id);
+            await workExperienceAPI.toggleVisibility(experience!._id);
             onSave?.();
             onClose();
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to update visibility');
+        } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { message?: string } } };
+            setError(axiosErr.response?.data?.message || 'Failed to update visibility');
         } finally {
             setLoading(false);
         }
@@ -99,11 +123,12 @@ export default function WorkExperienceModal({ show, onClose, experience, onSave 
         if (!window.confirm('Are you sure you want to end this employment? This will update your job application status.')) return;
         setLoading(true);
         try {
-            await workExperienceAPI.endEmployment(experience._id);
+            await workExperienceAPI.endEmployment(experience!._id);
             onSave?.();
             onClose();
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to end employment');
+        } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { message?: string } } };
+            setError(axiosErr.response?.data?.message || 'Failed to end employment');
         } finally {
             setLoading(false);
         }

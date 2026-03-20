@@ -67,8 +67,9 @@ export const useRegister = () => {
                 login(data.user);
                 router.push('/');
             }
-        } catch (err: any) {
-            setError(err.response?.data?.error || 'Failed to process request');
+        } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { error?: string } } };
+            setError(axiosErr.response?.data?.error || 'Failed to process request');
         } finally {
             setLoading(false);
         }
