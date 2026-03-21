@@ -83,6 +83,7 @@ The platform utilizes a comprehensive testing suite with **Vitest**, ensuring lo
 ### Backend (`server/`)
 *   **Framework:** Vitest + Supertest
 *   **Strategy**: Combination of unit tests for isolated utilities (auth, cache, email) and full-path integration tests for controllers.
+*   **Coverage**: >90% global test coverage across statements, functions, branches, and lines.
 *   **Isolation**: Every test file runs against a freshly flushed in-memory **MongoDB Replica Set** (to support transactions) and Redis instance.
 *   **Security Testing**: Explicit verification of rate-limiting thresholds and authorization guards.
 

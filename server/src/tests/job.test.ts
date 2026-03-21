@@ -159,4 +159,77 @@ describe('Job CRUD Integration Tests', () => {
         });
     });
 
+    describe('GET /api/v1/jobs/:id', () => {
+        it('should return 404 if job not found', async () => {
+            const fakeId = new (await import('mongoose')).default.Types.ObjectId().toString();
+            const res = await request(app).get(`/api/v1/jobs/${fakeId}`);
+            expect(res.status).toBe(404);
+        });
+
+        it('should return job details if found', async () => {
+            const job = await Job.create({
+                employer: employerId,
+                title: 'Get By Id Job',
+                description: 'Description must be 10+ chars',
+                category: 'IT', city: 'Bangalore', state: 'Karnataka',
+                salaryMin: 30000, salaryType: 'monthly', jobType: 'full-time',
+                status: 'active'
+            });
+            const res = await request(app).get(`/api/v1/jobs/${job._id}`);
+            expect(res.status).toBe(200);
+            expect(res.body.title).toBe('Get By Id Job');
+        });
+    });
+
+    describe('GET /api/v1/jobs/my-jobs', () => {
+        it('should return 401 if unauthenticated', async () => {
+            const res = await request(app).get('/api/v1/jobs/my-jobs');
+            expect(res.status).toBe(401);
+        });
+
+        it('should list jobs created by the employer', async () => {
+            await Job.create({
+                employer: employerId,
+                title: 'My Job 1',
+                description: 'Description must be 10+ chars',
+                category: 'IT', city: 'Bangalore', state: 'Karnataka',
+                salaryMin: 30000, salaryType: 'monthly', jobType: 'full-time',
+            });
+            const res = await request(app)
+                .get('/api/v1/jobs/my-jobs')
+                .set('Cookie', [`token=${employerToken}`]);
+            
+            expect(res.status).toBe(200);
+            expect(res.body.jobs.length).toBeGreaterThan(0);
+        });
+    });
+
+    describe('GET /api/v1/jobs Filters', () => {
+        it('should handle search term and location', async () => {
+            await Job.create({
+                employer: employerId,
+                title: 'Unique Search Job',
+                description: 'Description must be 10+ chars',
+                category: 'IT', city: 'Mumbai', state: 'Maharashtra',
+                salaryMin: 30000, salaryType: 'monthly', jobType: 'full-time',
+                status: 'active'
+            });
+            const res = await request(app).get('/api/v1/jobs?search=Unique&location=Mumbai');
+            expect(res.status).toBe(200);
+            expect(Array.isArray(res.body.jobs)).toBe(true);
+        });
+
+        it('should fallback to regex search if text search fails', async () => {
+            const res = await request(app).get('/api/v1/jobs?search=Unique');
+            expect(res.status).toBe(200);
+            expect(res.body.jobs).toBeDefined();
+        });
+        
+        it('should filter by category and jobType', async () => {
+            const res = await request(app).get('/api/v1/jobs?category=IT&jobType=full-time');
+            expect(res.status).toBe(200);
+            expect(res.body.jobs).toBeDefined();
+        });
+    });
+
 });

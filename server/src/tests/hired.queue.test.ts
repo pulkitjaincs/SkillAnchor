@@ -71,11 +71,12 @@ describe('BullMQ Worker - Hired Flow', () => {
         expect(profile?.currentlyEmployed).toBe(true);
         expect(profile?.workHistory).toHaveLength(1);
 
-        // Fetch the experience (model uses 'role' and 'companyName')
         const experience = (await WorkExperience.findById(profile?.workHistory[0])) as unknown as IWorkExperience;
         expect(experience?.role).toBe('Test Role');
         expect(experience?.companyName).toBe('Test Corp');
         expect(experience?.worker.toString()).toBe(workerId);
         expect(experience?.isVerified).toBe(true);
+
+        hiredWorker.removeAllListeners();
     }, 15000);
 });

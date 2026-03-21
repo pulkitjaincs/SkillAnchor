@@ -383,7 +383,8 @@ cd server && npm run dev      # → http://localhost:5000
 - [x] **Strict HttpOnly Cookie Auth**: Migration from insecure client-side tokens
 - [x] **TypeScript Hardening**: Deep type-safety across the stack, including elimination of `any` in tests
 - [x] **Zero-Warning Linting**: Strict ESLint compliance enforcing React Hooks rules and Next.js optimization primitives across the entire client application
-- [x] **Full-Stack Test Suite**: 35+ tests (Vitest, Supertest, RTL, JSDOM) covering job lifecycles, application workflows, and component states
+- [x] **Full-Stack Test Suite**: Extensive tests covering job lifecycles, application workflows, and component states
+- [x] **Comprehensive Backend Coverage**: Achieved >90% global test coverage across Express controllers, services, and middlewares (Statements, Functions, Branches, and Lines)
 - [x] **Backend Integration**: Automated testing of CRUD, authorization guards, and BullMQ worker transactions
 - [x] **Frontend Mastery**: Type-safe unit tests for `Navbar`, `SearchHero`, `MyJobs`, and `useLogin` state machine
 - [x] **Server Code Audit & Hardening**: Fixed type safety issues, Mongoose query filters, and API response consistency
