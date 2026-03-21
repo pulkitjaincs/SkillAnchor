@@ -6,7 +6,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useForm } from '@/hooks';
 import { Button } from '@/components/common/FormComponents';
 
-import { useProfile, useUpdateProfile, useUploadAvatar } from '@/hooks/queries/useProfile';
+import { useProfile, useUpdateProfile, useUpdateAvatarUrl } from '@/hooks/queries/useProfile';
+import { uploadFileToS3 } from '@/utils/s3';
 
 import EditProfile_Basics from '@/components/profile-edit/EditProfile_Basics';
 import EditProfile_Location from '@/components/profile-edit/EditProfile_Location';
@@ -34,7 +35,7 @@ export default function EditProfileClient() {
 
     const { data: profile, isLoading: fetching } = useProfile();
     const updateMutation = useUpdateProfile();
-    const uploadAvatarMutation = useUploadAvatar();
+    const updateAvatarUrlMutation = useUpdateAvatarUrl();
 
     const {
         values: formData,
@@ -44,7 +45,8 @@ export default function EditProfileClient() {
         name: '', gender: '', dob: '', phone: '', whatsapp: '', email: '',
         city: '', state: '', pincode: '', bio: '', languages: '', skills: '',
         expectedSalaryMin: '', expectedSalaryMax: '', expectedSalaryType: 'monthly',
-        aadhaarNumber: '', panNumber: '', licenseNumber: '', designation: '', isHiringManager: false
+        aadhaarNumber: '', panNumber: '', licenseNumber: '', designation: '', isHiringManager: false,
+        isAvatarHidden: false
     });
 
     useEffect(() => {
@@ -63,42 +65,58 @@ export default function EditProfileClient() {
                 bio: profile.bio || '',
                 languages: profile.languages?.join(', ') || '',
                 skills: profile.skills?.join(', ') || '',
-                expectedSalaryMin: profile.expectedSalary?.min || '',
-                expectedSalaryMax: profile.expectedSalary?.max || '',
+                expectedSalaryMin: String(profile.expectedSalary?.min || ''),
+                expectedSalaryMax: String(profile.expectedSalary?.max || ''),
                 expectedSalaryType: profile.expectedSalary?.type || 'monthly',
                 aadhaarNumber: profile.documents?.aadhaar?.number || '',
                 panNumber: profile.documents?.pan?.number || '',
                 licenseNumber: profile.documents?.license?.number || '',
                 designation: profile.designation || '',
-                isHiringManager: profile.isHiringManager || false
+                isHiringManager: profile.isHiringManager || false,
+                isAvatarHidden: profile.isAvatarHidden || false
             });
-            if (profile.avatar) setAvatar(profile.avatar);
+            if (profile.avatarUrl || profile.avatar) setAvatar(profile.avatarUrl || profile.avatar || null);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [profile]);
 
-    const handleAvatarUpload = async (e: any) => {
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
         try {
-            const fd = new FormData();
-            fd.append('avatar', file);
-            const { data } = await uploadAvatarMutation.mutateAsync(fd);
-            setAvatar(data.avatar);
+            const { key } = await uploadFileToS3(file, 'avatars');
+            const { data } = await updateAvatarUrlMutation.mutateAsync(key);
+            const avatarUrl = (data.data as unknown as { avatarUrl?: string })?.avatarUrl;
+            setAvatar(avatarUrl || null);
+            updateUserData({ avatar: avatarUrl });
         } catch (err) {
+            console.error('Upload error:', err);
             alert('Failed to upload photo');
+        }
+    };
+
+    const handleAvatarRemove = async () => {
+        if (!confirm("Are you sure you want to remove your profile photo?")) return;
+        try {
+            await updateAvatarUrlMutation.mutateAsync('');
+            setAvatar('');
+            updateUserData({ avatar: undefined });
+        } catch (err) {
+            console.error('Remove error:', err);
+            alert('Failed to remove photo');
         }
     };
 
     const handleSubmit = async (shouldNavigate = true) => {
         try {
-            let payload: any;
+            let payload: Record<string, unknown>;
             if (isEmployer) {
                 payload = {
                     name: formData.name,
                     whatsapp: formData.whatsapp,
                     designation: formData.designation,
-                    isHiringManager: formData.isHiringManager
+                    isHiringManager: formData.isHiringManager,
+                    isAvatarHidden: formData.isAvatarHidden
                 };
             } else {
                 payload = {
@@ -123,7 +141,8 @@ export default function EditProfileClient() {
                         aadhaar: { number: formData.aadhaarNumber },
                         pan: { number: formData.panNumber },
                         license: { number: formData.licenseNumber }
-                    }
+                    },
+                    isAvatarHidden: formData.isAvatarHidden
                 };
             }
             await updateMutation.mutateAsync(payload);
@@ -134,14 +153,19 @@ export default function EditProfileClient() {
             } else {
                 alert("Progress saved successfully!");
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { message?: string } } };
             console.error("Save failed", err);
-            alert(err.response?.data?.message || "Failed to save profile.");
+            alert(axiosErr.response?.data?.message || "Failed to save profile.");
         }
     };
 
     const nextStep = () => currentStep < totalSteps && setCurrentStep(currentStep + 1);
     const prevStep = () => currentStep > 1 && setCurrentStep(currentStep - 1);
+
+    const basicsHandleChange = handleChange as Parameters<typeof import('@/components/profile-edit/EditProfile_Basics').default>[0]['handleChange'];
+
+    const basicsUser = (authUser ?? {}) as Parameters<typeof import('@/components/profile-edit/EditProfile_Basics').default>[0]['user'];
 
     if (fetching) {
         return (
@@ -235,12 +259,13 @@ export default function EditProfileClient() {
                     {currentStep === 1 && (
                         <EditProfile_Basics
                             formData={formData}
-                            handleChange={handleChange}
-                            user={authUser}
+                            handleChange={basicsHandleChange}
+                            user={basicsUser}
                             isEmployer={isEmployer}
                             avatar={avatar}
-                            uploadingAvatar={uploadAvatarMutation.isPending}
+                            uploadingAvatar={updateAvatarUrlMutation.isPending}
                             handleAvatarUpload={handleAvatarUpload}
+                            handleAvatarRemove={handleAvatarRemove}
                             fileInputRef={fileInputRef}
                             navigate={navigate}
                         />
@@ -249,7 +274,8 @@ export default function EditProfileClient() {
                     {currentStep === 2 && (
                         <EditProfile_Location
                             formData={formData}
-                            handleChange={handleChange}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            handleChange={handleChange as any}
                             navigate={navigate}
                         />
                     )}
@@ -257,15 +283,18 @@ export default function EditProfileClient() {
                     {currentStep === 3 && (
                         <EditProfile_Skills
                             formData={formData}
-                            handleChange={handleChange}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            handleChange={handleChange as any}
                         />
                     )}
 
                     {currentStep === 4 && (
                         <EditProfile_Finish
                             formData={formData}
-                            handleChange={handleChange}
-                            setValues={setValues}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            handleChange={handleChange as any}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            setValues={setValues as any}
                         />
                     )}
                 </div>

@@ -2,16 +2,24 @@ import { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getInitials } from '@/utils/index';
+import { Profile } from '@/types';
 
 const avatarContainerStyle = {
     width: '120px', height: '120px',
     background: 'linear-gradient(135deg, var(--primary-100), var(--zinc-100))'
 };
-const avatarImgStyle = { width: '100%', height: '100%', objectFit: 'cover' } as any;
 const verifiedBadgeStyle = { width: '32px', height: '32px' };
 const editBtnStyle = { background: 'var(--text-main)', color: 'var(--bg-body)' };
 
-const ProfileHeader = memo(({ profile, isOwnProfile, isEmployer, completionPercent, getAge }: any) => (
+interface ProfileHeaderProps {
+    profile: Profile;
+    isOwnProfile: boolean;
+    isEmployer: boolean;
+    completionPercent: number;
+    getAge: (dob: string) => number;
+}
+
+const ProfileHeader = memo(({ profile, isOwnProfile, isEmployer, completionPercent, getAge }: ProfileHeaderProps) => (
     <>
         {isOwnProfile && !isEmployer && completionPercent < 100 && (
             <div className="alert mb-4 d-flex align-items-center justify-content-between"
@@ -35,13 +43,16 @@ const ProfileHeader = memo(({ profile, isOwnProfile, isEmployer, completionPerce
                 <div className="d-flex flex-column flex-md-row align-items-start gap-4">
                     <div className="position-relative">
                         <div className="rounded-circle d-flex align-items-center justify-content-center overflow-hidden position-relative" style={avatarContainerStyle}>
-                            {profile.avatar ? (
-                                <Image src={profile.avatar} alt={profile.name} fill sizes="120px" className="rounded-circle" style={{ objectFit: 'cover' }} />
-                            ) : (
-                                <span className="fw-bold" style={{ fontSize: '48px', color: 'var(--text-main)' }}>
-                                    {getInitials(profile.name)}
-                                </span>
-                            )}
+                            {(() => {
+                                const src = profile.avatarUrl || profile.avatar;
+                                return src?.startsWith('http') ? (
+                                    <Image src={src} alt={profile.name} fill sizes="120px" className="rounded-circle" style={{ objectFit: 'cover' }} />
+                                ) : (
+                                    <span className="fw-bold" style={{ fontSize: '48px', color: 'var(--text-main)' }}>
+                                        {getInitials(profile.name)}
+                                    </span>
+                                );
+                            })()}
                         </div>
                         {profile.documents?.aadhaar?.verified && (
                             <div className="position-absolute bottom-0 end-0 bg-success rounded-circle d-flex align-items-center justify-content-center"
@@ -71,7 +82,7 @@ const ProfileHeader = memo(({ profile, isOwnProfile, isEmployer, completionPerce
                                 <>
                                     <i className="bi bi-geo-alt me-1"></i>{profile.city}, {profile.state}
                                     <span className="mx-2">•</span>
-                                    <i className="bi bi-calendar3 me-1"></i>{getAge(profile.dob)} years old
+                                    <i className="bi bi-calendar3 me-1"></i>{getAge(profile.dob ?? '')} years old
                                 </>
                             )}
                             <span className="mx-2">•</span>

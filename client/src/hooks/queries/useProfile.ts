@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery, InfiniteData } from '@tanstack/react-query';
 import { profileAPI, workExperienceAPI } from '@/lib/api';
 
 export const useProfile = (userId: string | null = null, options: { enabled?: boolean } = {}) => {
@@ -9,7 +9,7 @@ export const useProfile = (userId: string | null = null, options: { enabled?: bo
             const { data } = userId
                 ? await profileAPI.getByUserId(userId)
                 : await profileAPI.getMyProfile();
-            return data;
+            return data.data?.profile ?? null;
         },
         staleTime: 1000 * 60 * 15,
         retry: 1,
@@ -20,17 +20,17 @@ export const useProfile = (userId: string | null = null, options: { enabled?: bo
 export const useUpdateProfile = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (payload: any) => profileAPI.updateMyProfile(payload),
+        mutationFn: (payload: Record<string, unknown>) => profileAPI.updateMyProfile(payload),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['profile'] });
         },
     });
 };
 
-export const useUploadAvatar = () => {
+export const useUpdateAvatarUrl = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (formData: FormData) => profileAPI.uploadAvatar(formData),
+        mutationFn: (avatarKey: string) => profileAPI.updateAvatarUrl(avatarKey),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['profile'] });
         },
@@ -45,9 +45,10 @@ export const useMyTeam = () => {
             const { data } = await profileAPI.getMyTeam(params);
             return data;
         },
-        getNextPageParam: (lastPage: any) => {
-            if (lastPage.hasMore && lastPage.team.length > 0) {
-                return lastPage.team[lastPage.team.length - 1]._id;
+        getNextPageParam: (lastPage) => {
+            const page = lastPage as unknown as { hasMore: boolean; team: { _id: string }[] };
+            if (page.hasMore && page.team.length > 0) {
+                return page.team[page.team.length - 1]._id;
             }
             return undefined;
         },
@@ -65,20 +66,20 @@ export const useEndEmployment = () => {
 
             const previousTeam = queryClient.getQueryData(['my-team']);
 
-            queryClient.setQueryData(['my-team'], (old: any) => {
+            queryClient.setQueryData(['my-team'], (old: InfiniteData<{ team: { _id: string }[] }> | undefined) => {
                 if (!old) return old;
                 return {
                     ...old,
-                    pages: old.pages.map((page: any) => ({
+                    pages: old.pages.map((page) => ({
                         ...page,
-                        team: page.team.filter((member: any) => member._id !== id)
+                        team: page.team.filter((member) => member._id !== id)
                     }))
                 };
             });
 
             return { previousTeam };
         },
-        onError: (err, variables, context: any) => {
+        onError: (_err, _variables, context: { previousTeam: unknown } | undefined) => {
             if (context?.previousTeam) {
                 queryClient.setQueryData(['my-team'], context.previousTeam);
             }

@@ -47,10 +47,8 @@ export const useRegister = () => {
                     return;
                 }
                 const { data } = await authAPI.verifyOTP({ phone, role, name, otp });
-                if (data.token) {
-                    login(data.token, data.user);
-                    router.push('/');
-                }
+                login(data.user);
+                router.push('/');
             }
 
             if (registerMethod === 'email') {
@@ -66,13 +64,12 @@ export const useRegister = () => {
                     return;
                 }
                 const { data } = await authAPI.register({ email, role, name, password });
-                if (data.token) {
-                    login(data.token, data.user);
-                    router.push('/');
-                }
+                login(data.user);
+                router.push('/');
             }
-        } catch (err: any) {
-            setError(err.response?.data?.error || 'Failed to process request');
+        } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { error?: string } } };
+            setError(axiosErr.response?.data?.error || 'Failed to process request');
         } finally {
             setLoading(false);
         }

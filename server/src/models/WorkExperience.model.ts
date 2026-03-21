@@ -1,0 +1,104 @@
+import mongoose, { Document, Types } from "mongoose";
+
+export interface IWorkExperience extends Document {
+    worker: Types.ObjectId;
+    isVisible: boolean;
+    linkedApplication?: Types.ObjectId;
+    employer?: Types.ObjectId;
+    company?: Types.ObjectId;
+    companyName?: string;
+    role: string;
+    department?: string;
+    startDate: Date;
+    endDate?: Date;
+    isCurrent: boolean;
+    salary?: {
+        amount?: number;
+        type?: "monthly" | "daily";
+    };
+    description?: string;
+    skills: string[];
+    addedBy: "employer" | "worker";
+    isVerified: boolean;
+    verifiedAt?: Date;
+    rating?: number;
+    review?: string;
+}
+
+const WorkExperienceSchema = new mongoose.Schema<IWorkExperience>({
+    worker: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+    },
+    isVisible: {
+        type: Boolean,
+        default: true,
+    },
+    linkedApplication: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Application",
+    },
+    employer: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+    },
+    company: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Company",
+    },
+    companyName: String,
+    role: {
+        type: String,
+        required: true,
+    },
+    department: String,
+    startDate: {
+        type: Date,
+        required: true,
+    },
+    endDate: Date,
+    isCurrent: {
+        type: Boolean,
+        default: false,
+    },
+    salary: {
+        amount: Number,
+        type: {
+            type: String,
+            enum: ["monthly", "daily"],
+        },
+    },
+    description: {
+        type: String,
+        maxlength: 1000,
+    },
+    skills: [String],
+    addedBy: {
+        type: String,
+        enum: ["employer", "worker"],
+        required: true,
+    },
+    isVerified: {
+        type: Boolean,
+        default: false,
+    },
+    verifiedAt: Date,
+    rating: {
+        type: Number,
+        min: 1,
+        max: 5,
+    },
+    review: {
+        type: String,
+        maxlength: 500,
+    },
+}, { timestamps: true });
+
+WorkExperienceSchema.index({ worker: 1, isVerified: 1 });
+WorkExperienceSchema.index({ worker: 1, isVisible: 1, startDate: -1 });
+WorkExperienceSchema.index({ company: 1 });
+WorkExperienceSchema.index({ employer: 1 });
+
+const WorkExperience = mongoose.model<IWorkExperience>("WorkExperience", WorkExperienceSchema);
+export default WorkExperience;

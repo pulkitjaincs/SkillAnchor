@@ -1,6 +1,7 @@
 import { InputField, TextAreaField } from '@/components/common/FormComponents';
 
-export default function EditProfile_Skills({ formData, handleChange }: any) {
+interface SkillsFormData { bio?: string; skills?: string; languages?: string; }
+export default function EditProfile_Skills({ formData, handleChange }: { formData: SkillsFormData; handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void }) {
     return (
         <div>
             <h4 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>Tell us about your skills</h4>

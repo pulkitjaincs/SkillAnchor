@@ -50,6 +50,10 @@
     transition: background-color 0.25s ease, color 0.25s ease;
 }
 
+[data-theme="dark"] .auth-toggle-btn {
+    color: var(--zinc-400);
+}
+
 .auth-toggle-btn.active {
     background: var(--auth-btn-bg) !important;
     color: var(--auth-btn-text) !important;
@@ -105,6 +109,11 @@
 
 .auth-form-control:focus {
     background: var(--bg-surface) !important;
+    border-color: var(--primary-500) !important;
+}
+
+.auth-form-control:focus + .auth-input-group-text,
+.auth-input-group-text:has(+ .auth-form-control:focus) {
     border-color: var(--primary-500) !important;
 }
 

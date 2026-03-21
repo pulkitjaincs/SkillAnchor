@@ -48,16 +48,16 @@ export default function EditJobPage() {
                 city: job.city || '',
                 state: job.state || '',
                 locality: job.locality || '',
-                salaryMin: job.salaryMin || '',
-                salaryMax: job.salaryMax || '',
+                salaryMin: String(job.salaryMin ?? ''),
+                salaryMax: String(job.salaryMax ?? ''),
                 salaryType: job.salaryType || 'monthly',
                 jobType: job.jobType || 'full-time',
                 shift: job.shift || 'day',
-                experienceMin: job.experienceMin || 0,
+                experienceMin: String(job.experienceMin ?? 0),
                 skills: job.skills?.join(', ') || '',
                 gender: job.gender || 'any',
                 benefits: job.benefits?.join(', ') || '',
-                vacancies: job.vacancies || 1,
+                vacancies: String(job.vacancies ?? 1),
                 status: job.status || 'active'
             });
         }
@@ -76,10 +76,11 @@ export default function EditJobPage() {
                 experienceMin: Number(formData.experienceMin),
                 vacancies: Number(formData.vacancies)
             };
-            await updateMutation.mutateAsync({ id, data: jobData });
+            await updateMutation.mutateAsync({ id, data: jobData as Partial<import('@/types').Job> });
             router.push('/my-jobs');
-        } catch (err: any) {
-            setError(err.response?.data?.message || err.response?.data?.error || 'Failed to update job');
+        } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { message?: string; error?: string } } };
+            setError(axiosErr.response?.data?.message || axiosErr.response?.data?.error || 'Failed to update job');
         }
     };
 

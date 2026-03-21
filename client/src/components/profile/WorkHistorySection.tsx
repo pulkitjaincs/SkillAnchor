@@ -1,9 +1,17 @@
 import { memo } from 'react';
 import { formatDate } from '@/utils/index';
+import { WorkExperience } from '@/types';
 
 const cardStyle = { borderRadius: '20px', background: 'var(--bg-card)' };
 
-const WorkHistorySection = memo(({ workHistory, isOwnProfile, onAddClick, onExpClick }: any) => (
+interface WorkHistorySectionProps {
+    workHistory: WorkExperience[];
+    isOwnProfile: boolean;
+    onAddClick: () => void;
+    onExpClick: (exp: WorkExperience) => void;
+}
+
+const WorkHistorySection = memo(({ workHistory, isOwnProfile, onAddClick, onExpClick }: WorkHistorySectionProps) => (
     <div className="card border-0 shadow-sm mb-4" style={cardStyle}>
         <div className="card-body p-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -22,7 +30,7 @@ const WorkHistorySection = memo(({ workHistory, isOwnProfile, onAddClick, onExpC
                     [...workHistory]
                         .filter(exp => exp.isVisible || isOwnProfile)
                         .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
-                        .map((exp: any) => (
+                        .map((exp: WorkExperience) => (
                             <div key={exp._id} className="p-3 rounded-3"
                                 style={{
                                     background: 'var(--bg-surface)',

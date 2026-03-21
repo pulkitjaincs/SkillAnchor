@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -20,8 +20,14 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "SkillAnchor - Find Local Jobs & Workers",
-  description: "The modern hiring platform for skilled and hourly workers.",
+  title: {
+    default: "SkillAnchor | Better Jobs, Faster",
+    template: "%s | SkillAnchor",
+  },
+  description: "SkillAnchor - The modern job platform for skilled workers and employers.",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -35,7 +41,9 @@ export default function RootLayout({
         <div className="d-flex flex-column" style={{ minHeight: "100vh", backgroundColor: "var(--bg-body)" }}>
           <Providers>
             <Navbar />
-            {children}
+            <main className="flex-grow-1" style={{ paddingTop: '88px' }}>
+              {children}
+            </main>
             <Footer />
           </Providers>
         </div>

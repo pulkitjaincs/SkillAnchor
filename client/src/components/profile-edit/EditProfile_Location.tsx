@@ -1,6 +1,7 @@
 import { InputField } from '@/components/common/FormComponents';
 
-export default function EditProfile_Location({ formData, handleChange, navigate }: any) {
+interface LocationFormData { city?: string; state?: string; pincode?: string; }
+export default function EditProfile_Location({ formData, handleChange, navigate }: { formData: LocationFormData; handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void; navigate: (path: string) => void }) {
     return (
         <div>
             <h4 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>Where are you located?</h4>

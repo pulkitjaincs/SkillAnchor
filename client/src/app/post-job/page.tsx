@@ -12,6 +12,10 @@ export default function PostJobPage() {
     const router = useRouter();
     const [error, setError] = useState('');
     const createMutation = useCreateJob();
+
+    React.useEffect(() => {
+        document.title = 'Post a Job | SkillAnchor';
+    }, []);
     const { values: formData, handleChange } = useForm({
         title: '',
         description: '',
@@ -43,10 +47,11 @@ export default function PostJobPage() {
                 experienceMin: Number(formData.experienceMin),
                 vacancies: Number(formData.vacancies)
             };
-            await createMutation.mutateAsync(jobData);
+            await createMutation.mutateAsync(jobData as Partial<import('@/types').Job>);
             router.push('/');
-        } catch (err: any) {
-            setError(err.response?.data?.message || err.response?.data?.error || 'Failed to post job');
+        } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { message?: string; error?: string } } };
+            setError(axiosErr.response?.data?.message || axiosErr.response?.data?.error || 'Failed to post job');
         }
     };
 

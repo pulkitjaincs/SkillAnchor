@@ -5,6 +5,7 @@ import { Virtuoso } from 'react-virtuoso';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useJobDetails, useJobApplicants, useUpdateApplicationStatus } from '@/hooks/queries/useApplications';
+import { Application, PaginatedApplicationsResponse } from '@/types';
 
 export default function JobApplicantsPage() {
     const params = useParams();
@@ -21,7 +22,7 @@ export default function JobApplicantsPage() {
     } = useJobApplicants(jobId);
 
     const applications = useMemo(() => {
-        return applicantsData?.pages?.flatMap((page: any) => page.applications) || [];
+        return applicantsData?.pages?.flatMap((page: PaginatedApplicationsResponse) => page.applications) || [];
     }, [applicantsData]);
     const updateStatusMutation = useUpdateApplicationStatus();
 
@@ -34,7 +35,7 @@ export default function JobApplicantsPage() {
         }
         try {
             await updateStatusMutation.mutateAsync({ appId, status: newStatus });
-        } catch (error) {
+        } catch {
             alert("Failed to update status");
         }
     };
@@ -95,7 +96,7 @@ export default function JobApplicantsPage() {
                         endReached={() => {
                             if (hasNextPage) fetchNextPage();
                         }}
-                        itemContent={(index, app: any) => (
+                        itemContent={(index, app: Application) => (
                             <div className="p-4 mb-3"
                                 style={{
                                     background: 'var(--bg-card)',
@@ -105,17 +106,22 @@ export default function JobApplicantsPage() {
                                 <div className="row align-items-center">
                                     <div className="col-lg-5 mb-3 mb-lg-0">
                                         <div className="d-flex align-items-center gap-3">
-                                            <div className="d-flex align-items-center justify-content-center rounded-circle"
+                                            <div className="d-flex align-items-center justify-content-center rounded-circle overflow-hidden"
                                                 style={{
                                                     width: '48px',
                                                     height: '48px',
-                                                    background: 'var(--primary-500)',
+                                                    background: app.applicant?.avatarUrl ? 'transparent' : 'var(--primary-500)',
                                                     color: 'white',
                                                     fontWeight: 'bold',
                                                     fontSize: '1.1rem',
                                                     flexShrink: 0
                                                 }}>
-                                                {app.applicant?.name?.charAt(0).toUpperCase() || '?'}
+                                                {app.applicant?.avatarUrl ? (
+                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                    <img src={app.applicant.avatarUrl} alt={app.applicant?.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                ) : (
+                                                    app.applicant?.name?.charAt(0).toUpperCase() || '?'
+                                                )}
                                             </div>
                                             <div>
                                                 <Link href={`/profile/${app.applicant?._id}?fromJob=${jobId}`} className="text-decoration-none">
@@ -139,7 +145,7 @@ export default function JobApplicantsPage() {
                                             {getStatusBadge(app.status)}
                                             <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                                                 <i className="bi bi-calendar3 me-1"></i>
-                                                {new Date(app.appliedAt).toLocaleDateString('en-GB')}
+                                                {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString('en-GB') : '—'}
                                             </span>
                                         </div>
                                     </div>
@@ -148,7 +154,7 @@ export default function JobApplicantsPage() {
                                             <select
                                                 value={app.status}
                                                 onChange={(e) => handleStatusChange(app._id, e.target.value)}
-                                                disabled={(updateStatusMutation.isPending && (updateStatusMutation.variables as any)?.appId === app._id) ||
+                                                disabled={(updateStatusMutation.isPending && (updateStatusMutation.variables as { appId: string })?.appId === app._id) ||
                                                     app.status === 'hired' ||
                                                     app.status === 'employment-ended'}
                                                 className="form-select form-select-sm rounded-3"

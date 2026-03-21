@@ -19,7 +19,7 @@ export default function NotFound() {
                     Page Not Found
                 </h1>
                 <p className="mx-auto mb-4" style={{ color: 'var(--text-muted)', fontSize: '1.1rem', maxWidth: '400px' }}>
-                    Oops! The page you're looking for doesn't exist or has been moved.
+                    Oops! The page you&apos;re looking for doesn&apos;t exist or has been moved.
                 </p>
 
                 <Link

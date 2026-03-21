@@ -19,6 +19,7 @@ dist-ssr
 /build
 .next/
 out/
+coverage/
 *.tsbuildinfo
 next-env.d.ts
 
@@ -41,10 +42,9 @@ next-env.d.ts
 *.sw?
 
 # Project Specific
-prompt.md
 build.log
 bundle-analysis.html
 project_interview_guide.md
-IMPLEMENTATION_PLAN.md
 .agent/instructions.md
 .agent/DesignInstructions.md
+plan.md

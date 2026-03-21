@@ -2,25 +2,31 @@
 
 import { Suspense, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useLogin } from '@/hooks/ui/useLogin';
+import BrandLogo from '@/components/common/BrandLogo';
 import '../AuthPages.css';
 
 function LoginPageContent() {
     const { user } = useAuth();
-    const router = useRouter();
     const {
         loginMethod, setLoginMethod,
         emailMethod, setEmailMethod,
-        otpSent, setOtpSent,
+        otpSent,
         phone, setPhone,
         otp, setOtp,
         email, setEmail,
         password, setPassword,
         error, loading,
-        resetState, handleLogin, getButtonText, redirect
+        isNewUser,
+        name, setName,
+        role, setRole,
+        resetState, handleLogin, getButtonText, redirect, router
     } = useLogin();
+
+    useEffect(() => {
+        document.title = 'Login | SkillAnchor';
+    }, []);
 
     useEffect(() => {
         if (user) {
@@ -37,8 +43,8 @@ function LoginPageContent() {
                     <div className="card border-0 shadow-lg auth-card">
 
                         <div className="text-center pt-5 pb-4 px-4 auth-header">
-                            <div className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 auth-header-icon">
-                                <span className="fw-bold fs-3">S</span>
+                            <div className="d-inline-flex align-items-center justify-content-center mb-4">
+                                <BrandLogo className="w-20 h-20" iconSize={64} />
                             </div>
                             <h2 className="fw-bold mb-1 auth-header-title">Welcome Back</h2>
                             <p className="mb-0 auth-header-subtitle">Sign in to find your next opportunity</p>
@@ -85,18 +91,45 @@ function LoginPageContent() {
                                         </div>
 
                                         {otpSent && (
-                                            <div className="mb-4">
-                                                <label className="form-label fw-medium small text-uppercase auth-form-label">Enter OTP</label>
-                                                <input
-                                                    type="text"
-                                                    className="form-control border-0 py-3 auth-form-control auth-otp-input"
-                                                    placeholder="6-digit OTP"
-                                                    maxLength={6}
-                                                    value={otp}
-                                                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                                />
-                                                <button type="button" className="btn btn-link p-0 mt-2 text-decoration-none auth-link fs-sm" onClick={resetState}>Change number</button>
-                                            </div>
+                                            <>
+                                                {isNewUser && (
+                                                    <>
+                                                        <div className="mb-4">
+                                                            <label className="form-label fw-medium small text-uppercase auth-form-label">Full Name</label>
+                                                            <input
+                                                                type="text"
+                                                                className="form-control border-0 py-3 auth-form-control"
+                                                                placeholder="John Doe"
+                                                                value={name}
+                                                                onChange={(e) => setName(e.target.value)}
+                                                            />
+                                                        </div>
+                                                        <div className="mb-4">
+                                                            <label className="form-label fw-medium small text-uppercase auth-form-label">I am a</label>
+                                                            <select
+                                                                className="form-select border-0 py-3 auth-form-control"
+                                                                value={role}
+                                                                onChange={(e) => setRole(e.target.value as 'worker' | 'employer')}
+                                                            >
+                                                                <option value="worker">Job Seeker (Worker)</option>
+                                                                <option value="employer">Employer / Recruiter</option>
+                                                            </select>
+                                                        </div>
+                                                    </>
+                                                )}
+                                                <div className="mb-4">
+                                                    <label className="form-label fw-medium small text-uppercase auth-form-label">Enter OTP</label>
+                                                    <input
+                                                        type="text"
+                                                        className="form-control border-0 py-3 auth-form-control auth-otp-input"
+                                                        placeholder="6-digit OTP"
+                                                        maxLength={6}
+                                                        value={otp}
+                                                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                                    />
+                                                    <button type="button" className="btn btn-link p-0 mt-2 text-decoration-none auth-link fs-sm" onClick={resetState}>Change number</button>
+                                                </div>
+                                            </>
                                         )}
                                     </>
                                 )}
@@ -149,18 +182,45 @@ function LoginPageContent() {
 
                                         {/* Email OTP input */}
                                         {emailMethod === 'otp' && otpSent && (
-                                            <div className="mb-4">
-                                                <label className="form-label fw-medium small text-uppercase auth-form-label">Enter OTP</label>
-                                                <input
-                                                    type="text"
-                                                    className="form-control border-0 py-3 auth-form-control auth-otp-input"
-                                                    placeholder="6-digit OTP"
-                                                    maxLength={6}
-                                                    value={otp}
-                                                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                                />
-                                                <button type="button" className="btn btn-link p-0 mt-2 text-decoration-none auth-link fs-sm" onClick={resetState}>Change email</button>
-                                            </div>
+                                            <>
+                                                {isNewUser && (
+                                                    <>
+                                                        <div className="mb-4">
+                                                            <label className="form-label fw-medium small text-uppercase auth-form-label">Full Name</label>
+                                                            <input
+                                                                type="text"
+                                                                className="form-control border-0 py-3 auth-form-control"
+                                                                placeholder="John Doe"
+                                                                value={name}
+                                                                onChange={(e) => setName(e.target.value)}
+                                                            />
+                                                        </div>
+                                                        <div className="mb-4">
+                                                            <label className="form-label fw-medium small text-uppercase auth-form-label">I am a</label>
+                                                            <select
+                                                                className="form-select border-0 py-3 auth-form-control"
+                                                                value={role}
+                                                                onChange={(e) => setRole(e.target.value as 'worker' | 'employer')}
+                                                            >
+                                                                <option value="worker">Job Seeker (Worker)</option>
+                                                                <option value="employer">Employer / Recruiter</option>
+                                                            </select>
+                                                        </div>
+                                                    </>
+                                                )}
+                                                <div className="mb-4">
+                                                    <label className="form-label fw-medium small text-uppercase auth-form-label">Enter OTP</label>
+                                                    <input
+                                                        type="text"
+                                                        className="form-control border-0 py-3 auth-form-control auth-otp-input"
+                                                        placeholder="6-digit OTP"
+                                                        maxLength={6}
+                                                        value={otp}
+                                                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                                    />
+                                                    <button type="button" className="btn btn-link p-0 mt-2 text-decoration-none auth-link fs-sm" onClick={resetState}>Change email</button>
+                                                </div>
+                                            </>
                                         )}
                                     </>
                                 )}

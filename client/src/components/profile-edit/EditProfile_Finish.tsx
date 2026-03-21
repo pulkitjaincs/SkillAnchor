@@ -1,6 +1,7 @@
 import { InputField, SelectField } from '@/components/common/FormComponents';
 
-export default function EditProfile_Finish({ formData, handleChange, setValues }: any) {
+interface FinishFormData { expectedSalaryMin?: string; expectedSalaryMax?: string; expectedSalaryType?: string; aadhaarNumber?: string; panNumber?: string; licenseNumber?: string; [key: string]: unknown; }
+export default function EditProfile_Finish({ formData, handleChange, setValues }: { formData: FinishFormData; handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void; setValues: (v: FinishFormData) => void }) {
     return (
         <div>
             <h4 className="fw-bold mb-4" style={{ color: 'var(--text-main)' }}>Almost done!</h4>
@@ -34,7 +35,7 @@ export default function EditProfile_Finish({ formData, handleChange, setValues }
                     <InputField
                         name="aadhaarNumber"
                         value={formData.aadhaarNumber}
-                        onChange={(e: any) => setValues({ ...formData, aadhaarNumber: e.target.value.replace(/\D/g, '').slice(0, 12) })}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValues({ ...formData, aadhaarNumber: e.target.value.replace(/\D/g, '').slice(0, 12) })}
                         maxLength={12}
                         placeholder="Aadhaar (12 digits)"
                     />

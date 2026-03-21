@@ -13,6 +13,9 @@ export const useLogin = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isNewUser, setIsNewUser] = useState(false);
+    const [name, setName] = useState('');
+    const [role, setRole] = useState<'worker' | 'employer'>('worker');
 
     const searchParams = useSearchParams();
     const redirect = searchParams.get('redirect') || '/';
@@ -24,6 +27,7 @@ export const useLogin = () => {
         setOtpSent(false);
         setOtp('');
         setError('');
+        setIsNewUser(false);
     };
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -39,7 +43,8 @@ export const useLogin = () => {
                     return;
                 }
                 if (!otpSent) {
-                    await authAPI.sendOTP({ phone });
+                    const { data } = await authAPI.sendOTP({ phone });
+                    setIsNewUser(data.isNewUser);
                     setOtpSent(true);
                     setLoading(false);
                     return;
@@ -49,11 +54,19 @@ export const useLogin = () => {
                     setLoading(false);
                     return;
                 }
-                const { data } = await authAPI.verifyOTP({ phone, otp });
-                if (data.token) {
-                    login(data.token, data.user);
-                    router.push(redirect);
+                const payload: { phone: string; otp: string; name?: string; role?: string } = { phone, otp };
+                if (isNewUser) {
+                    if (!name.trim()) {
+                        setError('Please enter your full name');
+                        setLoading(false);
+                        return;
+                    }
+                    payload.name = name.trim();
+                    payload.role = role;
                 }
+                const { data } = await authAPI.verifyOTP(payload);
+                login(data.user);
+                router.push(redirect);
             }
 
             if (loginMethod === 'email') {
@@ -71,15 +84,14 @@ export const useLogin = () => {
                         return;
                     }
                     const { data } = await authAPI.login({ email, password });
-                    if (data.token) {
-                        login(data.token, data.user);
-                        router.push(redirect);
-                    }
+                    login(data.user);
+                    router.push(redirect);
                 }
 
                 if (emailMethod === 'otp') {
                     if (!otpSent) {
-                        await authAPI.sendOTP({ email });
+                        const { data } = await authAPI.sendOTP({ email });
+                        setIsNewUser(data.isNewUser);
                         setOtpSent(true);
                         setLoading(false);
                         return;
@@ -89,15 +101,24 @@ export const useLogin = () => {
                         setLoading(false);
                         return;
                     }
-                    const { data } = await authAPI.verifyOTP({ email, otp });
-                    if (data.token) {
-                        login(data.token, data.user);
-                        router.push(redirect);
+                    const payload: { email: string; otp: string; name?: string; role?: string } = { email, otp };
+                    if (isNewUser) {
+                        if (!name.trim()) {
+                            setError('Please enter your full name');
+                            setLoading(false);
+                            return;
+                        }
+                        payload.name = name.trim();
+                        payload.role = role;
                     }
+                    const { data } = await authAPI.verifyOTP(payload);
+                    login(data.user);
+                    router.push(redirect);
                 }
             }
-        } catch (err: any) {
-            setError(err.response?.data?.error || 'Something went wrong');
+        } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { error?: string } } };
+            setError(axiosErr.response?.data?.error || 'Something went wrong');
         } finally {
             setLoading(false);
         }
@@ -124,6 +145,9 @@ export const useLogin = () => {
         password, setPassword,
         error, setError,
         loading,
+        isNewUser,
+        name, setName,
+        role, setRole,
         resetState,
         handleLogin,
         getButtonText,

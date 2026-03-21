@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 /**
  * Custom hook for debouncing values (useful for search inputs)
  */
-export const useDebounce = <T extends (...args: any[]) => any>(callback: T, delay: number) => {
+export const useDebounce = <T extends (...args: Parameters<T>) => ReturnType<T>>(callback: T, delay: number) => {
     const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
 
     const debouncedCallback = useCallback((...args: Parameters<T>) => {
@@ -22,7 +22,7 @@ export const useDebounce = <T extends (...args: any[]) => any>(callback: T, dela
 /**
  * Custom hook for handling form state
  */
-export const useForm = <T extends Record<string, any>>(initialValues: T) => {
+export const useForm = <T extends Record<string, unknown>>(initialValues: T) => {
     const [values, setValues] = useState<T>(initialValues);
     const [errors, setErrors] = useState<Record<string, string | null>>({});
     const [loading, setLoading] = useState(false);
@@ -40,7 +40,7 @@ export const useForm = <T extends Record<string, any>>(initialValues: T) => {
         }
     };
 
-    const setValue = (name: keyof T, value: any) => {
+    const setValue = (name: keyof T, value: T[keyof T]) => {
         setValues(prev => ({ ...prev, [name]: value }));
     };
 

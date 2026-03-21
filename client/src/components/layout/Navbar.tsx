@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState, useEffect, useRef, useMemo, Suspense } from "react";
@@ -6,8 +7,9 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, MapPin, Menu, Sun, Moon, Monitor, ChevronDown, User, Settings, LogOut, X } from "lucide-react";
+import BrandLogo from "@/components/common/BrandLogo";
 
-function NavbarContent({ name }: { name?: string }) {
+function NavbarContent() {
   const { user: authUser, logout } = useAuth();
 
   const profile = null;
@@ -40,13 +42,15 @@ function NavbarContent({ name }: { name?: string }) {
   const showCompactSearch = isHomePage && !heroVisible;
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCompactSearch(searchParams.get('search') || '');
     setCompactLocation(searchParams.get('location') || '');
   }, [searchParams]);
 
   useEffect(() => {
-    const handler = (e: any) => setHeroVisible(e.detail?.visible ?? true);
+    const handler = (e: Event) => setHeroVisible((e as CustomEvent<{ visible: boolean }>).detail?.visible ?? true);
     window.addEventListener('hero-visibility', handler);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!isHomePage) setHeroVisible(true);
     return () => window.removeEventListener('hero-visibility', handler);
   }, [isHomePage]);
@@ -147,9 +151,7 @@ function NavbarContent({ name }: { name?: string }) {
         {/* LOGO */}
         <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
           <Link href="/" className="flex items-center space-x-2 text-slate-900 dark:text-white no-underline">
-            <div className="flex items-center justify-center rounded-2xl w-8 h-8 bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md">
-              <span className="font-bold text-base -tracking-wider">S</span>
-            </div>
+            <BrandLogo iconSize={36} />
             <span className="font-bold tracking-tight text-lg">SkillAnchor</span>
           </Link>
         </motion.div>
@@ -304,10 +306,14 @@ function NavbarContent({ name }: { name?: string }) {
                 onClick={() => setDropdownOpen(!dropdownOpen)}
               >
                 <div 
-                  className="flex items-center justify-center rounded-xl w-8 h-8 font-bold text-white text-xs shadow-md shrink-0"
-                  style={{ background: user.avatar ? `url(${user.avatar}) center/cover` : 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+                  className="flex items-center justify-center rounded-xl w-8 h-8 font-bold text-white text-xs shadow-md shrink-0 overflow-hidden"
+                  style={{ background: user.avatar ? 'transparent' : 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
                 >
-                  {!user.avatar && user.name?.charAt(0)?.toUpperCase()}
+                  {user.avatar ? (
+                    <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                  ) : (
+                    user.name?.charAt(0)?.toUpperCase()
+                  )}
                 </div>
                 <span className="font-semibold text-sm tracking-tight text-slate-900 dark:text-white">
                   {user.name}
@@ -329,10 +335,14 @@ function NavbarContent({ name }: { name?: string }) {
                     <div className="relative mb-2 p-4 rounded-[16px] bg-indigo-500/5 dark:bg-indigo-500/10">
                       <div className="flex items-center gap-3">
                         <div 
-                          className="flex items-center justify-center rounded-2xl w-12 h-12 font-bold text-white text-lg shadow-lg shadow-indigo-500/30 shrink-0"
-                          style={{ background: user.avatar ? `url(${user.avatar}) center/cover` : 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+                          className="flex items-center justify-center rounded-2xl w-12 h-12 font-bold text-white text-lg shadow-lg shadow-indigo-500/30 shrink-0 overflow-hidden"
+                          style={{ background: user.avatar ? 'transparent' : 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
                         >
-                          {!user.avatar && user.name?.charAt(0)?.toUpperCase()}
+                          {user.avatar ? (
+                            <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                          ) : (
+                            user.name?.charAt(0)?.toUpperCase()
+                          )}
                         </div>
                         <div className="overflow-hidden">
                           <h6 className="m-0 font-bold text-base tracking-tight truncate text-slate-900 dark:text-white">{user.name}</h6>
@@ -467,10 +477,10 @@ function NavbarContent({ name }: { name?: string }) {
   );
 }
 
-export default function Navbar({ name }: { name?: string }) {
+export default function Navbar() {
   return (
     <Suspense fallback={<div className="h-[76px] w-full"></div>}>
-      <NavbarContent name={name} />
+      <NavbarContent />
     </Suspense>
   )
 }

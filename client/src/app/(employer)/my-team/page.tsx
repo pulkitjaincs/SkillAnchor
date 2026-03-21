@@ -1,11 +1,19 @@
 "use client";
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { VirtuosoGrid } from 'react-virtuoso';
 import { formatDate, getInitials } from '@/utils/index';
 import { useMyTeam, useEndEmployment } from '@/hooks/queries/useProfile';
+import { Profile } from '@/types';
+
+interface TeamMember {
+    _id: string;
+    worker?: Profile & { _id: string; name?: string; avatar?: string; phone?: string; };
+    role?: string;
+    startDate?: string;
+}
 
 export default function MyTeamPage() {
     const {
@@ -16,8 +24,12 @@ export default function MyTeamPage() {
         isFetchingNextPage
     } = useMyTeam();
 
+    useEffect(() => {
+        document.title = 'My Team | SkillAnchor';
+    }, []);
+
     const team = useMemo(() => {
-        return teamData?.pages?.flatMap((page: any) => page.team) || [];
+        return (teamData?.pages as unknown as { team: TeamMember[] }[])?.flatMap((page) => page.team) || [];
     }, [teamData]);
     const endEmploymentMutation = useEndEmployment();
 
@@ -25,7 +37,7 @@ export default function MyTeamPage() {
         if (!window.confirm("Are you sure you want to end this worker's employment?")) return;
         try {
             await endEmploymentMutation.mutateAsync(id);
-        } catch (err) {
+        } catch {
             alert("Failed to end employment");
         }
     };
@@ -84,7 +96,7 @@ export default function MyTeamPage() {
                         }}
                         listClassName="row g-4 m-0"
                         itemClassName="col-lg-4 col-md-6 pb-4"
-                        itemContent={(index, member: any) => (
+                        itemContent={(_index: number, member: TeamMember) => (
                             <div className="card h-100 border-0 shadow-sm overflow-hidden"
                                 style={{ borderRadius: '24px', background: 'var(--bg-card)' }}>
 
@@ -98,7 +110,7 @@ export default function MyTeamPage() {
                                                     {member.worker?.avatar ? (
                                                         <Image src={member.worker.avatar} alt={member.worker.name} fill sizes="64px" className="rounded-circle" style={{ objectFit: 'cover' }} />
                                                     ) : (
-                                                        <span className="fw-bold text-primary fs-5">{getInitials(member.worker?.name)}</span>
+                                                        <span className="fw-bold text-primary fs-5">{getInitials(member.worker?.name ?? '')}</span>
                                                     )}
                                                 </div>
                                                 <div className="position-absolute bottom-0 end-0 bg-success rounded-circle border border-white border-2"
