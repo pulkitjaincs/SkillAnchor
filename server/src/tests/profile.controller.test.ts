@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import app from '../app.js';
 import User, { IUser } from '../models/User.model.js';
@@ -6,6 +6,12 @@ import WorkerProfile from '../models/WorkerProfile.model.js';
 import EmployerProfile from '../models/EmployerProfile.model.js';
 import WorkExperience from '../models/WorkExperience.model.js';
 import { generateToken } from '../utils/generateToken.js';
+
+vi.mock('../config/s3.js', () => ({
+  generateReadSignedUrl: vi.fn().mockResolvedValue('https://mock-s3-url.com/avatar.jpg'),
+  deleteFromS3: vi.fn().mockResolvedValue(true)
+}));
+
 describe('Profile Controller Integration', () => {
     let workerToken: string, workerId: string;
     let employerToken: string, employerId: string;
