@@ -76,24 +76,24 @@ Express is configured with a unified error handling middleware (`src/middleware/
 
 ---
 
-## 🧪 5. Testing Infrastructure (Phase 3 Integration)
+## 🧪 5. Testing Infrastructure (Deep Integration)
 
-The platform is heavily tested using **Vitest**, providing a fast, isolated, and parallelized testing environment.
+The platform utilizes a comprehensive testing suite with **Vitest**, ensuring logic remains airtight across the stack.
 
 ### Backend (`server/`)
 *   **Framework:** Vitest + Supertest
-*   **Mocking Boundaries:** 
-    *   Separate in-memory MongoDB connection for tests (`MONGO_URI_TEST`).
-    *   Separate isolated Redis DB (`REDIS_URL_TEST`).
-*   **Coverage:** Unit tests cover service logic (e.g., OTP generation), while Integration tests cover complete API routes covering request validation, DB persistence, and response structure.
-*   **Global Teardown:** Databases are flushed completely after every test suite to preserve test idempotency (`src/tests/setup.js`).
+*   **Strategy**: Combination of unit tests for isolated utilities (auth, cache, email) and full-path integration tests for controllers.
+*   **Isolation**: Every test file runs against a freshly flushed in-memory MongoDB and Redis instance.
+*   **Security Testing**: Explicit verification of rate-limiting thresholds and authorization guards.
 
 ### Frontend (`client/`)
 *   **Framework:** Vitest + React Testing Library + JSDOM
-*   **Coverage:** Critical components (`Listing.tsx`, Auth Pages)
-*   **Mocking Strategy:** 
-    *   Extensive use of `vi.mock` for Next.js internal hooks (`useRouter`, `next/dynamic`, `next/image`).
-    *   Mocks API responses (`applicationsAPI`) and Context boundaries (`useAuth`) to accurately simulate edge cases like logged-out states, specific roles (`employer` vs `worker`), and pre-existing applications.
+*   **Strict Typing**: 100% `as any` eradication; all mocks use `ReturnType<typeof hook>` for deep type-safety.
+*   **Component Logic**: Full coverage for complex components (`Navbar`, `SearchHero`, `MyJobs`) and state-machine verification for hooks like `useLogin`.
+
+### Code Coverage (CI Enforced)
+*   **Thresholds**: CI builds fail if coverage falls below **80% on server** or **70% on client**.
+*   **Tooling**: V8 coverage reports integrated directly into the GitHub Actions logs.
 
 ---
 
@@ -148,14 +148,13 @@ The application implements a modern observability stack to ensure production rea
 
 ---
 
-## 🚀 9. DevOps & Automation (Phase 5 Integration)
+## 🚀 9. DevOps & Automation
 
-The platform is integrated with professional DevOps standards to ensure code quality and seamless delivery.
+The platform is integrated with professional DevOps standards to ensure code quality.
 
 ### GitHub Actions CI
-- **Automated Verification:** A `.github/workflows/ci.yml` pipeline triggers on every push and pull request to the `main` branch.
-- **Backend Quality:** Automatically runs TypeScript type-checking (`tsc --noEmit`), ESLint linting, and the primary test suite with dedicated Redis/MongoDB service containers.
-- **Frontend Quality:** Automated `npm run build`, linting, and Vitest execution ensures UI stability.
+- **Automated Verification:** A `.github/workflows/ci.yml` pipeline triggers on every push and pull request.
+- **Enforced Standards:** Automatically runs TypeScript type-checking (`tsc --noEmit`), ESLint linting, and full test suites with **coverage thresholds**.
 
 ### Code Quality Standards
 - **Strict Linting**: Both client and server utilize ESLint to enforce consistent coding patterns and early bug detection. The client strictly adheres to a zero-warning policy to enforce deep rules like `react-hooks/exhaustive-deps` and `@next/next/no-img-element`.

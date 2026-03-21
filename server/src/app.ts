@@ -21,9 +21,9 @@ const app = express();
 app.set('etag', 'strong');
 app.use(helmet());
 
-app.use("/api/", apiLimiter);
-app.post("/api/jobs", strictLimiter);
-app.post("/api/applications/apply/:jobId", strictLimiter);
+app.use("/api", apiLimiter);
+app.post("/api/v1/jobs", strictLimiter);
+app.post("/api/v1/applications/apply/:jobId", strictLimiter);
 app.use(nosqlSanitize);
 app.use(compression());
 app.use(cors({

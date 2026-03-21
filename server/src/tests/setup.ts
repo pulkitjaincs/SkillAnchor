@@ -10,11 +10,14 @@ beforeAll(async () => {
   }
 
   await mongoose.connect(url);
+  if (redis.status === 'end') {
+    await redis.connect();
+  }
 });
 
 afterAll(async () => {
   await mongoose.connection.close();
-  await redis.quit();
+  // Do not quit redis here as it's a singleton used across test files
 });
 
 afterEach(async () => {

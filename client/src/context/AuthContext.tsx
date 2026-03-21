@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { useQueryClient } from '@tanstack/react-query';
 import { authAPI } from '@/lib/api';
 
-interface User {
+export interface User {
     _id: string;
     name: string;
     email?: string;
@@ -11,7 +11,7 @@ interface User {
     avatar?: string;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
     user: User | null;
     loading: boolean;
     login: (user: User) => void;

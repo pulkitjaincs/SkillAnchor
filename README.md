@@ -59,7 +59,7 @@ SkillAnchor employs a comprehensive, parallelized testing suite using **Vitest**
 
 - **Backend (Node.js/Express):** Full test isolation with dedicated in-memory MongoDB and Redis databases. Features extensive unit tests for service logic and integration tests (via Supertest) for API routes.
 - **Frontend (React/Next.js):** JSDOM and React Testing Library integration. Includes deep component testing simulating mock hooks, routing, dynamic imports (`next/dynamic`), and complex authentication states.
-- **Code Coverage:** Enforced via V8 coverage reports.
+- **Code Coverage:** Enforced via V8 coverage reports with strict CI thresholds (80% Server / 70% Client).
 
 ---
 
@@ -381,9 +381,11 @@ cd server && npm run dev      # → http://localhost:5000
 - [x] Component modularization and shared types
 - [x] **Redis Integration**: Distributed caching, rate limiting, and OTP migration
 - [x] **Strict HttpOnly Cookie Auth**: Migration from insecure client-side tokens
-- [x] **TypeScript Hardening**: Elimination of `any` and strict API typing
+- [x] **TypeScript Hardening**: Deep type-safety across the stack, including elimination of `any` in tests
 - [x] **Zero-Warning Linting**: Strict ESLint compliance enforcing React Hooks rules and Next.js optimization primitives across the entire client application
-- [x] **Full-Stack Test Suite**: Vitest, Supertest, RTL, and JSDOM coverage
+- [x] **Full-Stack Test Suite**: 35+ tests (Vitest, Supertest, RTL, JSDOM) covering job lifecycles, application workflows, and component states
+- [x] **Backend Integration**: Automated testing of CRUD, authorization guards, and BullMQ worker transactions
+- [x] **Frontend Mastery**: Type-safe unit tests for `Navbar`, `SearchHero`, `MyJobs`, and `useLogin` state machine
 - [x] **Server Code Audit & Hardening**: Fixed type safety issues, Mongoose query filters, and API response consistency
 - [x] **Zod Env Validation**: Startup-time environment variable parsing with descriptive failure messages
 - [x] **Email OTP Delivery**: SMTP-based transactional email via Nodemailer
@@ -396,7 +398,7 @@ cd server && npm run dev      # → http://localhost:5000
 - [x] **Request Correlation**: System-wide traceability via unique `x-request-id` headers and log markers
 - [x] **API Versioning**: Standardized `/api/v1` routing across backend and frontend
 - [x] **Graceful Shutdown**: Clean resource release (MongoDB, Redis, BullMQ) on server termination
-- [x] **CI Pipeline**: GitHub Actions workflow for automated testing, linting, and type-checking
+- [x] **CI Pipeline**: GitHub Actions workflow for automated testing, linting, and type-checking with enforced coverage reports
 - [ ] Shift-based scheduling with calendar view
 - [ ] Real-time in-app messaging (Socket.io)
 - [ ] Push notifications
