@@ -57,7 +57,7 @@
 
 SkillAnchor employs a comprehensive, parallelized testing suite using **Vitest**.
 
-- **Backend (Node.js/Express):** Full test isolation with dedicated in-memory MongoDB and Redis databases. Features extensive unit tests for service logic and integration tests (via Supertest) for API routes.
+- **Backend (Node.js/Express):** Full test isolation with dedicated in-memory **MongoDB Replica Set** (to support transactions) and Redis databases. Features extensive unit tests for service logic and integration tests (via Supertest) for API routes.
 - **Frontend (React/Next.js):** JSDOM and React Testing Library integration. Includes deep component testing simulating mock hooks, routing, dynamic imports (`next/dynamic`), and complex authentication states.
 - **Code Coverage:** Enforced via V8 coverage reports with strict CI thresholds (80% Server / 70% Client).
 

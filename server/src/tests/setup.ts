@@ -1,15 +1,17 @@
 import mongoose from 'mongoose';
+import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { redis } from '../config/redis.js';
 import { beforeAll, afterAll, afterEach } from 'vitest';
 
-beforeAll(async () => {
-  const url = process.env.MONGO_URI_TEST || process.env.MONGO_URI || 'mongodb://localhost:27017/skillanchor_test';
-  
-  if (url.includes('cluster') && !url.toLowerCase().includes('test')) {
-    throw new Error('Refusing to run tests against a production-like Atlas cluster without "test" in the URI');
-  }
+let replset: MongoMemoryReplSet;
 
-  await mongoose.connect(url);
+beforeAll(async () => {
+  replset = await MongoMemoryReplSet.create({
+    replSet: { count: 1 },
+  });
+  const uri = replset.getUri();
+  await mongoose.connect(uri);
+
   if (redis.status === 'end') {
     await redis.connect();
   }
@@ -17,6 +19,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await mongoose.connection.close();
+  await replset.stop();
   // Do not quit redis here as it's a singleton used across test files
 });
 

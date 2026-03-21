@@ -51,7 +51,7 @@ describe('BullMQ Worker - Hired Flow', () => {
     });
     it('should create WorkExperience and update WorkerProfile on hire', async () => {
         // 2. Add job to queue
-        const job = await hiredQueue.add('hired', {
+        const job = await hiredQueue.add('process-hire', {
             applicationId,
             employerId
         });

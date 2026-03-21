@@ -121,7 +121,8 @@ describe('Job CRUD Integration Tests', () => {
                 name: 'Other Employer',
                 email: 'other@test.com',
                 authType: 'email',
-                role: 'employer'
+                role: 'employer',
+                emailVerified: true
             });
             const otherToken = generateToken(otherEmployer._id.toString());
 

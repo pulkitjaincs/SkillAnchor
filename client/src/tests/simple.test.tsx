@@ -1,10 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 
 describe('Frontend Test Infrastructure', () => {
-  it('should render a component and find text', () => {
-    render(<div>SkillAnchor Test</div>);
-    expect(screen.getByText('SkillAnchor Test')).toBeInTheDocument();
+  it('JSDOM, @testing-library/react and Vitest globals work together', () => {
+    let clicked = false;
+    render(
+      <button onClick={() => { clicked = true; }}>SkillAnchor Test</button>
+    );
+    const btn = screen.getByRole('button', { name: 'SkillAnchor Test' });
+    expect(btn).toBeInTheDocument();
+    fireEvent.click(btn);
+    expect(clicked).toBe(true);
   });
 });

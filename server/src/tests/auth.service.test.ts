@@ -12,7 +12,7 @@ describe('Auth Service', () => {
   const testConditions = [{ email: testEmail }];
 
   beforeEach(async () => {
-    await redis.flushall();
+    await redis.flushdb();
     vi.clearAllMocks();
   });
 

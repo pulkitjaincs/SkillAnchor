@@ -83,7 +83,7 @@ The platform utilizes a comprehensive testing suite with **Vitest**, ensuring lo
 ### Backend (`server/`)
 *   **Framework:** Vitest + Supertest
 *   **Strategy**: Combination of unit tests for isolated utilities (auth, cache, email) and full-path integration tests for controllers.
-*   **Isolation**: Every test file runs against a freshly flushed in-memory MongoDB and Redis instance.
+*   **Isolation**: Every test file runs against a freshly flushed in-memory **MongoDB Replica Set** (to support transactions) and Redis instance.
 *   **Security Testing**: Explicit verification of rate-limiting thresholds and authorization guards.
 
 ### Frontend (`client/`)
@@ -107,7 +107,7 @@ To support horizontal scaling, we migrated from an in-process `EventEmitter` to 
 *   **Reliability:** Native support for exponential backoff retries and "at-least-once" delivery.
 
 ### Implementation:
-*   **Producer:** When an employer hires a worker, the `application.controller.ts` pushes a job to the `hired-worker` queue.
+*   **Producer:** When an employer hires a worker, the `application.controller.ts` pushes a `process-hire` job to the `hired-worker` queue.
 *   **Consumer:** The `hired.queue.ts` worker processes the job, creating a `WorkExperience` record and updating the `WorkerProfile` within a MongoDB transaction.
 
 ---
