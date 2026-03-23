@@ -43,12 +43,9 @@ export const getJobs = async (filters: JobFilters) => {
         }, "jobs:list");
     }
 
-    const andConditions: QueryFilter<IJob>[] = [{ status: "active" }]; 
-    const projection: Record<string, 1 | 0 | { $meta: "textScore" }> = { ...JOB_LISTING_PROJECTION };
+    const andConditions: QueryFilter<IJob>[] = [{ status: "active" }];
+    const projection: Record<string, number | { $meta: "textScore" }> = { ...JOB_LISTING_PROJECTION };
     let sortOptions: Record<string, 1 | -1 | { $meta: "textScore" }> = { _id: -1 };
-
-
-
 
     if (search) {
         andConditions.push({ $text: { $search: search } });
