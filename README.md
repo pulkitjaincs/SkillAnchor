@@ -272,7 +272,7 @@ cd server && npm run lint
 
 ## 🔄 CI / CD
 
-GitHub Actions runs on every push to `main` / `ui_overhaul` and on PRs targeting `main`:
+GitHub Actions runs on every push to `main` and on PRs targeting `main`:
 
 | Job | Steps |
 |---|---|
