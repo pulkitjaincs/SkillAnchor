@@ -1,427 +1,356 @@
 # SkillAnchor ⚓
 
-<p align="center">
-  <b>The modern hiring platform for skilled and hourly workers.</b>
-</p>
+A full-stack job portal purpose-built for India's blue-collar and hourly workforce. SkillAnchor connects skilled tradespeople, service industry workers, and daily-wage labourers with verified employers through a modern, mobile-first experience — featuring OTP-based passwordless auth, real-time application tracking, employer-verified work history, and a premium UI with dark-mode support.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Next.js-16.1-000000?logo=next.js&logoColor=white" alt="Next.js" />
-  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React" />
-  <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Node.js-20.x-339933?logo=node.js&logoColor=white" alt="Node.js" />
-  <img src="https://img.shields.io/badge/MongoDB-8.0-47A248?logo=mongodb&logoColor=white" alt="MongoDB" />
-  <img src="https://img.shields.io/badge/Redis-7.x-FF4438?logo=redis&logoColor=white" alt="Redis" />
-  <img src="https://img.shields.io/badge/Vitest-4-729B1B?logo=vitest&logoColor=white" alt="Vitest" />
-  <img src="https://github.com/pulkitjaincs/SkillAnchor/actions/workflows/ci.yml/badge.svg" alt="CI" />
-</p>
-
----
-
-> **[Read the Full Architecture Documentation (ARCHITECTURE.md)](ARCHITECTURE.md)** for a deep dive into our design patterns, auth flow, and state management.
-
----
-
-## 🛡️ Security
-
-- **Edge Middleware Auth**: Next.js intercepts requests, validating JWTs securely.
-- **Strict HttpOnly Cookies**: Total eradication of `localStorage` tokens. JWTs are handled strictly by the browser via `httpOnly`, `secure`, `sameSite=strict` cookies, eliminating XSS token theft vectors.
-- **Hardened HTTP Headers**: `helmet` middleware for XSS and clickjacking protection.
-- **Distributed Rate Limiting**: Redis-backed request throttling on all authentication/OTP routes, with strict policies for job creation and application submission to prevent automated spam.
-- **Exhaustive Schema Validation**: **Zod** validates payloads on **all** API routes before controller execution.
-- **Validated Environment Variables**: `env.ts` parses and validates all environment variables at server startup using Zod — the server fails fast with a clear error if any required variable is missing or malformed.
-- **NoSQL Injection Guard**: Custom middleware and `express-mongo-sanitize` completely sanitize incoming requests.
-- **Secure OTP Generation**: Native `crypto.randomInt` for cryptographically strong verification codes.
-- **Centralized Error Handling**: Global error middleware catches Mongoose, Zod, and application errors with consistent responses.
-
-## ⚡ Performance & UX
-
-- **Hybrid Rendering**: Server Components by default, `"use client"` only for interactive leaves — drastically minimizes the JavaScript bundle.
-- **React Compiler**: `babel-plugin-react-compiler` automatically memoizes components and hooks, eliminating manual `useMemo`/`useCallback` boilerplate.
-- **Fluid UI (120fps Experience)**: System-wide optimization of CSS transitions to use exclusively compositor-friendly properties (`transform`, `opacity`), eliminating layout jank and reflows for a buttery-smooth feel.
-- **Hardware Acceleration**: GPU-promoted layers via `will-change` and `translateZ(0)` on high-interaction components like cards and listings.
-- **Optimized Transitions**: Page transitions tuned to 300ms with custom cubic-bezier curves for a snappier, responsive interface.
-- **List Performance**: **React Virtuoso** for 60fps scrolling on massive datasets with zero jitter during dynamic layout shifts.
-- **Image Optimization**: `next/image` for automatic WebP/AVIF compression and CLS prevention.
-- **Font Optimization**: `next/font/google` inlines Inter and Plus Jakarta Sans at build time.
-- **Route-Level Boundaries**: `loading.tsx`, `error.tsx`, and `not-found.tsx` for graceful suspense and error handling.
-- **Intelligent Caching**: **Redis-powered** cache-aside pattern for job listings and user profiles, reducing database load and response times.
-- **Scan-Based Cache Invalidation**: Optimized cache invalidation using a robust `async/await` loop with Redis `SCAN` for reliable, non-blocking key deletion.
-- **Atomic Data Integrity**: Enforced write correctness across multi-collection operations (job applications, hire events) using **MongoDB Transactions**.
-- **Distributed Task Queue**: Hiring events processed via **BullMQ** (Redis-backed), enabling horizontal scaling with at-least-once delivery and exponential-backoff retries.
-- **Distributed Rate Limiting**: Redis-backed rate limiting ensures consistent security across multiple server instances with granular control over write-heavy routes.
-- **Gzip Compression**: `compression` middleware enabled on the Express server for all API responses.
-
----
-
-## 🧪 Testing Infrastructure
-
-SkillAnchor employs a comprehensive, parallelized testing suite using **Vitest**.
-
-- **Backend (Node.js/Express):** Full test isolation with dedicated in-memory **MongoDB Replica Set** (to support transactions) and Redis databases. Features extensive unit tests for service logic and integration tests (via Supertest) for API routes.
-- **Frontend (React/Next.js):** JSDOM and React Testing Library integration. Includes deep component testing simulating mock hooks, routing, dynamic imports (`next/dynamic`), and complex authentication states.
-- **Code Coverage:** Enforced via V8 coverage reports with strict CI thresholds (80% Server / 70% Client).
-
----
-
-## Overview
-
-SkillAnchor is a full-stack recruitment platform purpose-built for the hourly and blue-collar labor market. It connects workers—from skilled tradespeople to part-time students—with employers hiring across hospitality, retail, logistics, construction, and more.
-
-The platform is engineered for **performance**, **scalability**, and a **premium user experience**, featuring hybrid rendering, intelligent caching, and native hardware-accelerated transitions.
+> **Architecture Deep-Dive →** [ARCHITECTURE.md](ARCHITECTURE.md) — system design, data flow, security model, and key trade-offs explained in detail.
 
 ---
 
 ## Table of Contents
 
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Architecture](#architecture)
-- [Getting Started](#getting-started)
-- [API Reference](#api-reference)
-- [Data Models](#data-models)
-- [Industries Served](#industries-served)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
+- [Key Features](#-key-features)
+- [Tech Stack](#-tech-stack)
+- [Repository Structure](#-repository-structure)
+- [Prerequisites](#-prerequisites)
+- [Environment Setup](#-environment-setup)
+- [Installation](#-installation)
+- [Running Locally](#-running-locally)
+- [Testing & Code Quality](#-testing--code-quality)
+- [CI / CD](#-ci--cd)
+- [API Overview](#-api-overview)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ---
 
-## Features
+## ✨ Key Features
 
 ### For Workers
-
 | Feature | Description |
-| :--- | :--- |
-| **One-Tap Apply** | Apply instantly with a pre-built profile |
-| **Profile Wizard** | Multi-step onboarding for skills, experience, and availability |
-| **Real-time Tracking** | Monitor application status: Pending → Viewed → Shortlisted → Hired |
-| **Verified Badges** | Automatically earn verification badges for completed on-platform contracts |
-| **S3 Profile Photos** | Upload and manage profile images via cloud storage |
-| **WhatsApp Integration** | Add WhatsApp number for direct employer communication |
-| **Work History** | Add/manage work experience with modal-based UI and visibility toggles |
-| **Secure Contact** | Phone/email updates require OTP verification |
+|---|---|
+| **Quick Apply** | One-tap job applications with optional cover notes |
+| **Rich Profile** | Skills, languages, bio, work history, expected salary, and S3-hosted avatar |
+| **Application Tracking** | Real-time status pipeline: `Pending → Viewed → Shortlisted → Hired` |
+| **Verified Work History** | Employer-verified experience entries with ratings and reviews |
+| **Document Management** | Aadhaar, PAN, and driving license storage with verification tracking |
+| **Secure Contact Updates** | OTP-verified modifications to email and phone number |
 
 ### For Employers
-
 | Feature | Description |
-| :--- | :--- |
-| **Job Posting** | Create detailed listings with salary, schedule, skills, and requirements |
-| **Applicant Dashboard** | Review candidates with cover notes and full profile access |
-| **Status Workflow** | Update applicant status: Pending → Viewed → Shortlisted → Hired → Rejected |
-| **My Team** | Premium dashboard to manage active hires with quick-call actions |
-| **End Employment** | Conclude contracts seamlessly, auto-updating worker history |
-| **Application Counter** | Real-time applicant count per job listing |
-| **Manage Listings** | Edit, delete, and track all jobs from one dashboard |
+|---|---|
+| **Job Management** | Create, edit, pause, and close listings with category, shift, and salary details |
+| **Applicant Dashboard** | Review candidates, view full profiles, and advance application status |
+| **My Team** | Dedicated dashboard for managing currently active hires |
+| **End-to-End Hiring** | Processing a hire automatically creates a verified work-experience entry for the worker via a background job |
+| **Company Profiles** | Multi-location company entities with GSTIN and industry details |
 
-### Platform & UX
-
+### Platform-Wide
 | Feature | Description |
-| :--- | :--- |
-| **Passwordless Auth** | Phone OTP and Email OTP login options |
-| **Email OTP Delivery** | OTPs sent via SMTP (Nodemailer) for email-based auth flows |
-| **Email + Password** | Traditional auth with forgot-password OTP flow |
-| **Dark Mode** | Full dark/light/system theme support |
-| **Responsive Design** | Mobile-first, works on all screen sizes |
-| **Search System** | Full-text search across title, description, skills, category, city |
-| **Search Hero** | Homepage search bar with keyword, location, and category chip filters |
-| **Scroll-Linked Navbar** | Search bar morphs into compact navbar version via IntersectionObserver |
-| **Trust Badges** | Verified phone/email indicators on profile and settings |
+|---|---|
+| **Dual Auth Modes** | Phone/Email OTP (passwordless) alongside traditional Email + Password |
+| **Full-Text Search** | MongoDB text indexes across title, description, skills, category, and location |
+| **Dark Mode** | System-aware light/dark theming with smooth CSS transitions |
+| **Premium UI** | Hardware-accelerated Framer Motion animations, scroll-linked navigation, and responsive design |
+| **Virtualized Lists** | React Virtuoso for fluid 60 FPS scrolling on large result sets |
+| **Structured Logging** | Pino JSON logging with request IDs and per-request HTTP tracing |
 
 ---
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-| Layer | Technology | Role |
-| :--- | :--- | :--- |
-| **Frontend** | Next.js 16 (App Router), React 19, TypeScript | Framework with hybrid SSR/SSG/ISR rendering |
-| **Routing** | File-system App Router (`src/app/`) | Server-side and client-side navigation |
-| **Auth** | Edge Middleware (`middleware.ts`) | Route protection before page code is sent |
-| **State** | TanStack React Query v5 | Server state, caching, optimistic updates, background sync |
-| **Auth State** | Context API | Client-side auth context |
-| **Styling** | Bootstrap 5, Custom CSS Variables | Responsive design system with theming |
-| **Icons** | Bootstrap Icons, Lucide React | UI iconography |
-| **Fonts** | `next/font` (Inter, Plus Jakarta Sans) | Build-time font inlining, no external requests |
-| **Images** | `next/image` | Automatic optimization, lazy loading, format negotiation |
-| **Rendering** | React Virtuoso | Windowed list virtualization |
-| **Animations** | Framer Motion 12 | Page transitions with reduced motion support |
-| **Compiler** | React Compiler (`babel-plugin-react-compiler`) | Automatic component memoization |
-| **Backend** | Node.js 20, Express 5 | RESTful API server |
-| **Database** | MongoDB 8.0, Mongoose 9 | Document storage and ODM |
-| **Cache/Store** | Redis 7 | Distributed caching, OTP storage, and rate limiting |
-| **Validation** | Zod | Schema-based request and env-var validation |
-| **Auth** | JWT, bcrypt, OTP | Stateless authentication |
-| **Storage** | AWS S3 | Profile photo storage |
-| **Email** | Nodemailer (SMTP) | Transactional OTP email delivery |
+### Frontend (`client/`)
+
+| Layer | Technology |
+|---|---|
+| Framework | **Next.js 16** (App Router) with **React 19** |
+| Language | TypeScript 5 |
+| State Management | TanStack React Query v5, React Context API |
+| Styling | Tailwind CSS v4, Bootstrap 5, CSS Modules |
+| Animations | Framer Motion 12 |
+| Performance | React Compiler (auto-memoization), React Virtuoso, `next/image`, `next/font` |
+| Icons | Bootstrap Icons, Lucide React |
+| HTTP Client | Axios (with interceptors for 401 auto-logout) |
+| Testing | Vitest 4, React Testing Library, jsdom |
+
+### Backend (`server/`)
+
+| Layer | Technology |
+|---|---|
+| Runtime | **Node.js 20+**, **Express 5** |
+| Language | TypeScript 5 (ESM) |
+| Database | MongoDB 8.0, Mongoose 9 |
+| Caching & Queues | Redis 7 (ioredis), BullMQ 5 |
+| Validation | Zod 4 (request payloads + environment variables) |
+| Authentication | JWT (HttpOnly cookies), bcrypt, OTP via Nodemailer |
+| File Storage | AWS S3 (pre-signed URLs for direct client uploads) |
+| Security | Helmet, CORS, NoSQL injection sanitization, Redis-backed rate limiting |
+| Logging | Pino + pino-http (structured JSON with request IDs) |
+| Testing | Vitest 4, Supertest, mongodb-memory-server (in-memory replica set) |
 
 ---
 
-## Architecture
+## 📁 Repository Structure
 
 ```
 SkillAnchor/
-├── client/                      # Next.js 16 App (TypeScript)
-│   └── src/
-│       ├── app/                 # App Router pages & layouts
-│       │   ├── (auth)/          # Login, Register, Forgot Password (SSG)
-│       │   ├── (employer)/      # My Jobs, My Team (SSR, protected)
-│       │   ├── (worker)/        # My Applications (SSR, protected)
-│       │   ├── edit-job/[id]/   # Edit Job (SSR, protected)
-│       │   ├── jobs/[id]/       # Job Detail (ISR), Applicants (SSR)
-│       │   ├── post-job/        # Post Job (SSR, protected)
-│       │   ├── profile/         # Profile, Edit, Settings (SSR)
-│       │   ├── layout.tsx       # Root layout (fonts, Navbar, Footer)
-│       │   ├── page.tsx         # Home page (SSG)
-│       │   ├── error.tsx        # Global error boundary
-│       │   ├── loading.tsx      # Global loading state
-│       │   └── not-found.tsx    # 404 page
-│       ├── components/
-│       │   ├── common/          # Card, Listing, SearchHero, FormComponents, ApplyModal
-│       │   ├── layout/          # Navbar, Footer
-│       │   ├── modals/          # ApplicationDetailModal, WorkExperienceModal
-│       │   ├── profile/         # ProfileHeader, SkillsSection, WorkHistory, Sidebar
-│       │   ├── profile-edit/    # Edit profile step components
-│       │   └── settings/        # PasswordCard, ContactDetailsCard
-│       ├── constants/           # Job categories
-│       ├── context/             # AuthContext (client-side auth)
-│       ├── hooks/
-│       │   ├── queries/         # React Query hooks (useInfiniteJobs, useProfile, useApplications)
-│       │   ├── ui/              # useLogin, useRegister
-│       │   └── index.ts         # useForm, useDebounce
-│       ├── lib/                 # Axios API client (api.ts)
-│       ├── providers/           # QueryClient + Auth provider wrapper
-│       ├── types/               # Shared TypeScript interfaces (Job, User, Company)
-│       └── utils/               # formatDate, formatSalary, timeAgo helpers
-│
-└── server/                      # Express API (TypeScript)
-     └── src/
-        ├── controllers/         # Route handlers (thin, wrapped with asyncHandler)
-        ├── services/            # Business logic (auth, profile services)
-        ├── models/              # Mongoose schemas with compound indexes
-        ├── routes/              # API endpoints with Zod validation
-        ├── middleware/          # Auth guards, Zod validation, NoSQL sanitize
-        ├── queues/              # BullMQ Producers & Workers (e.g., hired-worker)
-        ├── utils/               # asyncHandler, generateToken, cache, email
-        ├── types/               # Shared TypeScript types (AppError)
-        └── config/              # db, redis, s3, env (Zod-validated)
-
+├── .github/workflows/ci.yml      # GitHub Actions CI pipeline
+├── client/                        # Next.js frontend application
+│   ├── src/
+│   │   ├── app/                   # App Router pages & layouts
+│   │   │   ├── (auth)/            # Login, Register, Forgot Password
+│   │   │   ├── (employer)/        # My Jobs, My Team
+│   │   │   ├── (worker)/          # My Applications
+│   │   │   ├── jobs/[id]/         # Job detail page
+│   │   │   ├── post-job/          # Job creation form
+│   │   │   ├── edit-job/          # Job editing form
+│   │   │   └── profile/           # Profile view, edit, settings
+│   │   ├── components/            # Reusable UI (common, layout, modals, profile)
+│   │   ├── hooks/                 # Custom hooks
+│   │   │   ├── queries/           # React Query hooks (jobs, applications, profile)
+│   │   │   └── ui/                # Auth flow hooks (useLogin, useRegister)
+│   │   ├── context/               # AuthContext (global user state)
+│   │   ├── providers/             # QueryClient + AuthProvider composition
+│   │   ├── lib/                   # Axios instance & API client modules
+│   │   ├── types/                 # TypeScript interfaces & API response types
+│   │   ├── constants/             # Job categories & static data
+│   │   ├── utils/                 # Utility functions (formatting, S3 helpers)
+│   │   └── tests/                 # Component, hook, and utility tests
+│   ├── vitest.config.ts
+│   ├── next.config.ts
+│   └── package.json
+├── server/                        # Express API backend
+│   ├── src/
+│   │   ├── app.ts                 # Express app setup & middleware pipeline
+│   │   ├── server.ts              # Server entry point with graceful shutdown
+│   │   ├── config/                # db, redis, s3, env (Zod), rateLimiter
+│   │   ├── routes/                # API route definitions (6 modules)
+│   │   ├── controllers/           # Request handlers (5 modules)
+│   │   ├── services/              # Business logic (auth, profile)
+│   │   ├── models/                # Mongoose schemas (8 models)
+│   │   ├── middleware/            # auth, validate, sanitize, requestId
+│   │   ├── queues/                # BullMQ workers (hired pipeline)
+│   │   ├── types/                 # TypeScript interfaces & Express augmentation
+│   │   ├── utils/                 # asyncHandler, cache, email, logger, token
+│   │   └── tests/                 # Integration & unit tests (15 suites)
+│   ├── vitest.config.js
+│   └── package.json
+└── package.json                   # Root-level scripts (install:all, dev, lint)
 ```
 
 ---
 
-## Getting Started
+## ⚙️ Prerequisites
 
-### Prerequisites
+Ensure the following are installed and running:
 
-- **Node.js** v18+
-- **MongoDB** v6+ (local or Atlas)
-- **Redis** v7+ (local or managed, e.g., Upstash)
-- **AWS S3 Bucket** *(optional, for profile photos)*
-- **SMTP Server** *(optional, for email OTP delivery)*
+| Dependency | Version | Notes |
+|---|---|---|
+| **Node.js** | 20+ | LTS recommended |
+| **MongoDB** | 7+ | Must run as a **Replica Set** for transaction support |
+| **Redis** | 7+ | Used for rate limiting, caching, and BullMQ |
+| **AWS S3 Bucket** | — | _Optional_ — needed for avatar/media uploads |
+| **SMTP Server** | — | _Optional_ — needed for email OTP delivery |
 
-### Installation
+> **Note:** MongoDB must be configured as a replica set. For local development, you can use [mongodb-memory-server](https://github.com/nodkz/mongodb-memory-server) (already included as a dev dependency for tests) or run `mongod --replSet rs0` and initiate the set.
 
-```bash
-# Clone
-git clone https://github.com/pulkitjaincs/SkillAnchor.git
-cd SkillAnchor
+---
 
-# Install client dependencies
-cd client && npm install && cd ..
+## 🔐 Environment Setup
 
-# Install server dependencies
-cd server && npm install && cd ..
-```
+### Client — `client/.env.local`
 
-### Environment Setup
-
-Create `client/.env.local`:
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000
 ```
 
-Create `server/.env`:
+### Server — `server/.env`
+
 ```env
-# Server
+# ── Core (Required) ──────────────────────────────
 PORT=5000
 NODE_ENV=development
 CLIENT_URL=http://localhost:3000
-
-# Database
 MONGO_URI=mongodb://localhost:27017/SkillAnchorDB
-
-# Authentication
-JWT_SECRET=your_jwt_secret_key_min_32_chars
-
-# Redis (required for caching, OTP, and rate limiting)
+JWT_SECRET=your_super_secret_jwt_key_must_be_32_chars_min
 REDIS_URL=redis://localhost:6379
 
-# AWS S3 (Optional — for profile photos)
+# ── AWS S3 (Optional — for file uploads) ─────────
 AWS_ACCESS_KEY_ID=your_access_key
 AWS_SECRET_ACCESS_KEY=your_secret_key
 AWS_REGION=ap-south-1
 S3_BUCKET_NAME=your_bucket_name
 
-# SMTP Email (Optional — for email OTP delivery)
+# ── SMTP (Optional — for email OTPs) ─────────────
 EMAIL_HOST=smtp.example.com
 EMAIL_PORT=587
 EMAIL_USER=your_email@example.com
 EMAIL_PASS=your_email_password
 ```
 
-> **Note:** The server validates all environment variables at startup using Zod. Missing or invalid values will cause the process to exit immediately with a descriptive error.
+> Environment variables are validated at startup using Zod. The server will **exit immediately** with descriptive errors if required variables are missing.
 
-### Run Locally
+---
+
+## 🚀 Installation
 
 ```bash
-# Client (Next.js dev server)
-cd client && npm run dev      # → http://localhost:3000
+# 1. Clone the repository
+git clone https://github.com/pulkitjaincs/SkillAnchor.git
+cd SkillAnchor
 
-# Server (Express API)
-cd server && npm run dev      # → http://localhost:5000
+# 2. Install all dependencies (root + client + server)
+npm run install:all
 ```
 
 ---
 
-## API Reference
+## 🏃 Running Locally
 
-### Authentication
+Start both servers in **separate terminals**:
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| POST | `/api/v1/auth/send-otp` | Send OTP to phone or email |
-| POST | `/api/v1/auth/verify-otp` | Verify OTP and authenticate |
-| POST | `/api/v1/auth/register` | Register with email |
-| POST | `/api/v1/auth/login` | Login with email + password |
-| POST | `/api/v1/auth/forgot-password` | Initiate password reset |
-| POST | `/api/v1/auth/reset-password` | Reset password with OTP |
-| POST | `/api/v1/auth/logout` | Logout and clear session |
-| POST | `/api/v1/auth/update-password` | Change password (authenticated) |
-| POST | `/api/v1/auth/send-update-otp` | OTP for contact update |
-| POST | `/api/v1/auth/verify-update-otp` | Verify and update contact |
+```bash
+# Terminal 1 — Backend API (http://localhost:5000)
+npm run dev:server
 
-### Worker Profile
+# Terminal 2 — Frontend App (http://localhost:3000)
+npm run dev:client
+```
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| GET | `/api/v1/profile/my-profile` | Get current user's profile |
-| GET | `/api/v1/profile/user/:userId` | Get profile by user ID |
-| PUT | `/api/v1/profile/my-profile` | Update profile |
-| POST | `/api/v1/profile/upload-avatar` | Upload profile photo to S3 |
-
-### Jobs
-
-| Method | Endpoint | Auth |
-| :--- | :--- | :--- |
-| GET | `/api/v1/jobs` | Public |
-| GET | `/api/v1/jobs/:id` | Public |
-| POST | `/api/v1/jobs` | Employer |
-| PUT | `/api/v1/jobs/:id` | Employer |
-| DELETE | `/api/v1/jobs/:id` | Employer |
-
-### Applications
-
-| Method | Endpoint | Auth |
-| :--- | :--- | :--- |
-| POST | `/api/v1/applications/apply/:jobId` | Worker |
-| GET | `/api/v1/applications/my-applications` | Worker |
-| GET | `/api/v1/applications/job/:jobId` | Employer |
-| PATCH | `/api/v1/applications/:id/status` | Employer |
-| DELETE | `/api/v1/applications/:id` | Worker |
+| Script | Description |
+|---|---|
+| `npm run dev:server` | Starts the Express server with `tsx watch` (hot reload) |
+| `npm run dev:client` | Starts the Next.js dev server |
+| `npm run build` | Builds the Next.js client for production |
+| `npm run lint` | Runs ESLint on the client |
 
 ---
 
-## Data Models
+## 🧪 Testing & Code Quality
 
-| Model | Purpose |
-| :--- | :--- |
-| **User** | Authentication, role (worker/employer), verified contact info |
-| **Job** | Title, description, salary range, location, schedule, skills, category |
-| **Application** | Links worker to job, tracks status lifecycle |
-| **WorkerProfile** | Skills, availability, bio, education, avatar |
-| **EmployerProfile** | Company association, business details |
-| **Company** | Name, logo, description |
-| **WorkExperience** | Employment history with verified/unverified status |
-| **SavedJob** | Bookmarked job listings per worker |
+SkillAnchor uses **Vitest** across both packages with enforced coverage thresholds.
 
----
+### Running Tests
 
-## Industries Served
+```bash
+# Server — integration & unit tests (sequential, uses in-memory MongoDB)
+cd server && npm run test
 
-| Category | Example Roles |
-| :--- | :--- |
-| **Food & Hospitality** | Server, Barista, Cook, Dishwasher, Host |
-| **Retail** | Cashier, Stock Clerk, Sales Associate |
-| **Logistics & Delivery** | Driver, Courier, Warehouse Associate, Packer |
-| **Construction & Trades** | Electrician, Plumber, Carpenter, Painter, Welder |
-| **Cleaning & Maintenance** | Janitor, Housekeeper, Groundskeeper |
-| **Events & Promotions** | Event Staff, Brand Ambassador, Usher |
-| **Healthcare Support** | Caregiver, Home Health Aide, Medical Assistant |
+# Client — component, hook, and utility tests
+cd client && npm run test
 
----
+# Coverage reports (HTML + JSON + text)
+cd server && npm run test:coverage
+cd client && npm run test:coverage
 
-## Roadmap
+# Vitest interactive UI (server only)
+cd server && npm run test:ui
+```
 
-- [x] Next.js App Router migration (from Vite SPA)
-- [x] TypeScript across entire frontend
-- [x] Edge Middleware authentication
-- [x] Hybrid rendering (SSG / ISR / SSR per route)
-- [x] `next/image` and `next/font` optimizations
-- [x] Global error/loading/not-found boundaries
-- [x] Premium UI redesign (Edit Profile, Settings, Navbar)
-- [x] Profile photo uploads with AWS S3
-- [x] Multi-step profile wizard with completion tracking
-- [x] Secure contact verification (OTP-based updates)
-- [x] Work Experience system with auto-verification on hire
-- [x] Employer Team Management dashboard
-- [x] Enhanced full-text search with relevance ranking
-- [x] Performance: Virtualization, React Query, Lazy Loading
-- [x] Cursor-based Pagination for all lists
-- [x] Optimistic UI Updates (Apply/Withdraw/Hire)
-- [x] MongoDB Aggregation Pipelines for Profile Joins
-- [x] Zod validation on all API routes
-- [x] Component modularization and shared types
-- [x] **Redis Integration**: Distributed caching, rate limiting, and OTP migration
-- [x] **Strict HttpOnly Cookie Auth**: Migration from insecure client-side tokens
-- [x] **TypeScript Hardening**: Deep type-safety across the stack, including elimination of `any` in tests
-- [x] **Zero-Warning Linting**: Strict ESLint compliance enforcing React Hooks rules and Next.js optimization primitives across the entire client application
-- [x] **Full-Stack Test Suite**: Extensive tests covering job lifecycles, application workflows, and component states
-- [x] **Comprehensive Backend Coverage**: Achieved >90% global test coverage across Express controllers, services, and middlewares (Statements, Functions, Branches, and Lines)
-- [x] **Backend Integration**: Automated testing of CRUD, authorization guards, and BullMQ worker transactions
-- [x] **Frontend Mastery**: Type-safe unit tests for `Navbar`, `SearchHero`, `MyJobs`, and `useLogin` state machine
-- [x] **Server Code Audit & Hardening**: Fixed type safety issues, Mongoose query filters, and API response consistency
-- [x] **Zod Env Validation**: Startup-time environment variable parsing with descriptive failure messages
-- [x] **Email OTP Delivery**: SMTP-based transactional email via Nodemailer
-- [x] **React Compiler**: Automatic component memoization via `babel-plugin-react-compiler`
-- [x] **Event-Driven Scaling**: **BullMQ** (backed by Redis) decouples hire events from controller logic for horizontal scalability
-- [x] **MongoDB Transactions**: Atomic multi-document writes for job applications and hire-event processing
-- [x] **Robust Rate Limiting**: Centralized Redis-backed throttling with strict policies for write-heavy routes
-- [x] **Optimized Cache Invalidation**: Reliable `async/await` scanning for non-blocking cache clearing
-- [x] **Structured Logging**: High-performance JSON logging with **Pino** and **Pino-HTTP**
-- [x] **Request Correlation**: System-wide traceability via unique `x-request-id` headers and log markers
-- [x] **API Versioning**: Standardized `/api/v1` routing across backend and frontend
-- [x] **Graceful Shutdown**: Clean resource release (MongoDB, Redis, BullMQ) on server termination
-- [x] **CI Pipeline**: GitHub Actions workflow for automated testing, linting, and type-checking with enforced coverage reports
-- [ ] Shift-based scheduling with calendar view
-- [ ] Real-time in-app messaging (Socket.io)
-- [ ] Push notifications
-- [ ] Worker ratings and reviews
-- [ ] Multi-language support
-- [ ] Document-based identity verification
-- [ ] PWA support (offline + installability)
+### Coverage Thresholds
+
+| Package | Statements | Branches | Functions | Lines |
+|---|---|---|---|---|
+| **Server** | 80% | 70% | 80% | 80% |
+| **Client** | 70% | 60% | 69% | 70% |
+
+### Test Infrastructure
+
+- **Server:** Supertest for HTTP-level integration tests, `mongodb-memory-server` for an isolated in-memory replica set — zero database pollution.
+- **Client:** React Testing Library + jsdom environment, `@testing-library/user-event` for realistic interaction simulation.
+
+### Linting
+
+```bash
+# Client (from root)
+npm run lint
+
+# Server
+cd server && npm run lint
+```
 
 ---
 
-## Contributing
+## 🔄 CI / CD
 
-Contributions are welcome. Please follow these steps:
+GitHub Actions runs on every push to `main` / `ui_overhaul` and on PRs targeting `main`:
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+| Job | Steps |
+|---|---|
+| **Backend** | `npm ci` → TypeScript type-check → ESLint → Test with coverage (with Redis 7 + MongoDB 7 service containers) |
+| **Frontend** | `npm ci` → ESLint → TypeScript type-check → Test with coverage |
+
+Configuration: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 
 ---
 
-<p align="center">
-  <strong>SkillAnchor</strong> — Work, simplified.
-</p>
+## 📡 API Overview
+
+All endpoints are prefixed with `/api/v1`. Responses follow a consistent JSON envelope:
+
+```json
+{ "success": true, "data": { ... } }
+{ "success": false, "error": "..." }
+```
+
+### Endpoints
+
+| Module | Method | Endpoint | Auth | Role |
+|---|---|---|---|---|
+| **Health** | `GET` | `/health` | — | — |
+| **Auth** | `POST` | `/auth/register` | — | — |
+| | `POST` | `/auth/login` | — | — |
+| | `POST` | `/auth/send-otp` | — | — |
+| | `POST` | `/auth/verify-otp` | — | — |
+| | `POST` | `/auth/forgot-password` | — | — |
+| | `POST` | `/auth/reset-password` | — | — |
+| | `POST` | `/auth/logout` | — | — |
+| | `GET` | `/auth/get-me` | ✅ | — |
+| | `POST` | `/auth/update-password` | ✅ | — |
+| | `POST` | `/auth/send-update-otp` | ✅ | — |
+| | `POST` | `/auth/verify-update-otp` | ✅ | — |
+| **Jobs** | `GET` | `/jobs` | — | — |
+| | `GET` | `/jobs/:id` | — | — |
+| | `GET` | `/jobs/my-jobs` | ✅ | Employer |
+| | `POST` | `/jobs` | ✅ | Employer |
+| | `PUT` | `/jobs/:id` | ✅ | Employer |
+| | `DELETE` | `/jobs/:id` | ✅ | Employer |
+| **Applications** | `POST` | `/applications/apply/:jobId` | ✅ | Worker |
+| | `GET` | `/applications/my-applications` | ✅ | Worker |
+| | `GET` | `/applications/job/:jobId` | ✅ | Employer |
+| | `PATCH` | `/applications/:id/status` | ✅ | Employer |
+| | `DELETE` | `/applications/:id` | ✅ | Worker |
+| **Profile** | `GET` | `/profile/my-profile` | ✅ | — |
+| | `PUT` | `/profile/my-profile` | ✅ | — |
+| | `PATCH` | `/profile/update-avatar-url` | ✅ | — |
+| | `GET` | `/profile/user/:userId` | ✅ | — |
+| | `GET` | `/profile/my-team` | ✅ | Employer |
+| **Work Exp** | `GET` | `/work-experience/user/:userId` | — | — |
+| | `POST` | `/work-experience` | ✅ | Worker |
+| | `PUT` | `/work-experience/:id` | ✅ | Worker |
+| | `DELETE` | `/work-experience/:id` | ✅ | Worker |
+| | `PATCH` | `/work-experience/:id/end` | ✅ | — |
+| | `PATCH` | `/work-experience/:id/toggle-visibility` | ✅ | Worker |
+| **Upload** | `GET` | `/upload/pre-signed-url` | ✅ | — |
+
+---
+
+## 🤝 Contributing
+
+1. **Fork** the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit changes logically: `git commit -m 'Add awesome feature'`
+4. Ensure all tests pass and coverage thresholds are met
+5. Push to the branch: `git push origin feature/your-feature`
+6. Open a **Pull Request** — CI must pass before merge
+
+### Code Standards
+- TypeScript strict mode across both packages
+- Zod schemas for all API request validation
+- ESLint enforced on both client and server
+- Minimum coverage thresholds enforced in CI
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License**.
