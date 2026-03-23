@@ -3,7 +3,7 @@ import request from 'supertest';
 import app from '../app.js';
 import User from '../models/User.model.js';
 import Job from '../models/Job.model.js';
-import { generateToken } from '../utils/generateToken.js';
+import { generateToken } from '../utils/auth.js';
 
 describe('Job CRUD Integration Tests', () => {
     let employerToken: string;

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import app from '../app.js';
 import User from '../models/User.model.js';
-import { generateToken } from '../utils/generateToken.js';
+import { generateToken } from '../utils/auth.js';
 import Job from '../models/Job.model.js';
 import { redis } from '../config/redis.js';
 

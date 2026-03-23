@@ -1,7 +1,7 @@
 import User, { IUser } from "../models/User.model.js";
 import bcrypt from "bcryptjs";
-import { generateToken } from "../utils/generateToken.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { setAuthCookie, generateToken } from "../utils/auth.js";
 import { Request, Response } from "express";
 import {
     generateAndStoreOTP,
@@ -42,12 +42,7 @@ export const verifyOTP = asyncHandler(async (req: Request, res: Response) => {
 
     const safeUser = await User.findById(user._id).select("-password -__v").lean();
     const token = generateToken(user._id.toString());
-    res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 30 * 24 * 60 * 60 * 1000
-    });
+    setAuthCookie(res, token);
     res.json({ user: safeUser });
 });
 
@@ -61,12 +56,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 
     const safeUser = await User.findById(user._id).select("-password -__v").lean();
     const token = generateToken(user._id.toString());
-    res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 30 * 24 * 60 * 60 * 1000
-    });
+    setAuthCookie(res, token);
     res.json({ user: safeUser });
 });
 
@@ -89,12 +79,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
     const safeUser = await User.findById(user._id).select("-password -__v").lean();
     const token = generateToken(user._id.toString());
-    res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 30 * 24 * 60 * 60 * 1000
-    });
+    setAuthCookie(res, token);
     res.json({ user: safeUser });
 });
 
@@ -104,7 +89,7 @@ export const forgotPassword = asyncHandler(async (req: Request, res: Response) =
 
     const user = await User.findOne({ $or: conditions });
     if (!user) {
-        throw new AppError("User not exist", 400);
+        throw new AppError("User not found", 400);
     }
 
     await generateAndStoreOTP(conditions);
@@ -118,7 +103,7 @@ export const resetPassword = asyncHandler(async (req: Request, res: Response) =>
 
     const user = await User.findOne({ $or: conditions });
     if (!user) {
-        throw new AppError("User not exist", 400);
+        throw new AppError("User not found", 400);
     }
 
     user.password = await bcrypt.hash(newPassword, 12);

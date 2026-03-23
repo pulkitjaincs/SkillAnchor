@@ -5,7 +5,7 @@ import User from '../models/User.model.js';
 import Job from '../models/Job.model.js';
 import WorkExperience from '../models/WorkExperience.model.js';
 import WorkerProfile from '../models/WorkerProfile.model.js';
-import { generateToken } from '../utils/generateToken.js';
+import { generateToken } from '../utils/auth.js';
 import mongoose from 'mongoose';
 
 vi.mock('../config/s3.js', () => ({

@@ -3,7 +3,7 @@ import request from 'supertest';
 import app from '../app.js';
 import User from '../models/User.model.js';
 import { redis } from '../config/redis.js';
-import { generateToken } from '../utils/generateToken.js';
+import { generateToken } from '../utils/auth.js';
 import bcrypt from 'bcryptjs';
 
 vi.mock('../utils/email.js', () => ({

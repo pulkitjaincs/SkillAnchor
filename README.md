@@ -151,7 +151,7 @@ Ensure the following are installed and running:
 | **AWS S3 Bucket** | — | _Optional_ — needed for avatar/media uploads |
 | **SMTP Server** | — | _Optional_ — needed for email OTP delivery |
 
-> **Note:** MongoDB must be configured as a replica set. For local development, you can use [mongodb-memory-server](https://github.com/nodkz/mongodb-memory-server) (already included as a dev dependency for tests) or run `mongod --replSet rs0` and initiate the set.
+> **Note:** MongoDB must run as a replica set for transaction support. **MongoDB Atlas (all tiers, including M0 free) provisions a replica set automatically** — no extra configuration needed. For local development, either run `mongod --replSet rs0` or use [mongodb-memory-server](https://github.com/nodkz/mongodb-memory-server) (included as a dev dependency for tests).
 
 ---
 
@@ -346,11 +346,8 @@ All endpoints are prefixed with `/api/v1`. Responses follow a consistent JSON en
 ### Code Standards
 - TypeScript strict mode across both packages
 - Zod schemas for all API request validation
+- Service layer pattern — business logic in `services/`; controllers are thin HTTP adapters
+- Auth utilities centralized in `utils/auth.ts` (`generateToken`, `setAuthCookie`)
 - ESLint enforced on both client and server
 - Minimum coverage thresholds enforced in CI
 
----
-
-## 📄 License
-
-This project is licensed under the **MIT License**.

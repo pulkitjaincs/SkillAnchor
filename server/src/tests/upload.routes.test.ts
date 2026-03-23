@@ -2,7 +2,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import app from '../app.js';
 import User from '../models/User.model.js';
-import { generateToken } from '../utils/generateToken.js';
+import { generateToken } from '../utils/auth.js';
 
 vi.mock('../config/s3.js', () => ({
   generatePreSignedUrl: vi.fn().mockResolvedValue({

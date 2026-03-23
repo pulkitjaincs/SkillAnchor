@@ -75,11 +75,11 @@ Request ──▶ Route ──▶ Middleware ──▶ Controller ──▶ Serv
 | **Routes** | `routes/` | Maps HTTP verbs/paths to middleware chains and controller callbacks. Pure routing — no logic. |
 | **Middleware** | `middleware/` | Cross-cutting guards: JWT auth, role-based access, Zod validation, NoSQL sanitization, request ID injection. |
 | **Controllers** | `controllers/` | Receives validated requests, delegates to services or models, and constructs standardized HTTP responses. |
-| **Services** | `services/` | Core business logic isolated from HTTP transport. Enables mock-free unit testing. Used for auth flows (OTP, password hashing) and profile operations. |
+| **Services** | `services/` | Core business logic isolated from HTTP transport. Enables mock-free unit testing. All domain logic (job queries/caching, application transactions, avatar resolution, auth OTP flows, profile operations) lives here. Controllers are thin HTTP adapters only. |
 | **Models** | `models/` | Mongoose schemas defining MongoDB collections, indexes, virtuals, and TypeScript interfaces. |
 | **Queues** | `queues/` | BullMQ queue producers and workers for asynchronous processing. |
 | **Config** | `config/` | Singleton initializations: MongoDB connection, Redis client, S3 client, Zod-validated environment variables, and rate limiter definitions. |
-| **Utils** | `utils/` | Leaf utilities: async error wrapper, cache helpers, email sender, JWT token generator, and Pino logger instance. |
+| **Utils** | `utils/` | Leaf utilities: async error wrapper, cache helpers, email sender, JWT token generator, auth cookie setter, and Pino logger instance. `auth.ts` centralizes `generateToken` and `setAuthCookie` — used by all auth flows. |
 
 ### 2.2 Module Breakdown
 
@@ -91,7 +91,7 @@ Request ──▶ Route ──▶ Middleware ──▶ Controller ──▶ Serv
 | `WorkerProfile` | `workerprofiles` | Rich profile: skills, languages, documents (Aadhaar/PAN/license), expected salary, completion percentage. One-to-one with User. |
 | `EmployerProfile` | `employerprofiles` | Links to Company. Tracks designation, hiring manager status. One-to-one with User. |
 | `Company` | `companies` | Multi-location entity with GSTIN, industry, size, verification status. Text index on name. |
-| `Job` | `jobs` | Composite text index across 7 fields for full-text search. Virtual `isExpired` getter. Compound indexes for status + category + location queries. |
+| `Job` | `jobs` | Composite text index across 7 fields for full-text search. Search queries use `$and` composition to prevent filter clobbering when combining search + location. Virtual `isExpired` getter. Compound indexes for status + category + location queries. |
 | `Application` | `applications` | Status pipeline enum: `pending → viewed → shortlisted → rejected → hired → employment-ended`. Maintains a `statusHistory` array for audit trail. Unique compound index on `(job, applicant)`. |
 | `WorkExperience` | `workexperiences` | Can be added by worker or employer. Links to Application (when created via hire flow). Supports ratings, reviews, and verification status. |
 | `SavedJob` | `savedjobs` | Simple junction table with unique `(user, job)` index. |
@@ -103,6 +103,15 @@ Request ──▶ Route ──▶ Middleware ──▶ Controller ──▶ Serv
 | `auth.controller` | Register, login, OTP send/verify, password reset, session management | Partially (update flows require auth) |
 | `job.controller` | CRUD for jobs, employer's own jobs listing, public search | Employer for writes |
 | `application.controller` | Apply, withdraw, view applicants, update status | Worker for apply/withdraw, Employer for status |
+
+#### Services (5 modules)
+
+| Service | Responsibility |
+|---|---|
+| `auth.service` | OTP generation/verification, brute-force lockout, contact uniqueness checks |
+| `job.service` | Job CRUD with field whitelisting, cache-aside reads, full-text + regex search fallback, authority checks (404 vs 403) |
+| `application.service` | MongoDB-transactional apply/withdraw, S3 avatar resolution for applicant lists, BullMQ enqueue on hire |
+| `profile.service` | Worker and employer profile mutations, completion percentage calculation |
 | `profile.controller` | Get/update profiles, avatar management, employer's team view | Authenticated, Employer for team |
 | `workExperience.controller` | CRUD, end employment, toggle visibility | Worker for CRUD, flexible for end |
 
@@ -265,6 +274,7 @@ A complete request cycle from user interaction to UI update:
 |---|---|
 | **Schema Validation** | Zod schemas at the route level validate `body`, `query`, and `params`. Invalid requests never reach controllers. |
 | **NoSQL Injection Prevention** | Dedicated middleware strips any key starting with `$` from request body, query, and params — blocks operators like `$gt`, `$ne`, `$regex`. |
+| **Mass-Assignment Prevention** | `job.service.ts` whitelists all allowed fields in `createJob` and `updateJob`. Controllers never forward raw `req.body` to the database layer. |
 | **Environment Validation** | `config/env.ts` validates all environment variables at startup via Zod. Missing or malformed variables cause immediate process exit with descriptive errors. |
 
 ### 5.4 Transport Security
@@ -284,7 +294,7 @@ A complete request cycle from user interaction to UI update:
 
 | Strategy | Implementation |
 |---|---|
-| **Redis Caching** | Utility module (`utils/cache.ts`) for manual key-value caching with TTL. |
+| **Redis Caching** | `utils/cache.ts` implements cache-aside with **tag-based invalidation**. Each cached key is registered in a Redis SET (`tag:{name}`). Invalidation resolves the set in O(1) — no full-keyspace SCAN required. |
 | **ETag** | Express `etag: 'strong'` for conditional GET responses. |
 | **Response Compression** | gzip via `compression` middleware. |
 | **Database Indexing** | Strategic compound and text indexes on all high-query-volume collections. See model files for index definitions. |
@@ -370,7 +380,7 @@ Environment configuration is **fail-fast**: the server validates all variables a
 
 | Trade-off | Implication |
 |---|---|
-| **MongoDB Replica Set requirement** | Transactions in the hire pipeline require replica set topology. Local development needs `mongod --replSet` or `mongodb-memory-server`. Standard single-node `mongod` will fail at runtime. |
+| **MongoDB Replica Set requirement** | Transactions in the hire pipeline require replica set topology. **MongoDB Atlas (all tiers including M0 free) provisions a 3-node replica set automatically** — no configuration needed. For local development outside of tests, run `mongod --replSet rs0` or use `mongodb-memory-server`. |
 | **Cookie-based auth + CORS** | `sameSite=strict` cookies require client and API to share sibling domains or use a reverse proxy in production. Cross-origin deployments will break session management without proper configuration. |
 | **No WebSocket layer** | All communication is request-response. Real-time features (messaging, live notifications) are not supported. See planned improvements. |
 | **Monolithic Express process** | BullMQ workers run in the same process as the HTTP server. At scale, these should be separated into dedicated worker processes. |

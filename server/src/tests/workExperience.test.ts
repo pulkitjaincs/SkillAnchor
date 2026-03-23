@@ -5,7 +5,7 @@ import User from '../models/User.model.js';
 import WorkerProfile from '../models/WorkerProfile.model.js';
 import WorkExperience from '../models/WorkExperience.model.js';
 import Application from '../models/Application.model.js';
-import { generateToken } from '../utils/generateToken.js';
+import { generateToken } from '../utils/auth.js';
 
 describe('WorkExperience Integration Tests', () => {
     let workerToken: string;

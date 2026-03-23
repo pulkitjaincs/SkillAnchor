@@ -5,7 +5,7 @@ import User, { IUser } from '../models/User.model.js';
 import WorkerProfile from '../models/WorkerProfile.model.js';
 import EmployerProfile from '../models/EmployerProfile.model.js';
 import WorkExperience from '../models/WorkExperience.model.js';
-import { generateToken } from '../utils/generateToken.js';
+import { generateToken } from '../utils/auth.js';
 
 vi.mock('../config/s3.js', () => ({
   generateReadSignedUrl: vi.fn().mockResolvedValue('https://mock-s3-url.com/avatar.jpg'),
