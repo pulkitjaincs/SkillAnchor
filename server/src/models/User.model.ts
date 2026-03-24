@@ -9,7 +9,7 @@ export interface IUser extends Document {
     role: "worker" | "employer" | "admin";
     emailVerified: boolean;
     phoneVerified: boolean;
-    profile?: Types.ObjectId;
+
 }
 
 const UserSchema = new mongoose.Schema<IUser>({
@@ -50,10 +50,7 @@ const UserSchema = new mongoose.Schema<IUser>({
         type: Boolean,
         default: false,
     },
-    profile: {
-        type: mongoose.Schema.Types.ObjectId,
-        refPath: "role",
-    },
+
 }, { timestamps: true });
 
 const User = mongoose.model<IUser>("User", UserSchema);

@@ -1,6 +1,8 @@
 import Job, { IJob } from "../models/Job.model.js";
+import "../models/Company.model.js"; 
 import mongoose, { QueryFilter } from "mongoose";
 import { cacheAside, invalidateCache } from "../utils/cache.js";
+
 
 export interface JobFilters {
     limit?: number;

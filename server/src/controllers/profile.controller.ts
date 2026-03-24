@@ -99,7 +99,7 @@ export const getMyProfile = asyncHandler(async (req: Request, res: Response) => 
             .lean();
 
         const resolved = await resolveAvatarUrl(profile, true);
-        return res.status(200).json(assembleProfileResponse(resolved as Record<string, unknown> | null, req.user, 'employer'));
+        return res.status(200).json({ success: true, data: { profile: assembleProfileResponse(resolved as Record<string, unknown> | null, req.user, 'employer') } });
     }
 
     const profile = await WorkerProfile.findOne({ user: req.user._id })
@@ -107,7 +107,7 @@ export const getMyProfile = asyncHandler(async (req: Request, res: Response) => 
         .lean();
 
     const resolved = await resolveAvatarUrl(profile, true);
-    res.status(200).json(assembleProfileResponse(resolved as Record<string, unknown> | null, req.user, 'worker'));
+    res.status(200).json({ success: true, data: { profile: assembleProfileResponse(resolved as Record<string, unknown> | null, req.user, 'worker') } });
 });
 
 export const updateMyProfile = asyncHandler(async (req: Request, res: Response) => {
@@ -198,5 +198,5 @@ export const getProfileByUserId = asyncHandler(async (req: Request, res: Respons
     const isOwner = req.user && req.user._id.toString() === userId;
     const resolvedProfile = await resolveAvatarUrl(data.profile, isOwner);
     const role = data.role === 'employer' ? 'employer' : 'worker';
-    res.status(200).json(assembleProfileResponse(resolvedProfile as Record<string, unknown> | null, data.user, role));
+    res.status(200).json({ success: true, data: { profile: assembleProfileResponse(resolvedProfile as Record<string, unknown> | null, data.user, role) } });
 });
