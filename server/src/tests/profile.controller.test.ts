@@ -95,9 +95,9 @@ describe('Profile Controller Integration', () => {
             .set('Cookie', [`token=${workerToken}`]);
 
         expect(res.status).toBe(200);
-        // assembleProfileResponse flattens the profile into the root
-        expect(res.body.bio).toBe('Initial Bio');
-        expect(res.body.role).toBe('worker');
+        // assembleProfileResponse result is nested under data.profile
+        expect(res.body.data.profile.bio).toBe('Initial Bio');
+        expect(res.body.data.profile.role).toBe('worker');
     });
 
     it('should retrieve employer profile via /my-profile', async () => {
@@ -112,8 +112,8 @@ describe('Profile Controller Integration', () => {
             .set('Cookie', [`token=${employerToken}`]);
 
         expect(res.status).toBe(200);
-        expect(res.body.designation).toBe('CEO');
-        expect(res.body.role).toBe('employer');
+        expect(res.body.data.profile.designation).toBe('CEO');
+        expect(res.body.data.profile.role).toBe('employer');
     });
 
     it('should update avatar for a user', async () => {
@@ -189,7 +189,7 @@ describe('Profile Controller Integration', () => {
             .set('Cookie', [`token=${employerToken}`]);
 
         expect(res.status).toBe(200);
-        expect(res.body.bio).toBe('Searchable Bio');
+        expect(res.body.data.profile.bio).toBe('Searchable Bio');
     });
 
     it('should return 404 for missing User ID', async () => {
