@@ -55,8 +55,8 @@ describe('Profile Controller Integration', () => {
             .send(updates);
 
         expect(res.status).toBe(200);
-        expect(res.body.bio).toBe(updates.bio);
-        expect(res.body.skills).toContain('Plumbing');
+        expect(res.body.data.profile.bio).toBe(updates.bio);
+        expect(res.body.data.profile.skills).toContain('Plumbing');
 
         // Verify in Database
         const profile = await WorkerProfile.findOne({ user: workerId });
@@ -76,8 +76,8 @@ describe('Profile Controller Integration', () => {
             .send(updates);
 
         expect(res.status).toBe(200);
-        expect(res.body.designation).toBe(updates.designation);
-        expect(res.body.whatsapp).toBe(updates.whatsapp);
+        expect(res.body.data.profile.designation).toBe(updates.designation);
+        expect(res.body.data.profile.whatsapp).toBe(updates.whatsapp);
 
         // Verify in Database
         const profile = await EmployerProfile.findOne({ user: employerId });

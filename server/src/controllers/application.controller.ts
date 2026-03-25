@@ -9,7 +9,7 @@ export const applyToJob = asyncHandler(async (req: Request, res: Response) => {
         req.user._id.toString(),
         req.body.coverNote
     );
-    res.status(201).json(application);
+    res.status(201).json({ success: true, data: { application } });
 });
 
 export const getMyApplications = asyncHandler(async (req: Request, res: Response) => {
@@ -48,7 +48,7 @@ export const updateApplicationStatus = asyncHandler(async (req: Request, res: Re
     if (result.notFound) throw new AppError("Application not found", 404);
     if (result.notAuthorized) throw new AppError("Not authorized", 403);
 
-    res.json(result.data);
+    res.json({ success: true, data: { application: result.data } });
 });
 
 export const withdrawApplication = asyncHandler(async (req: Request, res: Response) => {
@@ -60,5 +60,5 @@ export const withdrawApplication = asyncHandler(async (req: Request, res: Respon
     if (result.notFound) throw new AppError("Application not found", 404);
     if (result.notAuthorized) throw new AppError("Not authorized", 403);
 
-    res.json({ message: "Application withdrawn successfully" });
+    res.json({ success: true, data: { message: "Application withdrawn successfully" } });
 });

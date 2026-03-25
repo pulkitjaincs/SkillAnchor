@@ -133,7 +133,7 @@ export const updateMyProfile = asyncHandler(async (req: Request, res: Response) 
         );
         await invalidateCache(`profile:${req.user._id}`);
 
-        return res.status(200).json(profile);
+        return res.status(200).json({ success: true, data: { profile } });
     }
 
     const { gender, dob, whatsapp, email, city, state, pincode, bio, skills, languages, expectedSalary, documents, isAvatarHidden } = req.body;
@@ -149,7 +149,7 @@ export const updateMyProfile = asyncHandler(async (req: Request, res: Response) 
         { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     await invalidateCache(`profile:${req.user._id}`);
-    res.status(200).json(profile);
+    res.status(200).json({ success: true, data: { profile } });
 });
 
 export const getProfileByUserId = asyncHandler(async (req: Request, res: Response) => {

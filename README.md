@@ -151,13 +151,13 @@ Ensure the following are installed and running:
 | Dependency | Version | Notes |
 |---|---|---|
 | **Node.js** | 20+ | LTS recommended |
-| **Docker** | 24+ | _Optional_ — for containerized development (includes MongoDB & Redis) |
-| **MongoDB** | 7+ | Must run as a **Replica Set** for transaction support. Not needed if using Docker. |
-| **Redis** | 7+ | Used for rate limiting, caching, and BullMQ. Not needed if using Docker. |
+| **Docker** | 24+ | _Optional_ — for containerized development of the Node.js/Next.js stack |
+| **MongoDB Atlas** | — | A free M0 cluster works perfectly. Must run as a **Replica Set** for transaction support (Atlas handles this automatically). |
+| **Redis Cloud** | — | Used for rate limiting, caching, and BullMQ. A free Redis Cloud instance is recommended. |
 | **AWS S3 Bucket** | — | _Optional_ — needed for avatar/media uploads |
 | **SMTP Server** | — | _Optional_ — needed for email OTP delivery |
 
-> **Note:** MongoDB must run as a replica set for transaction support. **MongoDB Atlas (all tiers, including M0 free) provisions a replica set automatically** — no extra configuration needed. For local development, either run `mongod --replSet rs0`, use [mongodb-memory-server](https://github.com/nodkz/mongodb-memory-server) (included as a dev dependency for tests), or use the Docker Compose setup below.
+> **Note:** MongoDB must run as a replica set for transaction support. **MongoDB Atlas (all tiers, including M0 free) provisions a replica set automatically** — no extra configuration needed.
 
 ---
 
@@ -214,13 +214,13 @@ npm run install:all
 
 ### Option A — Docker (Recommended)
 
-Spins up the **entire stack** (client, server, MongoDB, Redis) with a single command:
+Spins up the **application stack** (client and server) with a single command, connecting to your cloud databases via `.env`:
 
 ```bash
 npm run docker:up
 ```
 
-This builds production Docker images and starts all four services. The app will be available at:
+This builds production Docker images and starts both services. The app will be available at:
 - **Frontend:** http://localhost:3000
 - **Backend API:** http://localhost:5000
 
@@ -242,7 +242,7 @@ npm run dev:server
 npm run dev:client
 ```
 
-> **Note:** Option B requires MongoDB and Redis to be running locally or configured via environment variables.
+> **Note:** Option B requires your `MONGO_URI` and `REDIS_URL` in `.env` to be correctly pointing to your Atlas and Redis Cloud instances.
 
 ### Available Scripts
 

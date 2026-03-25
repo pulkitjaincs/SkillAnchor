@@ -10,7 +10,7 @@ export const getWorkExperiencesByUser = asyncHandler(async (req: Request, res: R
         .populate("company", "name logo")
         .sort({ startDate: -1 })
         .lean();
-    res.json(experiences);
+    res.json({ success: true, data: { workExperiences: experiences } });
 });
 
 export const createWorkExperience = asyncHandler(async (req: Request, res: Response) => {
@@ -26,7 +26,7 @@ export const createWorkExperience = asyncHandler(async (req: Request, res: Respo
         { $push: { workHistory: exp._id } }
     );
 
-    res.status(201).json(exp);
+    res.status(201).json({ success: true, data: { workExperience: exp } });
 });
 
 export const updateWorkExperience = asyncHandler(async (req: Request, res: Response) => {
@@ -36,7 +36,7 @@ export const updateWorkExperience = asyncHandler(async (req: Request, res: Respo
 
     Object.assign(exp, req.body);
     await exp.save();
-    res.json(exp);
+    res.json({ success: true, data: { workExperience: exp } });
 });
 
 export const deleteWorkExperience = asyncHandler(async (req: Request, res: Response) => {
@@ -46,7 +46,7 @@ export const deleteWorkExperience = asyncHandler(async (req: Request, res: Respo
         throw new AppError("Verified experience cannot be deleted", 403);
     }
     await exp.deleteOne();
-    res.json({ message: "Work experience deleted successfully" });
+    res.json({ success: true, data: { message: "Work experience deleted successfully" } });
 });
 
 export const endEmployment = asyncHandler(async (req: Request, res: Response) => {
@@ -73,7 +73,7 @@ export const endEmployment = asyncHandler(async (req: Request, res: Response) =>
         { $set: { currentlyEmployed: false } }
     );
 
-    res.json({ message: "Employment ended successfully", exp });
+    res.json({ success: true, data: { workExperience: exp } });
 });
 
 export const toggleVisibility = asyncHandler(async (req: Request, res: Response) => {
@@ -82,5 +82,5 @@ export const toggleVisibility = asyncHandler(async (req: Request, res: Response)
 
     exp.isVisible = !exp.isVisible;
     await exp.save();
-    res.json({ message: `Experience is now ${exp.isVisible ? "visible" : "hidden"}`, isVisible: exp.isVisible });
+    res.json({ success: true, data: { workExperience: exp } });
 });

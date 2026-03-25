@@ -55,8 +55,8 @@ describe('WorkExperience Integration Tests', () => {
                 .send(validExperience);
 
             expect(res.status).toBe(201);
-            expect(res.body.companyName).toBe('Tech Corp');
-            expect(res.body.isVerified).toBe(false); // worker added
+            expect(res.body.data.workExperience.companyName).toBe('Tech Corp');
+            expect(res.body.data.workExperience.isVerified).toBe(false); // worker added
 
             const profile = await WorkerProfile.findOne({ user: workerId });
             expect(profile?.workHistory).toContainEqual(expect.anything());
@@ -95,8 +95,8 @@ describe('WorkExperience Integration Tests', () => {
             const res = await request(app).get(`/api/v1/work-experience/user/${workerId}`);
             
             expect(res.status).toBe(200);
-            expect(res.body.length).toBe(1);
-            expect(res.body[0].companyName).toBe('Visible Corp');
+            expect(res.body.data.workExperiences.length).toBe(1);
+            expect(res.body.data.workExperiences[0].companyName).toBe('Visible Corp');
         });
     });
 
@@ -137,7 +137,7 @@ describe('WorkExperience Integration Tests', () => {
                 });
 
             expect(res.status).toBe(200);
-            expect(res.body.companyName).toBe('Updated Corp');
+            expect(res.body.data.workExperience.companyName).toBe('Updated Corp');
         });
 
         it('should return 403 if trying to update employer verified experience', async () => {
@@ -236,8 +236,8 @@ describe('WorkExperience Integration Tests', () => {
                 .set('Cookie', [`token=${employerToken}`]);
 
             expect(res.status).toBe(200);
-            expect(res.body.exp.isCurrent).toBe(false);
-            expect(res.body.exp.endDate).toBeDefined();
+            expect(res.body.data.workExperience.isCurrent).toBe(false);
+            expect(res.body.data.workExperience.endDate).toBeDefined();
 
             const profile = await WorkerProfile.findOne({ user: workerId });
             expect(profile?.currentlyEmployed).toBe(false);
@@ -273,7 +273,7 @@ describe('WorkExperience Integration Tests', () => {
                 .set('Cookie', [`token=${workerToken}`]);
 
             expect(res.status).toBe(200);
-            expect(res.body.isVisible).toBe(false);
+            expect(res.body.data.workExperience.isVisible).toBe(false);
 
             const exp = await WorkExperience.findById(expId);
             expect(exp?.isVisible).toBe(false);

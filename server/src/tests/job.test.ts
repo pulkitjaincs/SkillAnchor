@@ -48,8 +48,8 @@ describe('Job CRUD Integration Tests', () => {
                 .set('Cookie', [`token=${employerToken}`])
                 .send(validJob);
             expect(res.status).toBe(201);
-            expect(res.body.title).toBe(validJob.title);
-            expect(res.body.employer).toBe(employerId);
+            expect(res.body.data.job.title).toBe(validJob.title);
+            expect(res.body.data.job.employer).toBe(employerId);
         });
         it('should return 401 if not authenticated', async () => {
             const res = await request(app).post('/api/v1/jobs').send(validJob);
@@ -112,7 +112,7 @@ describe('Job CRUD Integration Tests', () => {
                 .send({ title: 'Updated Title' });
 
             expect(res.status).toBe(200);
-            expect(res.body.title).toBe('Updated Title');
+            expect(res.body.data.job.title).toBe('Updated Title');
         });
 
         it('should return 403 if another employer tries to update it', async () => {
@@ -177,7 +177,7 @@ describe('Job CRUD Integration Tests', () => {
             });
             const res = await request(app).get(`/api/v1/jobs/${job._id}`);
             expect(res.status).toBe(200);
-            expect(res.body.title).toBe('Get By Id Job');
+            expect(res.body.data.job.title).toBe('Get By Id Job');
         });
     });
 

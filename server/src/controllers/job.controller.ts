@@ -19,7 +19,7 @@ export const getAllJobs = asyncHandler(async (req: Request, res: Response) => {
 export const getJobById = asyncHandler(async (req: Request, res: Response) => {
     const job = await JobService.getJobById(req.params.id as string);
     if (!job) throw new AppError("Job not found", 404);
-    res.json(job);
+    res.json({ success: true, data: { job } });
 });
 
 export const getMyJobs = asyncHandler(async (req: Request, res: Response) => {
@@ -33,7 +33,7 @@ export const getMyJobs = asyncHandler(async (req: Request, res: Response) => {
 
 export const createJob = asyncHandler(async (req: Request, res: Response) => {
     const job = await JobService.createJob(req.user._id.toString(), req.body);
-    res.status(201).json(job);
+    res.status(201).json({ success: true, data: { job } });
 });
 
 export const updateJob = asyncHandler(async (req: Request, res: Response) => {
@@ -42,7 +42,7 @@ export const updateJob = asyncHandler(async (req: Request, res: Response) => {
     if (result.notFound) throw new AppError("Job not found", 404);
     if (result.notAuthorized) throw new AppError("Not authorized", 403);
 
-    res.json(result.data);
+    res.json({ success: true, data: { job: result.data } });
 });
 
 export const deleteJob = asyncHandler(async (req: Request, res: Response) => {
@@ -51,5 +51,5 @@ export const deleteJob = asyncHandler(async (req: Request, res: Response) => {
     if (result.notFound) throw new AppError("Job not found", 404);
     if (result.notAuthorized) throw new AppError("Not authorized", 403);
 
-    res.json({ message: "Job deleted successfully" });
+    res.json({ success: true, data: { message: "Job deleted successfully" } });
 });

@@ -67,7 +67,7 @@ describe('Application Lifecycle Integration', () => {
                 .set('Cookie', `token=${workerToken}`)
                 .send({});
             expect(res.status).toBe(201);
-            expect(res.body.applicant.toString()).toBe(workerId);
+            expect(res.body.data.application.applicant.toString()).toBe(workerId);
         });
 
         it('should return 400 if already applied', async () => {
@@ -116,7 +116,7 @@ describe('Application Lifecycle Integration', () => {
         let appId: string;
         beforeEach(async () => {
             const applyRes = await request(app).post(`/api/v1/applications/apply/${jobId}`).set('Cookie', `token=${workerToken}`).send({});
-            appId = applyRes.body._id;
+            appId = applyRes.body.data.application._id;
         });
 
         it('should return 404 if application not found', async () => {
@@ -152,7 +152,7 @@ describe('Application Lifecycle Integration', () => {
         let appId: string;
         beforeEach(async () => {
             const applyRes = await request(app).post(`/api/v1/applications/apply/${jobId}`).set('Cookie', `token=${workerToken}`).send({});
-            appId = applyRes.body._id;
+            appId = applyRes.body.data.application._id;
         });
 
         it('should return 404 if application not found', async () => {

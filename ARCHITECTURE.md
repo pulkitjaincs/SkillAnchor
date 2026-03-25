@@ -384,9 +384,7 @@ The project ships with multi-stage Dockerfiles and a `docker-compose.yml` for on
 
 ```
 docker-compose.yml
-  ├── mongodb     (mongo:8)           → port 27017, persistent volume
-  ├── redis       (redis:7-alpine)    → port 6379
-  ├── server      (server/Dockerfile) → port 5000, depends on mongodb + redis
+  ├── server      (server/Dockerfile) → port 5000, connects to Atlas & Redis Cloud via .env
   └── client      (client/Dockerfile) → port 3000, depends on server
 ```
 
@@ -400,8 +398,7 @@ docker-compose.yml
 **Key Design Decisions:**
 - **Multi-stage builds** keep production images lean by excluding dev dependencies, source code, and build tooling.
 - **`.dockerignore` files** prevent `node_modules`, `.env`, and build artifacts from being copied into the build context.
-- **Healthchecks** on MongoDB and Redis ensure the server container only starts after databases are accepting connections.
-- **Environment layering**: `env_file` loads base secrets from `server/.env`, then `environment` overrides database URLs to point at Docker-internal hostnames (`mongodb`, `redis`).
+- **Cloud Database Configuration**: Environment variables from `server/.env` are directly loaded to provide connecting URLs for MongoDB Atlas and Redis Cloud natively.
 
 ---
 
@@ -409,7 +406,7 @@ docker-compose.yml
 
 | Trade-off | Implication |
 |---|---|
-| **MongoDB Replica Set requirement** | Transactions in the hire pipeline require replica set topology. **MongoDB Atlas (all tiers including M0 free) provisions a 3-node replica set automatically** — no configuration needed. For local development, use the Docker Compose setup, run `mongod --replSet rs0`, or use `mongodb-memory-server`. |
+| **MongoDB Replica Set requirement** | Transactions in the hire pipeline require replica set topology. **MongoDB Atlas (all tiers including M0 free) provisions a 3-node replica set automatically** — no configuration needed. For local development, simply use your Atlas connection string, run `mongod --replSet rs0` manually, or use `mongodb-memory-server` in tests. |
 | **Cookie-based auth + CORS** | `sameSite=strict` cookies require client and API to share sibling domains or use a reverse proxy in production. Cross-origin deployments will break session management without proper configuration. |
 | **No WebSocket layer** | All communication is request-response. Real-time features (messaging, live notifications) are not supported. See planned improvements. |
 | **Monolithic Express process** | BullMQ workers run in the same process as the HTTP server. At scale, these should be separated into dedicated worker processes. |
