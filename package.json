@@ -10,7 +10,9 @@
     "build": "cd client && npm run build",
     "build:client": "cd client && npm run build",
     "install:all": "npm install && cd client && npm install && cd ../server && npm install",
-    "lint": "cd client && npm run lint"
+    "lint": "cd client && npm run lint",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down"
   },
   "keywords": [
     "jobs",

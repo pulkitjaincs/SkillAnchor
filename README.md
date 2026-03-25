@@ -94,7 +94,10 @@ A full-stack job portal purpose-built for India's blue-collar and hourly workfor
 ```
 SkillAnchor/
 ├── .github/workflows/ci.yml      # GitHub Actions CI pipeline
+├── docker-compose.yml             # One-command full-stack orchestration
 ├── client/                        # Next.js frontend application
+│   ├── Dockerfile                 # Multi-stage build (standalone output)
+│   ├── .dockerignore
 │   ├── src/
 │   │   ├── app/                   # App Router pages & layouts
 │   │   │   ├── (auth)/            # Login, Register, Forgot Password
@@ -119,6 +122,8 @@ SkillAnchor/
 │   ├── next.config.ts
 │   └── package.json
 ├── server/                        # Express API backend
+│   ├── Dockerfile                 # Multi-stage build (TS → JS)
+│   ├── .dockerignore
 │   ├── src/
 │   │   ├── app.ts                 # Express app setup & middleware pipeline
 │   │   ├── server.ts              # Server entry point with graceful shutdown
@@ -134,7 +139,7 @@ SkillAnchor/
 │   │   └── tests/                 # Integration & unit tests (15 suites)
 │   ├── vitest.config.js
 │   └── package.json
-└── package.json                   # Root-level scripts (install:all, dev, lint)
+└── package.json                   # Root-level scripts (install:all, dev, docker)
 ```
 
 ---
@@ -146,12 +151,13 @@ Ensure the following are installed and running:
 | Dependency | Version | Notes |
 |---|---|---|
 | **Node.js** | 20+ | LTS recommended |
-| **MongoDB** | 7+ | Must run as a **Replica Set** for transaction support |
-| **Redis** | 7+ | Used for rate limiting, caching, and BullMQ |
+| **Docker** | 24+ | _Optional_ — for containerized development (includes MongoDB & Redis) |
+| **MongoDB** | 7+ | Must run as a **Replica Set** for transaction support. Not needed if using Docker. |
+| **Redis** | 7+ | Used for rate limiting, caching, and BullMQ. Not needed if using Docker. |
 | **AWS S3 Bucket** | — | _Optional_ — needed for avatar/media uploads |
 | **SMTP Server** | — | _Optional_ — needed for email OTP delivery |
 
-> **Note:** MongoDB must run as a replica set for transaction support. **MongoDB Atlas (all tiers, including M0 free) provisions a replica set automatically** — no extra configuration needed. For local development, either run `mongod --replSet rs0` or use [mongodb-memory-server](https://github.com/nodkz/mongodb-memory-server) (included as a dev dependency for tests).
+> **Note:** MongoDB must run as a replica set for transaction support. **MongoDB Atlas (all tiers, including M0 free) provisions a replica set automatically** — no extra configuration needed. For local development, either run `mongod --replSet rs0`, use [mongodb-memory-server](https://github.com/nodkz/mongodb-memory-server) (included as a dev dependency for tests), or use the Docker Compose setup below.
 
 ---
 
@@ -206,6 +212,26 @@ npm run install:all
 
 ## 🏃 Running Locally
 
+### Option A — Docker (Recommended)
+
+Spins up the **entire stack** (client, server, MongoDB, Redis) with a single command:
+
+```bash
+npm run docker:up
+```
+
+This builds production Docker images and starts all four services. The app will be available at:
+- **Frontend:** http://localhost:3000
+- **Backend API:** http://localhost:5000
+
+To stop all containers:
+
+```bash
+npm run docker:down
+```
+
+### Option B — Manual (for development with hot reload)
+
 Start both servers in **separate terminals**:
 
 ```bash
@@ -216,8 +242,14 @@ npm run dev:server
 npm run dev:client
 ```
 
+> **Note:** Option B requires MongoDB and Redis to be running locally or configured via environment variables.
+
+### Available Scripts
+
 | Script | Description |
 |---|---|
+| `npm run docker:up` | Builds and starts the full stack via Docker Compose |
+| `npm run docker:down` | Stops and removes all Docker containers |
 | `npm run dev:server` | Starts the Express server with `tsx watch` (hot reload) |
 | `npm run dev:client` | Starts the Next.js dev server |
 | `npm run build` | Builds the Next.js client for production |
