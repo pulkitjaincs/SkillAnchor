@@ -77,4 +77,5 @@ export interface PopulatedApplication extends Omit<IApplication, "job"> {
 export interface HiredJobData {
     applicationId: string;
     employerId: string;
+    requestId?: string;
 }

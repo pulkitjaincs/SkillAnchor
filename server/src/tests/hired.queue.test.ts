@@ -5,13 +5,15 @@ import WorkerProfile from '../models/WorkerProfile.model.js';
 import WorkExperience, { IWorkExperience } from '../models/WorkExperience.model.js';
 import Company, { ICompany } from '../models/Company.model.js';
 import { describe, it, expect, beforeEach } from 'vitest';
-import { hiredQueue, hiredWorker } from '../queues/hired.queue.js';
+import { hiredQueue, createHiredWorker } from '../queues/hired.queue.js';
 
 
 describe('BullMQ Worker - Hired Flow', () => {
     let employerId: string, workerId: string, applicationId: string;
+    let hiredWorker: ReturnType<typeof createHiredWorker>;
 
     beforeEach(async () => {
+        hiredWorker = createHiredWorker();
         // 1. Setup Data
         const employer = (await User.create({
             name: 'Emp', email: `e${Date.now()}@t.com`, role: 'employer', authType: 'email', emailVerified: true
@@ -78,5 +80,6 @@ describe('BullMQ Worker - Hired Flow', () => {
         expect(experience?.isVerified).toBe(true);
 
         hiredWorker.removeAllListeners();
+        await hiredWorker.close();
     }, 15000);
 });

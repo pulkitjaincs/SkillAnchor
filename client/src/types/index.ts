@@ -43,6 +43,39 @@ export interface ApiResponse<T> {
     message?: string;
 }
 
+export interface AuthPayloads {
+    Login: {
+        authType: 'email' | 'phone';
+        email?: string;
+        phone?: string;
+        password?: string;
+        otp?: string;
+    };
+    Register: {
+        name: string;
+        role: 'worker' | 'employer';
+        authType: 'email' | 'phone';
+        email?: string;
+        phone?: string;
+    };
+    SendOTP: {
+        authType: 'email' | 'phone';
+        email?: string;
+        phone?: string;
+        reason?: string;
+    };
+    VerifyOTP: {
+        authType: 'email' | 'phone';
+        email?: string;
+        phone?: string;
+        otp: string;
+        reason?: string;
+    };
+    ForgotPassword: { email: string };
+    ResetPassword: { email: string; otp: string; newPassword?: string };
+    UpdatePassword: { currentPassword?: string; newPassword?: string };
+}
+
 export type ApplicationStatus = 'pending' | 'reviewed' | 'shortlisted' | 'rejected' | 'hired' | 'employment-ended';
 
 export interface Application {

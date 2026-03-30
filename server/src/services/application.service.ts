@@ -41,7 +41,7 @@ export const applyToJob = async (jobId: string, workerId: string, coverNote?: st
 export const getMyApplications = async (workerId: string, filters: { limit?: number, cursor?: string }) => {
     const { limit = 10, cursor } = filters;
     const query: QueryFilter<IApplication> = { applicant: workerId };
-    if (cursor) query._id = { $lt: new mongoose.Types.ObjectId(cursor) };
+    if (cursor && mongoose.isValidObjectId(cursor)) query._id = { $lt: new mongoose.Types.ObjectId(cursor) };
 
     const applications = await Application.find(query)
         .populate("job", "title company city state salaryMin salaryMax status")
@@ -51,7 +51,8 @@ export const getMyApplications = async (workerId: string, filters: { limit?: num
 
     const hasMore = applications.length > limit;
     if (hasMore) applications.pop();
-    return { applications, hasMore };
+    const nextCursor = hasMore && applications.length > 0 ? applications[applications.length - 1]?._id : null;
+    return { applications, hasMore, nextCursor };
 };
 
 export const getJobApplicants = async (jobId: string, employerId: string, filters: { limit?: number, cursor?: string }) => {
@@ -62,7 +63,7 @@ export const getJobApplicants = async (jobId: string, employerId: string, filter
     if (job.employer.toString() !== employerId) return { notAuthorized: true };
 
     const query: QueryFilter<IApplication> = { job: jobId };
-    if (cursor) query._id = { $lt: new mongoose.Types.ObjectId(cursor) };
+    if (cursor && mongoose.isValidObjectId(cursor)) query._id = { $lt: new mongoose.Types.ObjectId(cursor) };
 
     const applications = await Application.find(query)
         .populate("applicant", "name phone email")
@@ -72,6 +73,7 @@ export const getJobApplicants = async (jobId: string, employerId: string, filter
 
     const hasMore = applications.length > limit;
     if (hasMore) applications.pop();
+    const nextCursor = hasMore && applications.length > 0 ? applications[applications.length - 1]?._id : null;
 
     const applicantIds = applications.map(app => app.applicant?._id).filter(id => id);
     const profiles = await WorkerProfile.find({ user: { $in: applicantIds } }, "user avatar isAvatarHidden").lean();
@@ -91,10 +93,10 @@ export const getJobApplicants = async (jobId: string, employerId: string, filter
         }
     }
 
-    return { data: { applications, hasMore } };
+    return { data: { applications, hasMore, nextCursor } };
 };
 
-export const updateStatus = async (applicationId: string, employerId: string, status: string) => {
+export const updateStatus = async (applicationId: string, employerId: string, status: string, requestId?: string) => {
     const application = await Application.findById(applicationId)
         .populate({ path: "job", populate: { path: "company", select: "name _id" } })
         .lean() as unknown as PopulatedApplication;
@@ -114,7 +116,7 @@ export const updateStatus = async (applicationId: string, employerId: string, st
     if (status === "hired") {
         await hiredQueue.add(
             'process-hire',
-            { applicationId: application._id.toString(), employerId },
+            { applicationId: application._id.toString(), employerId, requestId },
             { attempts: 3, backoff: { type: 'exponential', delay: 2000 } }
         );
     }

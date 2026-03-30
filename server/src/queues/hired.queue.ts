@@ -13,7 +13,8 @@ export const hiredQueue = new Queue<HiredJobData>('hired-worker', {
     connection: redis as unknown as ConnectionOptions,
 })
 
-export const hiredWorker = new Worker<HiredJobData>('hired-worker', async (job: BullJob<HiredJobData>) => {
+export const createHiredWorker = () => {
+    const hiredWorker = new Worker<HiredJobData>('hired-worker', async (job: BullJob<HiredJobData>) => {
     const { applicationId, employerId } = job.data;
     const application = await Application.findById(applicationId)
         .populate({
@@ -58,9 +59,10 @@ export const hiredWorker = new Worker<HiredJobData>('hired-worker', async (job: 
     } finally {
         session.endSession();
     }
-},
-    { connection: redis as unknown as ConnectionOptions }
-);
-hiredWorker.on('failed', (job, err) => {
-    logger.error({ err }, `Hired job ${job?.id} permanently failed after retries`);
-});
+}, { connection: redis as unknown as ConnectionOptions });
+
+    hiredWorker.on('failed', (job, err) => {
+        logger.error({ err }, `Hired job ${job?.id} permanently failed after retries`);
+    });
+    return hiredWorker;
+};

@@ -98,6 +98,44 @@ describe('WorkExperience Integration Tests', () => {
             expect(res.body.data.workExperiences.length).toBe(1);
             expect(res.body.data.workExperiences[0].companyName).toBe('Visible Corp');
         });
+
+        describe('Pagination Edge Cases', () => {
+            beforeEach(async () => {
+                for (let i = 0; i < 4; i++) {
+                    await WorkExperience.create({
+                        worker: workerId,
+                        companyName: `Pagi Corp ${i}`,
+                        role: 'Developer',
+                        startDate: new Date('2021-01-01'),
+                        isVisible: true,
+                        addedBy: 'worker'
+                    });
+                }
+            });
+
+            it('should paginate correctly and indicate hasMore', async () => {
+                const res = await request(app).get(`/api/v1/work-experience/user/${workerId}?limit=2`);
+                expect(res.status).toBe(200);
+                expect(res.body.data.workExperiences.length).toBe(2);
+                expect(res.body.hasMore).toBe(true);
+                expect(res.body.nextCursor).toBeDefined();
+            });
+
+            it('should return hasMore false when reaching end', async () => {
+                const page1 = await request(app).get(`/api/v1/work-experience/user/${workerId}?limit=3`);
+                const res = await request(app).get(`/api/v1/work-experience/user/${workerId}?limit=3&cursor=${page1.body.nextCursor}`);
+                expect(res.status).toBe(200);
+                expect(res.body.hasMore).toBe(false);
+                expect(res.body.nextCursor).toBeNull();
+            });
+
+            it('should gracefully handle invalid cursor', async () => {
+                const res = await request(app).get(`/api/v1/work-experience/user/${workerId}?limit=2&cursor=invalid_cursor`);
+                expect(res.status).toBe(200);
+                expect(res.body.data.workExperiences.length).toBe(2);
+                expect(res.body.hasMore).toBe(true);
+            });
+        });
     });
 
     describe('PUT /api/v1/work-experience/:id', () => {

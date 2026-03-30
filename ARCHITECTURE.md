@@ -145,7 +145,7 @@ Controller pushes job to BullMQ queue
          │
          ▼
 ┌─────────────────────────────────────────────┐
-│  BullMQ Worker (Redis-backed)               │
+│  BullMQ Worker Process (worker.ts)          │
 │                                             │
 │  1. Fetch application with populated job    │
 │  2. Start MongoDB transaction (session)     │
@@ -385,6 +385,7 @@ The project ships with multi-stage Dockerfiles and a `docker-compose.yml` for on
 ```
 docker-compose.yml
   ├── server      (server/Dockerfile) → port 5000, connects to Atlas & Redis Cloud via .env
+  ├── worker      (server/Dockerfile) → runs `npm run worker`
   └── client      (client/Dockerfile) → port 3000, depends on server
 ```
 
@@ -409,7 +410,6 @@ docker-compose.yml
 | **MongoDB Replica Set requirement** | Transactions in the hire pipeline require replica set topology. **MongoDB Atlas (all tiers including M0 free) provisions a 3-node replica set automatically** — no configuration needed. For local development, simply use your Atlas connection string, run `mongod --replSet rs0` manually, or use `mongodb-memory-server` in tests. |
 | **Cookie-based auth + CORS** | `sameSite=strict` cookies require client and API to share sibling domains or use a reverse proxy in production. Cross-origin deployments will break session management without proper configuration. |
 | **No WebSocket layer** | All communication is request-response. Real-time features (messaging, live notifications) are not supported. See planned improvements. |
-| **Monolithic Express process** | BullMQ workers run in the same process as the HTTP server. At scale, these should be separated into dedicated worker processes. |
 | **No admin panel** | The `admin` role exists in the User model but has no dedicated routes, controllers, or frontend views. |
 
 ---
@@ -419,7 +419,6 @@ docker-compose.yml
 | Enhancement | Description |
 |---|---|
 | **Real-Time Messaging** | Socket.io or WebSocket integration for bidirectional employer-candidate communication within the platform. |
-| **Worker Process Separation** | Extract BullMQ workers into separate deployable units for independent scaling. |
 | **Admin Dashboard** | Build out the admin role with user management, job moderation, and analytics. |
 | **Push Notifications** | Web push for application status updates and new job alerts. |
 | **Full-Text Search Upgrade** | Migrate from MongoDB text indexes to Atlas Search or Elasticsearch for more advanced ranking and faceted search. |

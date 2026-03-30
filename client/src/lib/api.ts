@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Job, User, Application, ApiResponse, PaginatedJobsResponse, PaginatedApplicationsResponse, Profile, WorkExperience } from "@/types";
+import { Job, User, Application, ApiResponse, PaginatedJobsResponse, PaginatedApplicationsResponse, Profile, WorkExperience, AuthPayloads } from "@/types";
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/v1";
 
 const api = axios.create({
@@ -8,6 +8,13 @@ const api = axios.create({
         "Content-Type": "application/json",
     },
     withCredentials: true
+});
+
+api.interceptors.request.use((config) => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        config.headers['X-Request-Id'] = crypto.randomUUID();
+    }
+    return config;
 });
 
 api.interceptors.response.use(
@@ -20,16 +27,16 @@ api.interceptors.response.use(
     }
 );
 export const authAPI = {
-    sendOTP: (data: Record<string, unknown>) => api.post('/auth/send-otp', data),
-    verifyOTP: (data: Record<string, unknown>) => api.post('/auth/verify-otp', data),
-    register: (data: Record<string, unknown>) => api.post('/auth/register', data),
-    login: (data: Record<string, unknown>) => api.post('/auth/login', data),
-    forgotPassword: (data: Record<string, unknown>) => api.post('/auth/forgot-password', data),
-    resetPassword: (data: Record<string, unknown>) => api.post('/auth/reset-password', data),
+    sendOTP: (data: AuthPayloads['SendOTP']) => api.post('/auth/send-otp', data),
+    verifyOTP: (data: AuthPayloads['VerifyOTP']) => api.post('/auth/verify-otp', data),
+    register: (data: AuthPayloads['Register']) => api.post('/auth/register', data),
+    login: (data: AuthPayloads['Login']) => api.post('/auth/login', data),
+    forgotPassword: (data: AuthPayloads['ForgotPassword']) => api.post('/auth/forgot-password', data),
+    resetPassword: (data: AuthPayloads['ResetPassword']) => api.post('/auth/reset-password', data),
     logout: () => api.post('/auth/logout'),
-    updatePassword: (data: Record<string, unknown>) => api.post('/auth/update-password', data),
-    sendUpdateOTP: (data: Record<string, unknown>) => api.post('/auth/send-update-otp', data),
-    verifyUpdateOTP: (data: Record<string, unknown>) => api.post('/auth/verify-update-otp', data),
+    updatePassword: (data: AuthPayloads['UpdatePassword']) => api.post('/auth/update-password', data),
+    sendUpdateOTP: (data: AuthPayloads['SendOTP']) => api.post('/auth/send-update-otp', data),
+    verifyUpdateOTP: (data: AuthPayloads['VerifyOTP']) => api.post('/auth/verify-update-otp', data),
     getMe: () => api.get<{ success: boolean; user: User }>('/auth/get-me')
 };
 

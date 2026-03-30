@@ -2,7 +2,6 @@ import "./config/env.js";
 import app from "./app.js";
 import connectDB from "./config/db.js";
 import { connectRedis, redis } from "./config/redis.js";
-import { hiredWorker } from "./queues/hired.queue.js";
 import mongoose from "mongoose";
 import { logger } from "./utils/logger.js";
 connectDB();
@@ -18,7 +17,6 @@ const shutdown = async (signal: string) => {
     logger.info(`${signal} received. Shutting down gracefully...`);
     server.close(async () => {
         try {
-            await hiredWorker.close();
             await mongoose.connection.close();
             await redis.quit();
             logger.info('Graceful shutdown complete. Goodbye!');

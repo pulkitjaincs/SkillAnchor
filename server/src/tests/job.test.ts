@@ -198,7 +198,7 @@ describe('Job CRUD Integration Tests', () => {
             const res = await request(app)
                 .get('/api/v1/jobs/my-jobs')
                 .set('Cookie', [`token=${employerToken}`]);
-            
+
             expect(res.status).toBe(200);
             expect(res.body.jobs.length).toBeGreaterThan(0);
         });
@@ -224,7 +224,7 @@ describe('Job CRUD Integration Tests', () => {
             expect(res.status).toBe(200);
             expect(res.body.jobs).toBeDefined();
         });
-        
+
         it('should filter by category and jobType', async () => {
             const res = await request(app).get('/api/v1/jobs?category=IT&jobType=full-time');
             expect(res.status).toBe(200);
@@ -232,4 +232,55 @@ describe('Job CRUD Integration Tests', () => {
         });
     });
 
+    describe('GET /api/v1/jobs Pagination', () => {
+        beforeEach(async () => {
+            for (let i = 0; i < 5; i++) {
+                await Job.create({
+                    employer: employerId,
+                    title: `Pagination Job ${i}`,
+                    description: 'Description must be 10+ chars',
+                    category: 'IT',
+                    city: 'Bangalore',
+                    state: 'Karnataka',
+                    salaryMin: 30000,
+                    salaryType: 'monthly',
+                    jobType: 'full-time',
+                    status: 'active'
+                });
+            }
+        });
+
+        it('should return hasMore true with a correct cursor for first page', async () => {
+            const res = await request(app).get('/api/v1/jobs?limit=2');
+            expect(res.status).toBe(200);
+            expect(res.body.jobs.length).toBe(2);
+            expect(res.body.hasMore).toBe(true);
+            expect(res.body.nextCursor).toBeDefined();
+        });
+
+        it('should return hasMore false on the last page', async () => {
+            const page1 = await request(app).get('/api/v1/jobs?limit=3');
+            const nextCursor = page1.body.nextCursor;
+
+            const res = await request(app).get(`/api/v1/jobs?limit=3&cursor=${nextCursor}`);
+            expect(res.status).toBe(200);
+            expect(res.body.jobs.length).toBeLessThanOrEqual(3);
+            expect(res.body.hasMore).toBe(false);
+            expect(res.body.nextCursor).toBeNull();
+        });
+
+        it('should return empty array and hasMore false for empty result', async () => {
+            const res = await request(app).get('/api/v1/jobs?category=NonExistentCategory');
+            expect(res.status).toBe(200);
+            expect(res.body.jobs).toEqual([]);
+            expect(res.body.hasMore).toBe(false);
+        });
+
+        it('should gracefully return default first page on invalid cursor', async () => {
+            const res = await request(app).get('/api/v1/jobs?limit=2&cursor=invalid_cursor_string');
+            expect(res.status).toBe(200);
+            expect(res.body.jobs.length).toBe(2);
+            expect(res.body.hasMore).toBe(true);
+        });
+    });
 });

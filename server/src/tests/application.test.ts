@@ -86,6 +86,45 @@ describe('Application Lifecycle Integration', () => {
             expect(res.body.applications.length).toBe(1);
             expect(res.body.applications[0].job._id.toString()).toBe(jobId);
         });
+
+        describe('Pagination Edge Cases', () => {
+            beforeEach(async () => {
+                for (let i = 0; i < 4; i++) {
+                    const newJob = await Job.create({
+                        employer: employerId,
+                        title: `Pagi Job ${i}`,
+                        description: 'Needs 10+ characters here too.',
+                        category: 'IT', city: 'Bangalore', state: 'Karnataka',
+                        salaryMin: 10000, salaryType: 'monthly', jobType: 'full-time',
+                        status: 'active'
+                    });
+                    await request(app).post(`/api/v1/applications/apply/${newJob._id}`).set('Cookie', `token=${workerToken}`).send({});
+                }
+            });
+
+            it('should return hasMore true with a correct cursor for first page', async () => {
+                const res = await request(app).get('/api/v1/applications/my-applications?limit=2').set('Cookie', `token=${workerToken}`);
+                expect(res.status).toBe(200);
+                expect(res.body.applications.length).toBe(2);
+                expect(res.body.hasMore).toBe(true);
+                expect(res.body.nextCursor).toBeDefined();
+            });
+
+            it('should return hasMore false on the last page', async () => {
+                const page1 = await request(app).get('/api/v1/applications/my-applications?limit=3').set('Cookie', `token=${workerToken}`);
+                const res = await request(app).get(`/api/v1/applications/my-applications?limit=3&cursor=${page1.body.nextCursor}`).set('Cookie', `token=${workerToken}`);
+                expect(res.status).toBe(200);
+                expect(res.body.applications.length).toBeLessThanOrEqual(3);
+                expect(res.body.hasMore).toBe(false);
+                expect(res.body.nextCursor).toBeNull();
+            });
+
+            it('should gracefully return default first page on invalid cursor', async () => {
+                const res = await request(app).get('/api/v1/applications/my-applications?limit=2&cursor=invalid_cursor').set('Cookie', `token=${workerToken}`);
+                expect(res.status).toBe(200);
+                expect(res.body.applications.length).toBe(2);
+            });
+        });
     });
 
     describe('GET /api/v1/applications/job/:jobId', () => {
@@ -109,6 +148,29 @@ describe('Application Lifecycle Integration', () => {
             expect(res.status).toBe(200);
             expect(res.body.applications.length).toBe(1);
             expect(res.body.applications[0].applicant.avatarUrl).toBe('https://mock-s3-avatar.com');
+        });
+
+        describe('Pagination Edge Cases', () => {
+            beforeEach(async () => {
+                for (let i = 0; i < 3; i++) {
+                    const extraWorker = await User.create({ name: `W${i}`, email: `w${i}-${Date.now()}@test.com`, role: 'worker', authType: 'email', emailVerified: true });
+                    const extraWorkerToken = generateToken(extraWorker._id.toString());
+                    await request(app).post(`/api/v1/applications/apply/${jobId}`).set('Cookie', `token=${extraWorkerToken}`).send({});
+                }
+            });
+
+            it('should paginate correctly and indicate hasMore', async () => {
+                const res = await request(app).get(`/api/v1/applications/job/${jobId}?limit=2`).set('Cookie', `token=${employerToken}`);
+                expect(res.status).toBe(200);
+                expect(res.body.applications.length).toBe(2);
+                expect(res.body.hasMore).toBe(true);
+            });
+            it('should return hasMore false when reaching end', async () => {
+                const page1 = await request(app).get(`/api/v1/applications/job/${jobId}?limit=2`).set('Cookie', `token=${employerToken}`);
+                const res = await request(app).get(`/api/v1/applications/job/${jobId}?limit=3&cursor=${page1.body.nextCursor}`).set('Cookie', `token=${employerToken}`);
+                expect(res.status).toBe(200);
+                expect(res.body.hasMore).toBe(false);
+            });
         });
     });
 
@@ -134,7 +196,6 @@ describe('Application Lifecycle Integration', () => {
             const hireRes = await request(app).patch(`/api/v1/applications/${appId}/status`).set('Cookie', `token=${employerToken}`).send({ status: 'hired' });
             expect(hireRes.status).toBe(200);
 
-            // 4. Verify WorkExperience creation (wait for BullMQ worker)
             let experience = null;
             for (let i = 0; i < 5; i++) {
                 experience = await WorkExperience.findOne({ worker: workerId, linkedApplication: appId });

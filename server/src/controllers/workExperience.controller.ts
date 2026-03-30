@@ -5,12 +5,28 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { Request, Response } from "express";
 import { AppError } from "../types/error.js";
 
+import mongoose, { QueryFilter } from "mongoose";
+
 export const getWorkExperiencesByUser = asyncHandler(async (req: Request, res: Response) => {
-    const experiences = await WorkExperience.find({ worker: req.params.userId, isVisible: true })
+    const limit = parseInt(req.query.limit as string) || 10;
+    const cursor = req.query.cursor as string | undefined;
+
+    const query: QueryFilter<any> = { worker: req.params.userId, isVisible: true };
+    if (cursor && mongoose.isValidObjectId(cursor)) {
+        query._id = { $lt: new mongoose.Types.ObjectId(cursor) };
+    }
+
+    const experiences = await WorkExperience.find(query)
         .populate("company", "name logo")
-        .sort({ startDate: -1 })
+        .sort({ _id: -1 })
+        .limit(limit + 1)
         .lean();
-    res.json({ success: true, data: { workExperiences: experiences } });
+
+    const hasMore = experiences.length > limit;
+    if (hasMore) experiences.pop();
+    const nextCursor = hasMore && experiences.length > 0 ? experiences[experiences.length - 1]._id : null;
+
+    res.json({ success: true, data: { workExperiences: experiences }, hasMore, nextCursor });
 });
 
 export const createWorkExperience = asyncHandler(async (req: Request, res: Response) => {

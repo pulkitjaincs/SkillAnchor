@@ -1,4 +1,6 @@
 import express, { Request, Response, NextFunction } from "express";
+import mongoose from "mongoose";
+import { redis } from "./config/redis.js";
 import cors from "cors";
 import compression from "compression";
 import jobRoutes from "./routes/job.routes.js";
@@ -34,13 +36,36 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/api/v1/health", (req: Request, res: Response) => {
-    res.json({ message: "OK" });
+app.get("/api/v1/health", async (req: Request, res: Response) => {
+    try {
+        const mongoStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+        const redisStatus = redis.status === 'ready' ? 'connected' : 'disconnected';
+        
+        const isHealthy = mongoStatus === 'connected' && redisStatus === 'connected';
+        
+        res.status(isHealthy ? 200 : 503).json({
+            status: isHealthy ? 'healthy' : 'degraded',
+            mongo: mongoStatus,
+            redis: redisStatus,
+            uptime: process.uptime(),
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(503).json({ status: 'degraded', error: 'Health check failed' });
+    }
 });
 
 app.get("/api/v1/logs", (req: Request, res: Response) => {
     logger.info("Sample log generated from /api/v1/logs endpoint");
     res.json({ success: true, message: "Check server logs for structured output" });
+});
+
+app.get("/api/v1/metrics", (req: Request, res: Response) => {
+    res.json({
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        cpu: process.cpuUsage()
+    });
 });
 
 app.use(requestIdMiddleware);

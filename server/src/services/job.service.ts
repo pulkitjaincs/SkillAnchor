@@ -41,7 +41,8 @@ export const getJobs = async (filters: JobFilters) => {
 
             const hasMore = jobs.length > limit;
             if (hasMore) jobs.pop();
-            return { jobs, hasMore };
+            const nextCursor = hasMore && jobs.length > 0 ? jobs[jobs.length - 1]?._id : null;
+            return { jobs, hasMore, nextCursor };
         }, "jobs:list");
     }
 
@@ -66,7 +67,7 @@ export const getJobs = async (filters: JobFilters) => {
 
     if (category) andConditions.push({ category });
     if (jobType) andConditions.push({ jobType });
-    if (cursor) andConditions.push({ _id: { $lt: new mongoose.Types.ObjectId(cursor) } });
+    if (cursor && mongoose.isValidObjectId(cursor)) andConditions.push({ _id: { $lt: new mongoose.Types.ObjectId(cursor) } });
 
     const query = { $and: andConditions };
 
@@ -78,7 +79,8 @@ export const getJobs = async (filters: JobFilters) => {
 
     const hasMore = jobs.length > limit;
     if (hasMore) jobs.pop();
-    return { jobs, hasMore };
+    const nextCursor = hasMore && jobs.length > 0 ? jobs[jobs.length - 1]?._id : null;
+    return { jobs, hasMore, nextCursor };
 };
 
 
@@ -136,7 +138,7 @@ export const deleteJob = async (jobId: string, employerId: string) => {
 export const getMyJobs = async (employerId: string, filters: { limit?: number, cursor?: string }) => {
     const { limit = 10, cursor } = filters;
     const query: QueryFilter<IJob> = { employer: new mongoose.Types.ObjectId(employerId) };
-    if (cursor) query._id = { $lt: new mongoose.Types.ObjectId(cursor) };
+    if (cursor && mongoose.isValidObjectId(cursor)) query._id = { $lt: new mongoose.Types.ObjectId(cursor) };
 
     const jobs = await Job.find(query, JOB_LISTING_PROJECTION)
         .populate("company", "name logo")
@@ -146,5 +148,6 @@ export const getMyJobs = async (employerId: string, filters: { limit?: number, c
 
     const hasMore = jobs.length > limit;
     if (hasMore) jobs.pop();
-    return { jobs, hasMore };
+    const nextCursor = hasMore && jobs.length > 0 ? jobs[jobs.length - 1]?._id : null;
+    return { jobs, hasMore, nextCursor };
 };

@@ -79,12 +79,12 @@ A full-stack job portal purpose-built for India's blue-collar and hourly workfor
 | Runtime | **Node.js 20+**, **Express 5** |
 | Language | TypeScript 5 (ESM) |
 | Database | MongoDB 8.0, Mongoose 9 |
-| Caching & Queues | Redis 7 (ioredis), BullMQ 5 |
+| Caching & Queues | Redis 7 (ioredis), BullMQ 5 (running in a dedicated standalone worker process) |
 | Validation | Zod 4 (request payloads + environment variables) |
 | Authentication | JWT (HttpOnly cookies), bcrypt, OTP via Nodemailer |
 | File Storage | AWS S3 (pre-signed URLs for direct client uploads) |
 | Security | Helmet, CORS, NoSQL injection sanitization, Redis-backed rate limiting |
-| Logging | Pino + pino-http (structured JSON with request IDs) |
+| Observability | Pino + pino-http (structured JSON with request IDs), /health and /metrics endpoints |
 | Testing | Vitest 4, Supertest, mongodb-memory-server (in-memory replica set) |
 
 ---
@@ -126,7 +126,8 @@ SkillAnchor/
 │   ├── .dockerignore
 │   ├── src/
 │   │   ├── app.ts                 # Express app setup & middleware pipeline
-│   │   ├── server.ts              # Server entry point with graceful shutdown
+│   │   ├── server.ts              # API Server entry point with graceful shutdown
+│   │   ├── worker.ts              # Standalone BullMQ Worker process entry point
 │   │   ├── config/                # db, redis, s3, env (Zod), rateLimiter
 │   │   ├── routes/                # API route definitions (6 modules)
 │   │   ├── controllers/           # Request handlers (5 modules)
@@ -240,6 +241,9 @@ npm run dev:server
 
 # Terminal 2 — Frontend App (http://localhost:3000)
 npm run dev:client
+
+# Terminal 3 — Background Worker
+cd server && npm run worker
 ```
 
 > **Note:** Option B requires your `MONGO_URI` and `REDIS_URL` in `.env` to be correctly pointing to your Atlas and Redis Cloud instances.
@@ -329,6 +333,8 @@ All endpoints are prefixed with `/api/v1`. Responses follow a consistent JSON en
 | Module | Method | Endpoint | Auth | Role |
 |---|---|---|---|---|
 | **Health** | `GET` | `/health` | — | — |
+| **Observability**| `GET` | `/metrics` | — | — |
+| | `GET` | `/logs` | — | — |
 | **Auth** | `POST` | `/auth/register` | — | — |
 | | `POST` | `/auth/login` | — | — |
 | | `POST` | `/auth/send-otp` | — | — |

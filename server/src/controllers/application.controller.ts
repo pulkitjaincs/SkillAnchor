@@ -42,7 +42,8 @@ export const updateApplicationStatus = asyncHandler(async (req: Request, res: Re
     const result = await ApplicationService.updateStatus(
         req.params.id as string,
         req.user._id.toString(),
-        req.body.status
+        req.body.status,
+        req.id?.toString()
     );
 
     if (result.notFound) throw new AppError("Application not found", 404);
