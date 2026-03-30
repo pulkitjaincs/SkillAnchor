@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import request from 'supertest';
 import app from '../app.js';
+import { createHiredWorker } from '../queues/hired.queue.js';
 import User from '../models/User.model.js';
 import Job from '../models/Job.model.js';
 import WorkExperience from '../models/WorkExperience.model.js';
@@ -15,8 +16,10 @@ vi.mock('../config/s3.js', () => ({
 describe('Application Lifecycle Integration', () => {
     let employerToken: string, workerToken: string, otherEmployerToken: string, otherWorkerToken: string;
     let employerId: string, workerId: string, jobId: string;
+    let testWorker: ReturnType<typeof createHiredWorker>;
 
     beforeEach(async () => {
+        testWorker = createHiredWorker();
         const employer = await User.create({ name: 'Emp', email: `e-${Date.now()}@test.com`, role: 'employer', authType: 'email', emailVerified: true });
         const worker = await User.create({ name: 'Wrk', email: `w-${Date.now()}@test.com`, role: 'worker', authType: 'email', emailVerified: true });
         const otherEmployer = await User.create({ name: 'Other Emp', email: `oe-${Date.now()}@test.com`, role: 'employer', authType: 'email', emailVerified: true });
@@ -206,6 +209,13 @@ describe('Application Lifecycle Integration', () => {
             expect(experience).not.toBeNull();
             expect(experience?.role).toBe('Test Job');
             expect(experience?.isVerified).toBe(true);
+        });
+
+        afterEach(async () => {
+            if (testWorker) {
+                testWorker.removeAllListeners();
+                await testWorker.close();
+            }
         });
     });
 
