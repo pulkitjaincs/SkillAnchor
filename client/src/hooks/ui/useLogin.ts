@@ -43,7 +43,7 @@ export const useLogin = () => {
                     return;
                 }
                 if (!otpSent) {
-                    const { data } = await authAPI.sendOTP({ phone });
+                    const { data } = await authAPI.sendOTP({ authType: 'phone', phone });
                     setIsNewUser(data.isNewUser);
                     setOtpSent(true);
                     setLoading(false);
@@ -54,7 +54,7 @@ export const useLogin = () => {
                     setLoading(false);
                     return;
                 }
-                const payload: { phone: string; otp: string; name?: string; role?: string } = { phone, otp };
+                const payload: { authType: 'phone'; phone: string; otp: string; name?: string; role?: 'worker' | 'employer' } = { authType: 'phone', phone, otp };
                 if (isNewUser) {
                     if (!name.trim()) {
                         setError('Please enter your full name');
@@ -83,14 +83,14 @@ export const useLogin = () => {
                         setLoading(false);
                         return;
                     }
-                    const { data } = await authAPI.login({ email, password });
+                    const { data } = await authAPI.login({ authType: 'email', email, password });
                     login(data.user);
                     router.push(redirect);
                 }
 
                 if (emailMethod === 'otp') {
                     if (!otpSent) {
-                        const { data } = await authAPI.sendOTP({ email });
+                        const { data } = await authAPI.sendOTP({ authType: 'email', email });
                         setIsNewUser(data.isNewUser);
                         setOtpSent(true);
                         setLoading(false);
@@ -101,7 +101,7 @@ export const useLogin = () => {
                         setLoading(false);
                         return;
                     }
-                    const payload: { email: string; otp: string; name?: string; role?: string } = { email, otp };
+                    const payload: { authType: 'email'; email: string; otp: string; name?: string; role?: 'worker' | 'employer' } = { authType: 'email', email, otp };
                     if (isNewUser) {
                         if (!name.trim()) {
                             setError('Please enter your full name');

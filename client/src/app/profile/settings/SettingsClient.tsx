@@ -28,11 +28,15 @@ export default function SettingsClient() {
         }
     }, []);
     const handleSendOTP = useCallback(async (payload: { email: string } | { phone: string }) => {
-        await authAPI.sendUpdateOTP(payload);
+        const withAuthType = 'email' in payload
+            ? { authType: 'email' as const, ...payload }
+            : { authType: 'phone' as const, ...payload };
+        await authAPI.sendUpdateOTP(withAuthType);
     }, []);
 
     const handleVerifyOTP = useCallback(async (payload: { otp: string; email?: string; phone?: string }) => {
-        const { data } = await authAPI.verifyUpdateOTP(payload);
+        const authType = payload.email ? 'email' as const : 'phone' as const;
+        const { data } = await authAPI.verifyUpdateOTP({ authType, ...payload });
         if (data.user) updateUserData(data.user);
     }, [updateUserData]);
 

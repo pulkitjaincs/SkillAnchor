@@ -20,7 +20,11 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (typeof window !== 'undefined' && error.response?.status === 401) {
+        if (
+            typeof window !== 'undefined' &&
+            error.response?.status === 401 &&
+            !error.config?.url?.includes('/auth/get-me')
+        ) {
             window.dispatchEvent(new Event('auth:unauthorized'));
         }
         return Promise.reject(error);

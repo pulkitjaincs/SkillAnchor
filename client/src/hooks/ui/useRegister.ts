@@ -36,7 +36,7 @@ export const useRegister = () => {
                     return;
                 }
                 if (!otpSent) {
-                    await authAPI.sendOTP({ phone, role });
+                    await authAPI.sendOTP({ authType: 'phone', phone, role });
                     setOtpSent(true);
                     setLoading(false);
                     return;
@@ -46,7 +46,7 @@ export const useRegister = () => {
                     setLoading(false);
                     return;
                 }
-                const { data } = await authAPI.verifyOTP({ phone, role, name, otp });
+                const { data } = await authAPI.verifyOTP({ authType: 'phone', phone, role, name, otp });
                 login(data.user);
                 router.push('/');
             }
@@ -63,7 +63,7 @@ export const useRegister = () => {
                     setLoading(false);
                     return;
                 }
-                const { data } = await authAPI.register({ email, role, name, password });
+                const { data } = await authAPI.register({ authType: 'email', email, role, name, password });
                 login(data.user);
                 router.push('/');
             }

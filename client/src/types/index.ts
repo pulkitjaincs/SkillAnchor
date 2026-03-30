@@ -57,12 +57,15 @@ export interface AuthPayloads {
         authType: 'email' | 'phone';
         email?: string;
         phone?: string;
+        password?: string;
     };
     SendOTP: {
         authType: 'email' | 'phone';
         email?: string;
         phone?: string;
         reason?: string;
+        role?: 'worker' | 'employer';
+        name?: string;
     };
     VerifyOTP: {
         authType: 'email' | 'phone';
@@ -70,9 +73,12 @@ export interface AuthPayloads {
         phone?: string;
         otp: string;
         reason?: string;
+        role?: 'worker' | 'employer';
+        name?: string;
+        password?: string;
     };
-    ForgotPassword: { email: string };
-    ResetPassword: { email: string; otp: string; newPassword?: string };
+    ForgotPassword: { email: string } | { phone: string };
+    ResetPassword: { email: string; otp: string; newPassword?: string } | { phone: string; otp: string; newPassword?: string };
     UpdatePassword: { currentPassword?: string; newPassword?: string };
 }
 

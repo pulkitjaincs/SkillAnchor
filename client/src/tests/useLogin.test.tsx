@@ -49,8 +49,7 @@ describe('useLogin Hook', () => {
 
         await act(async () => { result.current.setPhone('9876543210'); });
         await act(async () => { await submit(result.current); });
-
-        expect(authAPI.sendOTP).toHaveBeenCalledWith({ phone: '9876543210' });
+        expect(authAPI.sendOTP).toHaveBeenCalledWith({ authType: 'phone', phone: '9876543210' });
         expect(result.current.otpSent).toBe(true);
     });
 
@@ -65,8 +64,7 @@ describe('useLogin Hook', () => {
             result.current.setOtp('123456');
         });
         await act(async () => { await submit(result.current); });
-
-        expect(authAPI.verifyOTP).toHaveBeenCalledWith({ phone: '9876543210', otp: '123456' });
+        expect(authAPI.verifyOTP).toHaveBeenCalledWith({ authType: 'phone', phone: '9876543210', otp: '123456' });
         expect(mockLogin).toHaveBeenCalledWith({ name: 'Test' });
         expect(mockPush).toHaveBeenCalledWith('/');
     });
@@ -85,8 +83,7 @@ describe('useLogin Hook', () => {
             result.current.setName('New User');
         });
         await act(async () => { await submit(result.current); });
-
-        expect(authAPI.verifyOTP).toHaveBeenCalledWith({ phone: '9876543210', otp: '123456', name: 'New User', role: 'worker' });
+        expect(authAPI.verifyOTP).toHaveBeenCalledWith({ authType: 'phone', phone: '9876543210', otp: '123456', name: 'New User', role: 'worker' });
     });
 
     // ── Phone: validation errors ─────────────────────────────────────────────────
@@ -130,8 +127,7 @@ describe('useLogin Hook', () => {
             result.current.setPassword('secret123');
         });
         await act(async () => { await submit(result.current); });
-
-        expect(authAPI.login).toHaveBeenCalledWith({ email: 'test@example.com', password: 'secret123' });
+        expect(authAPI.login).toHaveBeenCalledWith({ authType: 'email', email: 'test@example.com', password: 'secret123' });
         expect(mockLogin).toHaveBeenCalledWith({ name: 'Test' });
     });
 
@@ -167,8 +163,7 @@ describe('useLogin Hook', () => {
             result.current.setEmail('test@example.com');
         });
         await act(async () => { await submit(result.current); });
-
-        expect(authAPI.sendOTP).toHaveBeenCalledWith({ email: 'test@example.com' });
+        expect(authAPI.sendOTP).toHaveBeenCalledWith({ authType: 'email', email: 'test@example.com' });
         expect(result.current.otpSent).toBe(true);
     });
 
@@ -184,8 +179,7 @@ describe('useLogin Hook', () => {
             result.current.setOtp('654321');
         });
         await act(async () => { await submit(result.current); });
-
-        expect(authAPI.verifyOTP).toHaveBeenCalledWith({ email: 'test@example.com', otp: '654321' });
+        expect(authAPI.verifyOTP).toHaveBeenCalledWith({ authType: 'email', email: 'test@example.com', otp: '654321' });
         expect(mockLogin).toHaveBeenCalledWith({ name: 'Test' });
     });
 

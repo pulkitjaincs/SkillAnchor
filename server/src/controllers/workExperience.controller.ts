@@ -1,4 +1,4 @@
-import WorkExperience from "../models/WorkExperience.model.js";
+import WorkExperience, { IWorkExperience } from "../models/WorkExperience.model.js";
 import WorkerProfile from "../models/WorkerProfile.model.js";
 import Application from "../models/Application.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
@@ -11,7 +11,7 @@ export const getWorkExperiencesByUser = asyncHandler(async (req: Request, res: R
     const limit = parseInt(req.query.limit as string) || 10;
     const cursor = req.query.cursor as string | undefined;
 
-    const query: QueryFilter<any> = { worker: req.params.userId, isVisible: true };
+    const query: QueryFilter<IWorkExperience> = { worker: req.params.userId, isVisible: true };
     if (cursor && mongoose.isValidObjectId(cursor)) {
         query._id = { $lt: new mongoose.Types.ObjectId(cursor) };
     }
@@ -24,7 +24,7 @@ export const getWorkExperiencesByUser = asyncHandler(async (req: Request, res: R
 
     const hasMore = experiences.length > limit;
     if (hasMore) experiences.pop();
-    const nextCursor = hasMore && experiences.length > 0 ? experiences[experiences.length - 1]._id : null;
+    const nextCursor = hasMore && experiences.length > 0 ? (experiences[experiences.length - 1]?._id ?? null) : null;
 
     res.json({ success: true, data: { workExperiences: experiences }, hasMore, nextCursor });
 });

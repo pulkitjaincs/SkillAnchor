@@ -50,7 +50,7 @@ app.get("/api/v1/health", async (req: Request, res: Response) => {
             uptime: process.uptime(),
             timestamp: new Date().toISOString()
         });
-    } catch (error) {
+    } catch (_error) {
         res.status(503).json({ status: 'degraded', error: 'Health check failed' });
     }
 });
